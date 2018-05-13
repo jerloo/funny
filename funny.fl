@@ -1,0 +1,37 @@
+
+doFun(a,b) {
+  if a > b {
+    echo(a)
+  } else {
+    echo(b)
+  }
+}
+
+flag = true
+items = [ 1, 2, 3 ]
+for {
+    if flag == false {
+        break
+    }
+    for i,item in items {
+        echo(i, item, c)
+    }
+}
+
+d = {
+    ok = false
+}
+
+d.ok = true
+
+doCl(){
+    sub = 1
+    doSub(){
+        sub = 2
+    }
+}
+
+t = doCl()
+echo(t.sub)
+t.doSub()
+echo(t.sub)
