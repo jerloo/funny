@@ -17,7 +17,7 @@ func NewInterpreter(vars Scope) *Interpreter {
 	}
 }
 
-func (i *Interpreter) Run(program Program) {
+func (i *Interpreter) Run(program Program) Value {
 	for _, item := range program.Statements {
 		switch item := item.(type) {
 		case *Assign:
@@ -30,22 +30,38 @@ func (i *Interpreter) Run(program Program) {
 		case *IFStatement:
 		case *FORStatement:
 		case *FunctionCall:
-			var params []Value
-			for _, p := range item.Parameters {
-				params = append(params, i.EvalExpression(p))
-			}
-			if fn, ok := FUNCTIONS[item.Name]; ok {
-				fn(i, params)
-			}
+			i.EvalFunctionCall(item)
 		case *Function:
+			i.Assign(item.Name, item)
+		case *Field:
+			return i.EvalField(item)
 		default:
-			panic("")
+			panic(fmt.Sprintf("invalid statements %s", item.String()))
 		}
 	}
+	return Value(nil)
+}
+
+func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
+	var params []Value
+	for _, p := range item.Parameters {
+		params = append(params, i.EvalExpression(p))
+	}
+	if fn, ok := FUNCTIONS[item.Name]; ok {
+		return fn(i, params)
+	}
+	fun := i.Lookup(item.Name).(Function)
+	return i.EvalFunction(fun)
+}
+
+func (i *Interpreter) EvalFunction(item Function) Value {
+	return Value(nil)
 }
 
 func (i *Interpreter) AssignField(field *Field, val Value) {
-
+	scope := make(map[string]Value)
+	scope[field.Value.(*Variable).Name] = val
+	i.Assign(field.Variable.Name, Value(scope))
 }
 
 func (i *Interpreter) Assign(name string, val Value) {
@@ -76,23 +92,59 @@ func (i *Interpreter) EvalExpression(expression Expresion) Value {
 	case *BinaryExpression:
 		switch item.Operator.Kind {
 		case PLUS:
-			i.EvalPlus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+			return i.EvalPlus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case MINUS:
-			i.EvalMinus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+			return i.EvalMinus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case TIMES:
-			i.EvalTimes(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+			return i.EvalTimes(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case DEVIDE:
-			i.EvalDevide(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
-
+			return i.EvalDevide(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		default:
+			panic("support + - * /")
 		}
 	case *List:
+		var ls []interface{}
+		for _, item := range item.Values {
+			ls = append(ls, i.EvalExpression(item))
+		}
+		return Value(ls)
 	case *Block: // dict => map[string]Value{}
-		var scope Scope
+		scope := make(map[string]Value)
+
+		for _, d := range *item {
+			switch d := d.(type) {
+			case *Assign:
+				if t, ok := d.Target.(*Variable); ok {
+					scope[t.Name] = i.EvalExpression(d.Value)
+				} else {
+					panic("block assign must variable")
+				}
+			default:
+				panic("block must only contains assign")
+			}
+		}
 		return scope
 	case *Boolen:
-
+		return Value(item.Value)
+	case *Literal:
+		return Value(item.Value)
+	case *FunctionCall:
+		return i.EvalFunctionCall(item)
+	case *Field:
+		return i.EvalField(item)
 	}
 	panic(fmt.Sprintf("eval expression error : %s", expression.String()))
+}
+
+func (i *Interpreter) EvalField(item *Field) Value {
+	switch v := item.Value.(type) {
+	case *FunctionCall:
+		return i.EvalFunctionCall(v)
+	case *Variable:
+		ii := i.Lookup(item.Variable.Name).(map[string]Value)
+		return Value(ii[v.Name])
+	}
+	return Value(nil)
 }
 
 func (i *Interpreter) EvalPlus(left, right Value) Value {

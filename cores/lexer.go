@@ -57,10 +57,18 @@ func (l *Lexer) LA(n int) rune {
 }
 
 func (l *Lexer) Consume(n int) rune {
-	ch, size := utf8.DecodeRune(l.Data[l.Offset+n:])
-	l.Offset += size
-	l.CurrentPos.Col++
-	return ch
+	for n > 0 {
+		ch, size := utf8.DecodeRune(l.Data[l.Offset:])
+		if l.Offset+size > len(l.Data) {
+			return -1
+		}
+		l.Offset += size
+		if n == 0 {
+			return ch
+		}
+		n--
+	}
+	return -1
 }
 
 func (l *Lexer) CreateToken(kind string) Token {

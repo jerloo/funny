@@ -1,40 +1,18 @@
 package cores
 
 import (
-	"io/ioutil"
 	"testing"
+	"unicode/utf8"
 )
 
-func TestLexer_LA(t *testing.T) {
-	ss := "echo(t.sub)"
-	lexer := NewLexer([]byte(ss))
-	for {
-		token := lexer.Next()
-		t.Logf(token.String())
-		if token.Kind == EOF {
-			break
-		}
+func TestLexer_Consume(t *testing.T) {
+	s := "abcdefg"
+	r, size := utf8.DecodeRune([]byte(s))
+	if r != 'a' {
+		t.Error(size)
 	}
-}
-
-func TestParse(t *testing.T) {
-	data, err := ioutil.ReadFile("funny.fl")
-	if err != nil {
-		panic(err)
+	r, size= utf8.DecodeRune([]byte(s)[size:])
+	if r != 'b' {
+		t.Error(size)
 	}
-	lexer := NewLexer(data)
-	for {
-		t.Log("fasfasff")
-		token := lexer.Next()
-		t.Logf("token: %c", token.Data)
-		if token.Kind == EOF {
-			break
-		}
-	}
-
-}
-
-func TestToken_String(t *testing.T) {
-	token := Token{}
-	t.Log(token)
 }
