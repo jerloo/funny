@@ -64,7 +64,7 @@ func (l *Lexer) Consume(n int) rune {
 }
 
 func (l *Lexer) CreateToken(kind string) Token {
-	st := l.Data[l.SaveOffset+1:l.Offset+1]
+	st := l.Data[l.SaveOffset+1 : l.Offset+1]
 	return Token{
 		Kind:     kind,
 		Data:     string(st),
@@ -196,6 +196,7 @@ func (l *Lexer) Next() Token {
 				return l.CreateToken(NOTEQ)
 			}
 		default:
+
 			if isNameStart(ch) {
 				for {
 					chNext := l.LA(1)

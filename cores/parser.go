@@ -280,6 +280,16 @@ func (p *Parser) ReadExpression() Expresion {
 			}
 			return field
 		default:
+			if current.Data == "true" {
+				return &Boolen{
+					Value: true,
+				}
+			}
+			if current.Data == "false" {
+				return &Boolen{
+					Value: false,
+				}
+			}
 			return &Variable{
 				Name: current.Data,
 			}

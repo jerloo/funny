@@ -258,6 +258,19 @@ func (b *Continue) String() string {
 	return "continue"
 }
 
+type Return struct {
+	pos   Position
+	Value Expresion
+}
+
+func (r *Return) Position() Position {
+	return r.pos
+}
+
+func (r *Return) String() string {
+	return fmt.Sprintf("return %s", r.Value.String())
+}
+
 type Field struct {
 	pos      Position
 	Variable Variable
@@ -270,4 +283,20 @@ func (f *Field) Position() Position {
 
 func (f *Field) String() string {
 	return fmt.Sprintf("%s.%s", f.Variable.String(), f.Value.String())
+}
+
+type Boolen struct {
+	pos   Position
+	Value bool
+}
+
+func (b *Boolen) Position() Position {
+	return b.pos
+}
+
+func (b *Boolen) String() string {
+	if b.Value {
+		return "true"
+	}
+	return "false"
 }
