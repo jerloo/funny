@@ -11,7 +11,7 @@ type Position struct {
 }
 
 func (p *Position) String() string {
-	return fmt.Sprintf("[Position] Line: %d, Col: %d", p.Line, p.Col)
+	return fmt.Sprintf("[Position] Line: %4d, Col: %4d", p.Line, p.Col)
 }
 
 type Token struct {
@@ -21,7 +21,7 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("[Token] Kind: %s, %s, Data: %s", t.Kind, t.Position.String(), t.Data)
+	return fmt.Sprintf("[Token] Kind: %6s, %6s, Data: %6s", t.Kind, t.Position.String(), t.Data)
 }
 
 type Lexer struct {
@@ -37,6 +37,10 @@ type Lexer struct {
 func NewLexer(data []byte) *Lexer {
 	return &Lexer{
 		Data: data,
+		CurrentPos: Position{
+			Line: 1,
+			Col:  1,
+		},
 	}
 }
 
@@ -73,11 +77,13 @@ func (l *Lexer) Consume(n int) rune {
 
 func (l *Lexer) CreateToken(kind string) Token {
 	st := l.Data[l.SaveOffset+1 : l.Offset+1]
-	return Token{
+	token := Token{
 		Kind:     kind,
 		Data:     string(st),
 		Position: l.CurrentPos,
 	}
+	l.CurrentPos.Col += len(token.Data)
+	return token
 }
 
 func (l *Lexer) NewLine() {
