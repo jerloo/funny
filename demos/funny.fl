@@ -1,0 +1,14 @@
+
+a = 1
+b = 2
+c = a + b
+
+echo(c)
+
+p(a, b){
+    return a + b
+}
+
+d = p(a,b)
+
+return d - 1
