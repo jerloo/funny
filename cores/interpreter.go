@@ -19,25 +19,36 @@ func NewInterpreter(vars Scope) *Interpreter {
 
 func (i *Interpreter) Run(program Program) Value {
 	for _, item := range program.Statements {
-		switch item := item.(type) {
-		case *Assign:
-			switch a := item.Target.(type) {
-			case *Variable:
-				i.Assign(a.Name, i.EvalExpression(item.Value))
-			case *Field:
-				i.AssignField(a, i.EvalExpression(item.Value))
-			}
-		case *IFStatement:
-		case *FORStatement:
-		case *FunctionCall:
-			i.EvalFunctionCall(item)
-		case *Function:
-			i.Assign(item.Name, item)
-		case *Field:
-			return i.EvalField(item)
-		default:
-			panic(fmt.Sprintf("invalid statements %s", item.String()))
+		r := i.EvalStatement(item)
+		if r != nil {
+			return r
 		}
+	}
+	return Value(nil)
+}
+
+func (i *Interpreter) EvalStatement(item Statement) Value {
+	switch item := item.(type) {
+	case *Assign:
+		switch a := item.Target.(type) {
+		case *Variable:
+			i.Assign(a.Name, i.EvalExpression(item.Value))
+		case *Field:
+			i.AssignField(a, i.EvalExpression(item.Value))
+		}
+		break
+	case *IFStatement:
+	case *FORStatement:
+	case *FunctionCall:
+		i.EvalFunctionCall(item)
+	case *Function:
+		i.Assign(item.Name, item)
+	case *Field:
+		return i.EvalField(item)
+	case *Return:
+		return i.EvalExpression(item.Value)
+	default:
+		panic(fmt.Sprintf("invalid statements %s", item.String()))
 	}
 	return Value(nil)
 }
@@ -50,11 +61,20 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
 	if fn, ok := FUNCTIONS[item.Name]; ok {
 		return fn(i, params)
 	}
-	fun := i.Lookup(item.Name).(Function)
-	return i.EvalFunction(fun)
+	fun := i.Lookup(item.Name).(*Function)
+	return i.EvalFunction(*fun, params)
 }
 
-func (i *Interpreter) EvalFunction(item Function) Value {
+func (i *Interpreter) EvalFunction(item Function, params []Value) Value {
+
+	for index, p := range item.Parameters {
+		i.Assign(p.(*Variable).Name, params[index])
+	}
+	for _, b := range item.Body {
+		if r := i.EvalStatement(b); r != nil {
+			return r
+		}
+	}
 	return Value(nil)
 }
 
@@ -126,6 +146,8 @@ func (i *Interpreter) EvalExpression(expression Expresion) Value {
 		return scope
 	case *Boolen:
 		return Value(item.Value)
+	case *Variable:
+		return i.Lookup(item.Name)
 	case *Literal:
 		return Value(item.Value)
 	case *FunctionCall:

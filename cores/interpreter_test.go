@@ -2,7 +2,6 @@ package cores
 
 import (
 	"testing"
-	"io/ioutil"
 )
 
 func RunSingle(data interface{}) (*Interpreter, Value) {
@@ -80,7 +79,21 @@ func TestInterpreter_EvalPlus(t *testing.T) {
 }
 
 func TestInterpreter_Run(t *testing.T) {
-	data, _ := ioutil.ReadFile("../demos/funny.fl")
+	data := `
+a = 1
+b = 2
+c = a + b
+
+echo(c)
+
+p(a, b){
+    return a + b
+}
+
+d = p(a,b)
+
+return d - 1`
+
 	_, r := RunSingle(data)
 	if r != 2 {
 		t.Error("RunSingle funny.fl must return 2")

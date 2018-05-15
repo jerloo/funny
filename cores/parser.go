@@ -47,6 +47,12 @@ func (p *Parser) ReadStatement() Statement {
 	case EOF:
 		return nil
 	case NAME:
+		if current.Data == "return" {
+
+			return &Return{
+				Value: p.ReadExpression(),
+			}
+		}
 		kind, ok := Keywords[current.Data]
 		if ok {
 			switch kind {

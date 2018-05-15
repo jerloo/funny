@@ -53,7 +53,7 @@ func parser() {
 		if item == nil {
 			break
 		}
-		fmt.Printf("%v\n", item.String())
+		fmt.Printf("%s | %s\n", cores.Typing(item), item.String())
 
 	}
 }
