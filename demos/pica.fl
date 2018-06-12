@@ -1,0 +1,18 @@
+
+// demo for pica
+
+url = 'http://localhost:5000'
+
+header = {
+    "Authorization":"test_token"
+}
+
+// get /zone/login 登录
+req.json = {
+    "username":"test_username",
+    "password":"test_password"
+}
+assert(res.status==200)
+assert(res.id!=0)
+
+
