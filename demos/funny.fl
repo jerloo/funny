@@ -5,10 +5,17 @@ c = a + b
 
 echo(c)
 
-p(a, b){
+hello = 'hello'
+world = 'world'
+
+hw = hello + world
+
+echo(hw)
+
+p(a, b) {
     return a + b
 }
 
-d = p(a,b)
+d = p(a, b)
 
 return d - 1

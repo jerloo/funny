@@ -209,6 +209,12 @@ func (l *Lexer) Next() Token {
 				l.Consume(2)
 				return l.CreateToken(NOTEQ)
 			}
+		case '\'':
+			if l.LA(2) == '"' {
+				l.Consume(2)
+				return l.CreateToken(STRING)
+			}
+			return l.ReadString()
 		default:
 
 			if isNameStart(ch) {
@@ -226,4 +232,24 @@ func (l *Lexer) Next() Token {
 			return l.CreateToken(EOF)
 		}
 	}
+}
+
+func (l *Lexer) ReadString() Token {
+	// TODO: Fix (using state machine)
+	l.Consume(1)
+	l.Reset()
+
+	for {
+		ch := l.LA(1)
+		switch ch {
+		case '\'':
+			token := l.CreateToken(STRING)
+			l.Consume(1)
+			return token
+		default:
+			l.Consume(1)
+			break
+		}
+	}
+	return l.CreateToken(EOF)
 }
