@@ -305,6 +305,10 @@ func (p *Parser) ReadExpression() Expresion {
 		return &Literal{
 			Value: value,
 		}
+	case STRING:
+		return &Literal{
+			Value: current.Data,
+		}
 	case LParenthese:
 		return p.ReadExpression()
 	case LBrace:

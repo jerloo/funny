@@ -110,6 +110,7 @@ func (i *Interpreter) PushScope(scope Scope) {
 func (i *Interpreter) EvalExpression(expression Expresion) Value {
 	switch item := expression.(type) {
 	case *BinaryExpression:
+		// TODO: string minus
 		switch item.Operator.Kind {
 		case PLUS:
 			return i.EvalPlus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
@@ -171,6 +172,10 @@ func (i *Interpreter) EvalField(item *Field) Value {
 
 func (i *Interpreter) EvalPlus(left, right Value) Value {
 	switch left := left.(type) {
+	case string:
+		if right, ok := right.(string); ok {
+			return Value(left + right)
+		}
 	case int:
 		if right, ok := right.(int); ok {
 			return Value(left + right)
