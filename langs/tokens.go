@@ -1,4 +1,4 @@
-package cores
+package langs
 
 const (
 	LBrace      = "{"

@@ -1,4 +1,4 @@
-package cores
+package langs
 
 import (
 	"strconv"
@@ -296,16 +296,33 @@ func (p *Parser) ReadExpression() Expresion {
 					Value: false,
 				}
 			}
+			switch p.Current.Kind {
+			case PLUS:
+			case MINUS:
+				return p.ReadExpression()
+			}
 			return &Variable{
 				Name: current.Data,
 			}
 		}
+	case PLUS:
+		return p.ReadExpression()
 	case INT:
 		value, _ := strconv.Atoi(current.Data)
 		return &Literal{
 			Value: value,
 		}
 	case STRING:
+		switch p.Current.Kind {
+		case PLUS, MINUS:
+			return &BinaryExpression{
+				Left: &Literal{
+					Value: current.Data,
+				},
+				Operator: p.Consume(p.Current.Kind),
+				Right:    p.ReadExpression(),
+			}
+		}
 		return &Literal{
 			Value: current.Data,
 		}

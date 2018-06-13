@@ -1,4 +1,4 @@
-package cores
+package langs
 
 import (
 	"fmt"
@@ -43,6 +43,10 @@ func (l *Literal) Position() Position {
 }
 
 func (l *Literal) String() string {
+	fmt.Print(Typing(l.Value))
+	if Typing(l.Value) == "string"{
+		return fmt.Sprintf("'%v'", l.Value)
+	}
 	return fmt.Sprintf("%v", l.Value)
 }
 
@@ -299,4 +303,17 @@ func (b *Boolen) String() string {
 		return "true"
 	}
 	return "false"
+}
+
+type StringExpression struct {
+	pos   Position
+	Value string
+}
+
+func (s *StringExpression) Position() Position {
+	return s.pos
+}
+
+func (s *StringExpression) String() string {
+	return s.Value
 }

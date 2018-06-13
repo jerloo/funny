@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/alecthomas/kingpin"
 	"io/ioutil"
-	"github.com/jeremaihloo/funny-lang/cores"
+	"github.com/jeremaihloo/funny/langs"
 	"os"
 	"fmt"
 )
@@ -33,12 +33,12 @@ func main() {
 
 func lexer() {
 	data, _ := ioutil.ReadFile(*script)
-	lexer := cores.NewLexer(data)
+	lexer := langs.NewLexer(data)
 	for {
 		token := lexer.Next()
 		fmt.Printf("%v\n", token.String())
 
-		if token.Kind == cores.EOF {
+		if token.Kind == langs.EOF {
 			break
 		}
 	}
@@ -46,23 +46,23 @@ func lexer() {
 
 func parser() {
 	data, _ := ioutil.ReadFile(*script)
-	parser := cores.NewParser(data)
+	parser := langs.NewParser(data)
 	parser.Consume("")
 	for {
 		item := parser.ReadStatement()
 		if item == nil {
 			break
 		}
-		fmt.Printf("%s | %s\n", cores.Typing(item), item.String())
+		fmt.Printf("%s | %s\n", langs.Typing(item), item.String())
 
 	}
 }
 
 func run() {
 	data, _ := ioutil.ReadFile(*script)
-	interpreter := cores.NewInterpreter(cores.Scope{})
-	parser := cores.NewParser(data)
-	program := cores.Program{
+	interpreter := langs.NewInterpreter(langs.Scope{})
+	parser := langs.NewParser(data)
+	program := langs.Program{
 		Statements: parser.Parse(),
 	}
 	interpreter.Run(program)
