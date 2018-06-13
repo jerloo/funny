@@ -7,5 +7,5 @@ import (
 
 func Typing(data interface{}) string {
 	t := reflect.TypeOf(data)
-	return fmt.Sprintf("T: %s", t.String())
+	return fmt.Sprintf("%s", t.String())
 }

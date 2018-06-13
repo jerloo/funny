@@ -43,7 +43,6 @@ func (l *Literal) Position() Position {
 }
 
 func (l *Literal) String() string {
-	fmt.Print(Typing(l.Value))
 	if Typing(l.Value) == "string"{
 		return fmt.Sprintf("'%v'", l.Value)
 	}

@@ -14,6 +14,7 @@ var (
 	script       = app.Arg("script", "script file path").String()
 	optionLexer  = app.Flag("lexer", "tokenizer script").Bool()
 	optionParser = app.Flag("parser", "parser AST").Bool()
+	optionFormat = app.Flag("format", "format script code").Bool()
 )
 
 func main() {
@@ -26,9 +27,14 @@ func main() {
 		parser()
 		return
 	}
+	if *optionFormat {
+		format()
+		return
+	}
 	if *script != "" {
 		run()
 	}
+
 }
 
 func lexer() {
@@ -53,8 +59,20 @@ func parser() {
 		if item == nil {
 			break
 		}
-		fmt.Printf("%s | %s\n", langs.Typing(item), item.String())
+		fmt.Printf("%s\n", item.String())
+	}
+}
 
+func format() {
+	data, _ := ioutil.ReadFile(*script)
+	parser := langs.NewParser(data)
+	parser.Consume("")
+	for {
+		item := parser.ReadStatement()
+		if item == nil {
+			break
+		}
+		fmt.Printf("%s\n", item.String())
 	}
 }
 
