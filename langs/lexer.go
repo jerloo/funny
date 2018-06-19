@@ -93,6 +93,8 @@ func (l *Lexer) CreateToken(kind string) Token {
 func (l *Lexer) NewLine() {
 	l.CurrentPos.Col = 1
 	l.CurrentPos.Line++
+
+	l.Reset()
 }
 
 func (l *Lexer) ReadWhiteAndComments() {
@@ -148,7 +150,6 @@ func (l *Lexer) Next() Token {
 			l.Consume(1)
 			return l.CreateToken(EOF)
 		case '\n', ' ', '\t':
-			l.Consume(1)
 			l.ReadWhiteAndComments()
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {

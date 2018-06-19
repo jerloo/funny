@@ -270,7 +270,20 @@ func (p *Parser) ReadExpression() Expresion {
 			}
 		case LParenthese:
 			p.Consume(LParenthese)
-			return p.ReadFunction(current.Data)
+			fn1 := p.ReadFunction(current.Data)
+			switch item := fn1.(type) {
+			case *FunctionCall:
+				switch p.Current.Kind {
+				case MINUS, PLUS, TIMES, DEVIDE:
+					return &BinaryExpression{
+						Left:     item,
+						Operator: p.Consume(p.Current.Kind),
+						Right:    p.ReadExpression(),
+					}
+				}
+			default:
+				panic(fmt.Sprintf("Unknow token at line: %d, col: %d", current.Position.Line, current.Position.Col))
+			}
 		case DOT:
 			p.Consume(DOT)
 			field := &Field{
@@ -311,6 +324,16 @@ func (p *Parser) ReadExpression() Expresion {
 		return p.ReadExpression()
 	case INT:
 		value, _ := strconv.Atoi(current.Data)
+		switch p.Current.Kind {
+		case MINUS, PLUS, TIMES, DEVIDE:
+			return &BinaryExpression{
+				Left: &Literal{
+					Value: value,
+				},
+				Operator: p.Consume(p.Current.Kind),
+				Right:    p.ReadExpression(),
+			}
+		}
 		return &Literal{
 			Value: value,
 		}

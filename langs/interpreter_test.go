@@ -96,6 +96,6 @@ return d - 1`
 
 	_, r := RunSingle(data)
 	if r != 2 {
-		t.Error("RunSingle funny.fl must return 2")
+		t.Error("RunSingle funny.fun must return 2")
 	}
 }
