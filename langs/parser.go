@@ -94,6 +94,10 @@ func (p *Parser) ReadStatement() Statement {
 			}
 			return field
 		}
+	case NEW_LINE:
+		return &NewLine{
+
+		}
 	default:
 		panic(fmt.Sprintf("ReadStatement Unknow Token kind: %s value: %s at line: %d, col: %d", current.Kind,
 			current.Data, current.Position.Line, current.Position.Col))

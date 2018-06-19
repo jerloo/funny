@@ -149,7 +149,10 @@ func (l *Lexer) Next() Token {
 		case -1:
 			l.Consume(1)
 			return l.CreateToken(EOF)
-		case '\n', ' ', '\t':
+		case '\n':
+			l.Consume(1)
+			return l.CreateToken(NEW_LINE)
+		case ' ', '\t':
 			l.ReadWhiteAndComments()
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {

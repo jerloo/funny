@@ -18,6 +18,18 @@ type Statement interface {
 	String() string
 }
 
+type NewLine struct {
+	pos Position
+}
+
+func (n *NewLine) Position() Position {
+	return n.pos
+}
+
+func (n *NewLine) String() string {
+	return "\n"
+}
+
 // Variable
 type Variable struct {
 	pos  Position

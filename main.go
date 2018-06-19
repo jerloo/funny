@@ -67,12 +67,21 @@ func format() {
 	data, _ := ioutil.ReadFile(*script)
 	parser := langs.NewParser(data)
 	parser.Consume("")
+	flag := 0
 	for {
 		item := parser.ReadStatement()
 		if item == nil {
 			break
 		}
-		fmt.Printf("%s\n", item.String())
+		switch t := langs.Typing(item); t {
+		case "NewLine":
+			flag += 1
+		default:
+			if flag < 2 {
+				continue
+			}
+		}
+		fmt.Printf("%s", item.String())
 	}
 }
 

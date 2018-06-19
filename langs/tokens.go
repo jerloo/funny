@@ -38,6 +38,8 @@ const (
 	RETURN   = "return"
 	BREAK    = "break"
 	CONTINUE = "continue"
+
+	NEW_LINE = "\\n"
 )
 
 var Keywords = map[string]string{
