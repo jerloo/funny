@@ -41,6 +41,7 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 	case *FORStatement:
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
+		break
 	case *Function:
 		i.Assign(item.Name, item)
 	case *Field:

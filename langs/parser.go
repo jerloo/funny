@@ -27,7 +27,6 @@ func (p *Parser) Consume(kind string) Token {
 }
 
 func (p *Parser) Parse() Block {
-	p.Consume("")
 	block := Block{}
 	for {
 		if p.Current.Kind == EOF {

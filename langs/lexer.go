@@ -21,7 +21,7 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("[Token] Kind: %6s, %6s, Data: %6s", t.Kind, t.Position.String(), t.Data)
+	return fmt.Sprintf("[Token] Kind: %6s, %6s, Data: %6s", t.Kind, t.Position.String(), "["+t.Data+"]")
 }
 
 type Lexer struct {
@@ -46,31 +46,35 @@ func NewLexer(data []byte) *Lexer {
 
 func (l *Lexer) LA(n int) rune {
 	offset := l.Offset
-	for n >= 0 {
+	for {
 		ch, size := utf8.DecodeRune(l.Data[offset:])
 		if offset+size > len(l.Data) {
 			return -1
 		}
+		chString := string(ch)
+		fmt.Sprintf(chString)
 		offset += size
+		n--
 		if n == 0 {
 			return ch
 		}
-		n--
 	}
 	return -1
 }
 
 func (l *Lexer) Consume(n int) rune {
-	for n > 0 {
+	for {
 		ch, size := utf8.DecodeRune(l.Data[l.Offset:])
 		if l.Offset+size > len(l.Data) {
 			return -1
 		}
+		chString := string(ch)
+		fmt.Sprintf(chString)
 		l.Offset += size
+		n --
 		if n == 0 {
 			return ch
 		}
-		n--
 	}
 	return -1
 }
@@ -153,7 +157,8 @@ func (l *Lexer) Next() Token {
 			l.Consume(1)
 			return l.CreateToken(NEW_LINE)
 		case ' ', '\t':
-			l.ReadWhiteAndComments()
+			l.Consume(1)
+			break
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {
 				l.Consume(2)
