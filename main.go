@@ -59,7 +59,7 @@ func parser() {
 		if item == nil {
 			break
 		}
-		fmt.Printf("%s\n", item.String())
+		fmt.Printf("sss := %s\n", item.String())
 	}
 }
 
@@ -73,13 +73,13 @@ func format() {
 		if item == nil {
 			break
 		}
-		switch t := langs.Typing(item); t {
-		case "NewLine":
+		switch item.(type) {
+		case *langs.NewLine:
 			flag += 1
-		default:
-			if flag < 2 {
+			if flag < 1 {
 				continue
 			}
+			break
 		}
 		fmt.Printf("%s", item.String())
 	}

@@ -5,6 +5,27 @@ import (
 	"strings"
 )
 
+func collectBlock(block Block) []string {
+	flag := 0
+	var s []string
+	for _, item := range block {
+		if item == nil {
+			break
+		}
+		switch item.(type) {
+		case *NewLine:
+			flag += 1
+			if flag < 1 {
+				continue
+			}
+			break
+		}
+		flag = 0
+		s = append(s, item.String())
+	}
+	return s
+}
+
 func intent(s string) string {
 	ss := strings.Split(s, "\n")
 	for index, item := range ss {
@@ -128,7 +149,7 @@ func (b *Block) String() string {
 	for _, item := range (*b) {
 		s = append(s, item.String())
 	}
-	return strings.Join(s, "\n")
+	return strings.Join(s, "")
 }
 
 // Function
@@ -149,7 +170,7 @@ func (f *Function) String() string {
 		args = append(args, item.String())
 	}
 	s := block(f.Body)
-	return fmt.Sprintf("%s(%s) {\n%s\n}", f.Name, strings.Join(args, ", "), s)
+	return fmt.Sprintf("%s(%s) {%s}", f.Name, strings.Join(args, ", "), s)
 }
 
 type FunctionCall struct {
@@ -170,12 +191,13 @@ func (c *FunctionCall) String() string {
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
 
-func block(b Block) (s string) {
+func block(b Block) string {
+	s := collectBlock(b)
 	var ss []string
-	for _, item := range (b) {
-		ss = append(ss, intent(item.String()))
+	for _, item := range s {
+		ss = append(ss, intent(item))
 	}
-	return strings.Join(ss, "\n")
+	return strings.Join(ss, "")
 }
 
 // Program
@@ -201,9 +223,9 @@ func (i *IFStatement) Position() Position {
 
 func (i *IFStatement) String() string {
 	if i.Else != nil && len(i.Else) != 0 {
-		return fmt.Sprintf("if %s {\n%s\n} else {\n%s\n}\n", i.Condition.String(), block(i.Body), block(i.Else))
+		return fmt.Sprintf("if %s {%s} else {%s}", i.Condition.String(), block(i.Body), block(i.Else))
 	} else {
-		return fmt.Sprintf("if %s {\n%s\n}", i.Condition.String(), block(i.Body))
+		return fmt.Sprintf("if %s {%s}", i.Condition.String(), block(i.Body))
 	}
 }
 

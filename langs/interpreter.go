@@ -47,8 +47,10 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 		return i.EvalField(item)
 	case *Return:
 		return i.EvalExpression(item.Value)
+	case *NewLine:
+		return nil
 	default:
-		panic(fmt.Sprintf("invalid statements %s", item.String()))
+		panic(fmt.Sprintf("invalid statement %s", item.String()))
 	}
 	return Value(nil)
 }
