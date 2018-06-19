@@ -107,7 +107,7 @@ func (i *Interpreter) PushScope(scope Scope) {
 	i.Vars = append(i.Vars, scope)
 }
 
-func (i *Interpreter) EvalExpression(expression Expresion) Value {
+func (i *Interpreter) EvalExpression(expression Expression) Value {
 	switch item := expression.(type) {
 	case *BinaryExpression:
 		// TODO: string minus

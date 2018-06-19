@@ -220,8 +220,8 @@ func (p *Parser) ReadFunction(name string) Statement {
 	}
 }
 
-func (p *Parser) ReadList() Expresion {
-	l := []Expresion{}
+func (p *Parser) ReadList() Expression {
+	l := []Expression{}
 	for {
 		if p.Current.Kind == RBracket {
 			p.Consume(RBracket)
@@ -240,7 +240,7 @@ func (p *Parser) ReadList() Expresion {
 	}
 }
 
-func (p *Parser) ReadExpression() Expresion {
+func (p *Parser) ReadExpression() Expression {
 	current := p.Consume("")
 	switch current.Kind {
 	case NAME:
@@ -364,7 +364,7 @@ func (p *Parser) ReadExpression() Expresion {
 	panic(fmt.Sprintf("Unknow Expression at line: %d, col: %d", current.Position.Line, current.Position.Col))
 }
 
-func (p *Parser) ReadDict() Expresion {
+func (p *Parser) ReadDict() Expression {
 	var b Block
 	for {
 		if p.Current.Kind == RBrace {
@@ -377,7 +377,7 @@ func (p *Parser) ReadDict() Expresion {
 	return &b
 }
 
-func (p *Parser) ReadField() Expresion {
+func (p *Parser) ReadField() Expression {
 	name := p.Consume(NAME)
 	if p.Current.Kind == DOT {
 		p.Consume(DOT)

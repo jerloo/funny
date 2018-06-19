@@ -62,7 +62,7 @@ func (l *Literal) String() string {
 }
 
 // Expression
-type Expresion interface {
+type Expression interface {
 	Position() Position
 	String() string
 }
@@ -70,9 +70,9 @@ type Expresion interface {
 // BinaryExpression
 type BinaryExpression struct {
 	pos      Position
-	Left     Expresion
+	Left     Expression
 	Operator Token
-	Right    Expresion
+	Right    Expression
 }
 
 func (b *BinaryExpression) Position() Position {
@@ -86,8 +86,8 @@ func (b *BinaryExpression) String() string {
 // Assign
 type Assign struct {
 	pos    Position
-	Target Expresion
-	Value  Expresion
+	Target Expression
+	Value  Expression
 }
 
 func (a *Assign) Position() Position {
@@ -101,7 +101,7 @@ func (a *Assign) String() string {
 // List
 type List struct {
 	pos    Position
-	Values []Expresion
+	Values []Expression
 }
 
 func (l *List) Position() Position {
@@ -135,7 +135,7 @@ func (b *Block) String() string {
 type Function struct {
 	pos        Position
 	Name       string
-	Parameters []Expresion
+	Parameters []Expression
 	Body       Block
 }
 
@@ -155,7 +155,7 @@ func (f *Function) String() string {
 type FunctionCall struct {
 	pos        Position
 	Name       string
-	Parameters []Expresion
+	Parameters []Expression
 }
 
 func (c *FunctionCall) Position() Position {
@@ -190,7 +190,7 @@ func (p *Program) String() string {
 // IFStatement
 type IFStatement struct {
 	pos       Position
-	Condition Expresion
+	Condition Expression
 	Body      Block
 	Else      Block
 }
@@ -213,7 +213,7 @@ type FORStatement struct {
 	Block    Block
 
 	CurrentIndex Variable
-	CurrentItem  Expresion
+	CurrentItem  Expression
 }
 
 func (f *FORStatement) Position() Position {
@@ -233,7 +233,7 @@ type IterableExpression struct {
 	pos   Position
 	Name  Variable
 	Index int
-	Items []Expresion
+	Items []Expression
 }
 
 func (i *IterableExpression) Position() Position {
@@ -244,7 +244,7 @@ func (i *IterableExpression) String() string {
 	return fmt.Sprintf("", )
 }
 
-func (i *IterableExpression) Next() (int, Expresion) {
+func (i *IterableExpression) Next() (int, Expression) {
 	if i.Index+1 >= len(i.Items) {
 		return -1, nil
 	}
@@ -279,7 +279,7 @@ func (b *Continue) String() string {
 
 type Return struct {
 	pos   Position
-	Value Expresion
+	Value Expression
 }
 
 func (r *Return) Position() Position {
@@ -293,7 +293,7 @@ func (r *Return) String() string {
 type Field struct {
 	pos      Position
 	Variable Variable
-	Value    Expresion
+	Value    Expression
 }
 
 func (f *Field) Position() Position {
