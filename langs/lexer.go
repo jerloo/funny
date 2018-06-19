@@ -21,7 +21,11 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	return fmt.Sprintf("[Token] Kind: %6s, %6s, Data: %6s", t.Kind, t.Position.String(), "["+t.Data+"]")
+	dt := t.Data
+	if t.Data == "\n" {
+		dt = "\\n"
+	}
+	return fmt.Sprintf("[Token] Kind: %6s, %6s, Data: %6s", t.Kind, t.Position.String(), "["+dt+"]")
 }
 
 type Lexer struct {
@@ -80,11 +84,7 @@ func (l *Lexer) Consume(n int) rune {
 }
 
 func (l *Lexer) CreateToken(kind string) Token {
-	offset := 0
-	if l.SaveOffset != 0 {
-		offset = l.SaveOffset + 1
-	}
-	st := l.Data[offset : l.Offset+1]
+	st := l.Data[l.SaveOffset:l.Offset]
 	token := Token{
 		Kind:     kind,
 		Data:     string(st),
@@ -99,23 +99,6 @@ func (l *Lexer) NewLine() {
 	l.CurrentPos.Line++
 
 	l.Reset()
-}
-
-func (l *Lexer) ReadWhiteAndComments() {
-DONE:
-	for {
-		ch := l.LA(1)
-		switch ch {
-		case '\n':
-			l.Consume(1)
-			l.NewLine()
-			break DONE
-		case ' ', '\t':
-			l.Consume(1)
-		default:
-			break DONE
-		}
-	}
 }
 
 func isNameStart(ch rune) bool {
@@ -156,13 +139,13 @@ func (l *Lexer) Next() Token {
 		case '\n':
 			l.Consume(1)
 			return l.CreateToken(NEW_LINE)
-		case ' ', '\t':
+		case ' ':
 			l.Consume(1)
 			break
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {
 				l.Consume(2)
-				l.ReadWhiteAndComments()
+				l.ReadComments()
 			}
 			return l.CreateToken(DEVIDE)
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
@@ -231,6 +214,7 @@ func (l *Lexer) Next() Token {
 		default:
 
 			if isNameStart(ch) {
+				l.Consume(1)
 				for {
 					chNext := l.LA(1)
 					chNS := string(chNext)
@@ -265,4 +249,8 @@ func (l *Lexer) ReadString() Token {
 		}
 	}
 	return l.CreateToken(EOF)
+}
+
+func (lexer *Lexer) ReadComments() {
+
 }
