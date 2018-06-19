@@ -76,7 +76,11 @@ func (l *Lexer) Consume(n int) rune {
 }
 
 func (l *Lexer) CreateToken(kind string) Token {
-	st := l.Data[l.SaveOffset+1 : l.Offset+1]
+	offset := 0
+	if l.SaveOffset != 0 {
+		offset = l.SaveOffset + 1
+	}
+	st := l.Data[offset : l.Offset+1]
 	token := Token{
 		Kind:     kind,
 		Data:     string(st),
