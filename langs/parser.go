@@ -281,9 +281,8 @@ func (p *Parser) ReadExpression() Expresion {
 						Right:    p.ReadExpression(),
 					}
 				}
-			default:
-				panic(fmt.Sprintf("Unknow token at line: %d, col: %d", current.Position.Line, current.Position.Col))
 			}
+			return fn1
 		case DOT:
 			p.Consume(DOT)
 			field := &Field{
@@ -358,7 +357,7 @@ func (p *Parser) ReadExpression() Expresion {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic(fmt.Sprintf("ReadExpression error at line: %d, col: %d", current.Position.Line, current.Position.Col))
+	panic(fmt.Sprintf("Unknow Expression at line: %d, col: %d", current.Position.Line, current.Position.Col))
 }
 
 func (p *Parser) ReadDict() Expresion {
