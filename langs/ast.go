@@ -43,7 +43,7 @@ func (l *Literal) Position() Position {
 }
 
 func (l *Literal) String() string {
-	if Typing(l.Value) == "string"{
+	if Typing(l.Value) == "string" {
 		return fmt.Sprintf("'%v'", l.Value)
 	}
 	return fmt.Sprintf("%v", l.Value)
@@ -188,7 +188,11 @@ func (i *IFStatement) Position() Position {
 }
 
 func (i *IFStatement) String() string {
-	return fmt.Sprintf("if %s {\n%s\n} else {\n%s\n}\n", i.Condition.String(), block(i.Body), block(i.Else))
+	if i.Else != nil && len(i.Else) != 0 {
+		return fmt.Sprintf("if %s {\n%s\n} else {\n%s\n}\n", i.Condition.String(), block(i.Body), block(i.Else))
+	} else {
+		return fmt.Sprintf("if %s {\n%s\n}", i.Condition.String(), block(i.Body))
+	}
 }
 
 type FORStatement struct {
