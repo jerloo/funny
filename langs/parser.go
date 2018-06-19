@@ -19,7 +19,8 @@ func NewParser(data []byte) *Parser {
 func (p *Parser) Consume(kind string) Token {
 	old := p.Current
 	if kind != "" && old.Kind != kind {
-		panic(fmt.Sprintf("Invalid token kind: %s  val: %s but except: %s", old.Kind, old.Data, kind))
+		panic(fmt.Sprintf("Invalid token kind: %s  val: %s but except: %s at line: %s, col: %s", old.Kind,
+			old.Data, kind, old.Position.Line, old.Position.Col))
 	}
 	p.Current = p.Lexer.Next()
 	return old
@@ -94,7 +95,8 @@ func (p *Parser) ReadStatement() Statement {
 			return field
 		}
 	default:
-		panic(fmt.Sprintf("ReadStatement Unknow Token kind: %s value: %s", current.Kind, current.Data))
+		panic(fmt.Sprintf("ReadStatement Unknow Token kind: %s value: %s at line: %d, col: %d", current.Kind,
+			current.Data, current.Position.Line, current.Position.Col))
 	}
 	return nil
 }
@@ -333,7 +335,7 @@ func (p *Parser) ReadExpression() Expresion {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic("ReadExpression")
+	panic(fmt.Sprintf("ReadExpression error at line: %d, col: %d", current.Position.Line, current.Position.Col))
 }
 
 func (p *Parser) ReadDict() Expresion {
