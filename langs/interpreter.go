@@ -123,8 +123,18 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 			return i.EvalTimes(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case DEVIDE:
 			return i.EvalDevide(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case GT:
+			return i.EvalGt(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case GTE:
+			return i.EvalGte(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case LT:
+			return i.EvalLt(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case LTE:
+			return i.EvalLte(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case DOUBLE_EQ:
+			return i.EvalDoubleEq(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		default:
-			panic("support + - * /")
+			panic("support [+] [-] [*] [/] [>] [>=] [==] [<=] [<]")
 		}
 	case *List:
 		var ls []interface{}
@@ -317,4 +327,54 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 		}
 	}
 	return Value(false)
+}
+
+func (i *Interpreter) EvalGt(left, right Value) Value {
+	switch left := left.(type) {
+	case int:
+		if right, ok := right.(int); ok {
+			return Value(left > right)
+		}
+	}
+	panic("eval gt support: [int]")
+}
+
+func (i *Interpreter) EvalGte(left, right Value) Value {
+	switch left := left.(type) {
+	case int:
+		if right, ok := right.(int); ok {
+			return Value(left >= right)
+		}
+	}
+	panic("eval lte support: [int]")
+}
+
+func (i *Interpreter) EvalLt(left, right Value) Value {
+	switch left := left.(type) {
+	case int:
+		if right, ok := right.(int); ok {
+			return Value(left < right)
+		}
+	}
+	panic("eval lt support: [int]")
+}
+
+func (i *Interpreter) EvalLte(left, right Value) Value {
+	switch left := left.(type) {
+	case int:
+		if right, ok := right.(int); ok {
+			return Value(left <= right)
+		}
+	}
+	panic("eval lte support: [int]")
+}
+
+func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
+	switch left := left.(type) {
+	case int:
+		if right, ok := right.(int); ok {
+			return Value(left == right)
+		}
+	}
+	panic("eval double eq support: [int]")
 }

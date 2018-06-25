@@ -151,6 +151,10 @@ func (l *Lexer) Next() Token {
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
 			return l.ReadInt()
 		case '=':
+			if l.LA(2) == '=' {
+				l.Consume(2)
+				return l.CreateToken(DOUBLE_EQ)
+			}
 			l.Consume(1)
 			return l.CreateToken(EQ)
 		case '+':

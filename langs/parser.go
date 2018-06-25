@@ -269,24 +269,13 @@ func (p *Parser) ReadExpression() Expression {
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
 			}
-		case LT, LTE, GT, GTE:
+		case LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
 				Left: &Variable{
 					Name: current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
-			}
-		case EQ:
-			if p.Current.Kind == EQ {
-				next := p.Consume(EQ)
-				return &BinaryExpression{
-					Left: &Variable{
-						Name: current.Data,
-					},
-					Operator: p.Consume(next.Kind),
-					Right:    p.ReadExpression(),
-				}
 			}
 		case LParenthese:
 			p.Consume(LParenthese)
@@ -344,7 +333,7 @@ func (p *Parser) ReadExpression() Expression {
 	case INT:
 		value, _ := strconv.Atoi(current.Data)
 		switch p.Current.Kind {
-		case MINUS, PLUS, TIMES, DEVIDE:
+		case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
 				Left: &Literal{
 					Value: value,

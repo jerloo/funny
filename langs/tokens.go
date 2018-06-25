@@ -8,6 +8,7 @@ const (
 	LParenthese = "("
 	RParenthese = ")"
 	EQ          = "="
+	DOUBLE_EQ   = "=="
 	PLUS        = "+"
 	MINUS       = "-"
 	TIMES       = "*"
