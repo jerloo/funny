@@ -40,6 +40,7 @@ const (
 	CONTINUE = "continue"
 
 	NEW_LINE = "\\n"
+	COMMENT  = "comment"
 )
 
 var Keywords = map[string]string{

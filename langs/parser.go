@@ -94,6 +94,11 @@ func (p *Parser) ReadStatement() Statement {
 			}
 			return field
 		}
+	case COMMENT:
+		return &Comment{
+			pos:   current.Position,
+			Value: current.Data,
+		}
 	case NEW_LINE:
 		return &NewLine{
 

@@ -145,7 +145,7 @@ func (l *Lexer) Next() Token {
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {
 				l.Consume(2)
-				l.ReadComments()
+				return l.ReadComments()
 			}
 			return l.CreateToken(DEVIDE)
 		case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9':
@@ -251,6 +251,21 @@ func (l *Lexer) ReadString() Token {
 	return l.CreateToken(EOF)
 }
 
-func (lexer *Lexer) ReadComments() {
-
+func (l *Lexer) ReadComments() Token {
+	l.Reset()
+	for {
+		ch := l.LA(1)
+		switch ch {
+		case 65533, -1:
+			return l.CreateToken(EOF)
+		case '\n':
+			token := l.CreateToken(COMMENT)
+			l.Consume(1)
+			return token
+		default:
+			l.Consume(1)
+			break
+		}
+	}
+	return l.CreateToken(EOF)
 }

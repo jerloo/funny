@@ -354,3 +354,16 @@ func (s *StringExpression) Position() Position {
 func (s *StringExpression) String() string {
 	return s.Value
 }
+
+type Comment struct {
+	pos   Position
+	Value string
+}
+
+func (c *Comment) Position() Position {
+	return c.pos
+}
+
+func (c *Comment) String() string {
+	return c.Value
+}
