@@ -300,11 +300,18 @@ func (p *Parser) ReadExpression() Expression {
 				},
 				Value: p.ReadField(),
 			}
-			if p.Current.Kind == EQ {
+			switch p.Current.Kind {
+			case EQ:
 				p.Consume(EQ)
 				return &Assign{
 					Target: field,
 					Value:  p.ReadExpression(),
+				}
+			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
+				return &BinaryExpression{
+					Left:     field,
+					Operator: p.Consume(p.Current.Kind),
+					Right:    p.ReadExpression(),
 				}
 			}
 			return field
