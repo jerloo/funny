@@ -103,6 +103,17 @@ func (p *Parser) ReadStatement() Statement {
 		return &NewLine{
 
 		}
+	case STRING:
+		switch p.Current.Kind {
+		case EQ:
+			p.Consume(EQ)
+			return &Assign{
+				Target: &Variable{
+					Name: current.Data,
+				},
+				Value: p.ReadExpression(),
+			}
+		}
 	default:
 		panic(fmt.Sprintf("ReadStatement Unknow Token kind: %s value: %s at line: %d, col: %d", current.Kind,
 			current.Data, current.Position.Line, current.Position.Col))
