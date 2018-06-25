@@ -153,6 +153,8 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				} else {
 					panic("block assign must variable")
 				}
+			case *NewLine:
+				break
 			default:
 				panic("block must only contains assign")
 			}
