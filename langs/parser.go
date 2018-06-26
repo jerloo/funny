@@ -94,7 +94,6 @@ func (p *Parser) ReadStatement() Statement {
 			}
 			return field
 		case LBracket:
-			p.Consume(LBracket)
 			key := p.Consume(STRING)
 			p.Consume(RBracket)
 			field := &Field{
