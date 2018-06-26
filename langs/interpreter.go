@@ -8,23 +8,55 @@ type Value interface {
 type Scope map[string]Value
 
 type Interpreter struct {
-	Vars []Scope
+	Vars      []Scope
+	Functions map[string]BuiltinFunction
 }
 
-func NewInterpreter(vars Scope) *Interpreter {
+func NewInterpreterWithScope(vars Scope) *Interpreter {
 	return &Interpreter{
-		Vars: []Scope{vars},
+		Vars: []Scope{
+			vars,
+		},
+		Functions: FUNCTIONS,
 	}
 }
 
-func (i *Interpreter) Run(program Program) Value {
-	for _, item := range program.Statements {
-		r := i.EvalStatement(item)
-		if r != nil {
-			return r
+func (i *Interpreter) Run(v interface{}) Value {
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Printf("\nfunny runtime error: %s\n", err)
 		}
+	}()
+	switch v := v.(type) {
+	case Program:
+		return i.Run(&v)
+	case *Program:
+		for _, item := range v.Statements {
+			r := i.EvalStatement(item)
+			if r != nil {
+				return r
+			}
+		}
+	case string:
+		return i.Run([]byte(v))
+	case []byte:
+		parser := NewParser(v)
+		program := Program{
+			Statements: parser.Parse(),
+		}
+		return i.Run(program)
+	default:
+		panic(fmt.Sprintf("unknow type of running value: [%v]", v))
 	}
 	return Value(nil)
+}
+
+func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
+	if _, exists := i.Functions[name]; exists {
+		return fmt.Errorf("function [%s] already exists", name)
+	}
+	i.Functions[name] = fn
+	return nil
 }
 
 func (i *Interpreter) EvalStatement(item Statement) Value {
@@ -51,7 +83,7 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 	case *NewLine:
 		return nil
 	default:
-		panic(fmt.Sprintf("invalid statement %s", item.String()))
+		panic(fmt.Sprintf("invalid statement [%s]", item.String()))
 	}
 	return Value(nil)
 }
@@ -61,8 +93,12 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
 	for _, p := range item.Parameters {
 		params = append(params, i.EvalExpression(p))
 	}
-	if fn, ok := FUNCTIONS[item.Name]; ok {
+	if fn, ok := i.Functions[item.Name]; ok {
 		return fn(i, params)
+	}
+	look := i.Lookup(item.Name)
+	if look == nil {
+		panic(fmt.Sprintf("function [%s] not defined", item.Name))
 	}
 	fun := i.Lookup(item.Name).(*Function)
 	return i.EvalFunction(*fun, params)
@@ -151,7 +187,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				if t, ok := d.Target.(*Variable); ok {
 					scope[t.Name] = i.EvalExpression(d.Value)
 				} else {
-					panic("block assign must variable")
+					panic("block assign must be variable")
 				}
 			case *NewLine:
 				break
@@ -171,7 +207,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 	case *Field:
 		return i.EvalField(item)
 	}
-	panic(fmt.Sprintf("eval expression error : %s", expression.String()))
+	panic(fmt.Sprintf("eval expression error: [%s]", expression.String()))
 }
 
 func (i *Interpreter) EvalField(item *Field) Value {
@@ -240,7 +276,7 @@ func (i *Interpreter) EvalPlus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus requires types: int, list, dict")
+	panic("eval plus requires types: [int, list, dict]")
 }
 
 func (i *Interpreter) EvalMinus(left, right Value) Value {
@@ -274,7 +310,7 @@ func (i *Interpreter) EvalMinus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus requires types: int, list, dict")
+	panic("eval plus requires types: [int, list, dict]")
 }
 
 func (i *Interpreter) EvalTimes(left, right Value) Value {
@@ -283,7 +319,7 @@ func (i *Interpreter) EvalTimes(left, right Value) Value {
 			return Value(l * r)
 		}
 	}
-	panic("eval plus times types: int")
+	panic("eval plus times types: [int]")
 }
 
 func (i *Interpreter) EvalDevide(left, right Value) Value {
@@ -292,7 +328,7 @@ func (i *Interpreter) EvalDevide(left, right Value) Value {
 			return Value(l / r)
 		}
 	}
-	panic("eval plus devide types: int")
+	panic("eval plus devide types: [int]")
 }
 
 func (i *Interpreter) EvalEqual(left, right Value) Value {

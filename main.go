@@ -59,7 +59,7 @@ func parser() {
 		if item == nil {
 			break
 		}
-		fmt.Printf("sss := %s\n", item.String())
+		fmt.Printf("%s %s\n", langs.Typing(item), item.String())
 	}
 }
 
@@ -86,11 +86,10 @@ func format() {
 }
 
 func run() {
-	data, _ := ioutil.ReadFile(*script)
-	interpreter := langs.NewInterpreter(langs.Scope{})
-	parser := langs.NewParser(data)
-	program := langs.Program{
-		Statements: parser.Parse(),
+	data, err := ioutil.ReadFile(*script)
+	if err != nil {
+		fmt.Printf("open file error : %s", err)
 	}
-	interpreter.Run(program)
+	interpreter := langs.NewInterpreterWithScope(langs.Scope{})
+	interpreter.Run(data)
 }

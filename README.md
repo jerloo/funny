@@ -7,7 +7,7 @@ It begins just for fun.
 ## Installation
 
 ```console
-go get github.com/jeremaihloo/funny-lang
+go get github.com/jeremaihloo/funny
 ```
 
 ## Usage

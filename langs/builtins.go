@@ -14,6 +14,7 @@ var (
 		"now":          Now,
 		"base64encode": Base64Encode,
 		"base64decode": Base64Decode,
+		"assert":       Assert,
 	}
 )
 
@@ -70,4 +71,16 @@ func Base64Decode(interpreter *Interpreter, args []Value) Value {
 		results = append(results, base64decode(item.(string)))
 	}
 	return Value(results)
+}
+
+// Assert return the value that has been given
+func Assert(interpreter *Interpreter, args []Value) Value {
+	ack(args, 1)
+	if val, ok := args[0].(bool); ok {
+		if val {
+			return Value(args[0])
+		}
+		panic("assert false")
+	}
+	panic("type error, support [bool]")
 }

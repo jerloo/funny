@@ -5,7 +5,7 @@ import (
 )
 
 func RunSingle(data interface{}) (*Interpreter, Value) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	var d []byte
 	switch data.(type) {
 	case string:
@@ -20,7 +20,7 @@ func RunSingle(data interface{}) (*Interpreter, Value) {
 }
 
 func TestInterpreter_Assign(t *testing.T) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	i.Assign("a", Value(1))
 	flag := false
 	var val interface{}
@@ -42,7 +42,7 @@ func TestInterpreter_Assign(t *testing.T) {
 }
 
 func TestInterpreter_Lookup(t *testing.T) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	i.Assign("a", Value(1))
 	val := i.Lookup("a")
 	if val != 1 {
@@ -51,7 +51,7 @@ func TestInterpreter_Lookup(t *testing.T) {
 }
 
 func TestInterpreter_EvalFunctionCall(t *testing.T) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	parser := NewParser([]byte("echo(1)"))
 	i.Run(Program{
 		parser.Parse(),
@@ -59,7 +59,7 @@ func TestInterpreter_EvalFunctionCall(t *testing.T) {
 }
 
 func TestInterpreter_EvalFunctionCall2(t *testing.T) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"))
 	i.Run(Program{
 		parser.Parse(),
@@ -67,7 +67,7 @@ func TestInterpreter_EvalFunctionCall2(t *testing.T) {
 }
 
 func TestInterpreter_EvalPlus(t *testing.T) {
-	i := NewInterpreter(make(map[string]Value))
+	i := NewInterpreterWithScope(make(map[string]Value))
 	parser := NewParser([]byte("  a = 1 + 1"))
 	i.Run(Program{
 		parser.Parse(),

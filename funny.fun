@@ -1,6 +1,8 @@
-test(n){
-    n = n - 1
-    return n
+obj = {
+    a = 1
+    b = '2'
 }
-n = test(10)
-echo(n)
+
+echo(obj.a)
+echo(obj.b)
+must(obj.a == 1)
