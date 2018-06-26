@@ -179,8 +179,12 @@ func (i *Interpreter) EvalField(item *Field) Value {
 	case *FunctionCall:
 		return i.EvalFunctionCall(v)
 	case *Variable:
-		ii := i.Lookup(item.Variable.Name).(map[string]Value)
-		return Value(ii[v.Name])
+		ii := i.Lookup(item.Variable.Name)
+		if ii == nil {
+			return Value(nil)
+		}
+		iii := i.Lookup(item.Variable.Name).(map[string]Value)
+		return Value(iii[v.Name])
 	}
 	return Value(nil)
 }
@@ -377,6 +381,12 @@ func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
 		if right, ok := right.(int); ok {
 			return Value(left == right)
 		}
+	case nil:
+		if left == nil && right == nil {
+			return Value(true)
+		}
+	default:
+		return Value(left == right)
 	}
 	panic("eval double eq support: [int]")
 }
