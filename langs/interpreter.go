@@ -138,6 +138,11 @@ func (i *Interpreter) EvalFunction(item Function, params []Value) Value {
 
 func (i *Interpreter) AssignField(field *Field, val Value) {
 	scope := make(map[string]Value)
+
+	find := i.Lookup(field.Variable.Name)
+	if find != nil {
+		scope = find.(map[string]Value)
+	}
 	scope[field.Value.(*Variable).Name] = val
 	i.Assign(field.Variable.Name, Value(scope))
 }
@@ -431,6 +436,7 @@ func (i *Interpreter) EvalLte(left, right Value) Value {
 }
 
 func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
+	return left == right
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
