@@ -28,6 +28,8 @@ func (i *Interpreter) Run(v interface{}) Value {
 		}
 	}()
 	switch v := v.(type) {
+	case Statement:
+		return i.EvalStatement(v)
 	case Program:
 		return i.Run(&v)
 	case *Program:
@@ -276,7 +278,7 @@ func (i *Interpreter) EvalPlus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus requires types: [int, list, dict]")
+	panic("eval plus only support types: [int, list, dict]")
 }
 
 func (i *Interpreter) EvalMinus(left, right Value) Value {
@@ -310,7 +312,7 @@ func (i *Interpreter) EvalMinus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus requires types: [int, list, dict]")
+	panic("eval plus only support types: [int, list, dict]")
 }
 
 func (i *Interpreter) EvalTimes(left, right Value) Value {
@@ -319,7 +321,7 @@ func (i *Interpreter) EvalTimes(left, right Value) Value {
 			return Value(l * r)
 		}
 	}
-	panic("eval plus times types: [int]")
+	panic("eval plus times only support types: [int]")
 }
 
 func (i *Interpreter) EvalDevide(left, right Value) Value {
@@ -328,7 +330,7 @@ func (i *Interpreter) EvalDevide(left, right Value) Value {
 			return Value(l / r)
 		}
 	}
-	panic("eval plus devide types: [int]")
+	panic("eval plus devide only support types: [int]")
 }
 
 func (i *Interpreter) EvalEqual(left, right Value) Value {
@@ -378,7 +380,7 @@ func (i *Interpreter) EvalGt(left, right Value) Value {
 			return Value(left > right)
 		}
 	}
-	panic("eval gt support: [int]")
+	panic("eval gt only support: [int]")
 }
 
 func (i *Interpreter) EvalGte(left, right Value) Value {
@@ -388,7 +390,7 @@ func (i *Interpreter) EvalGte(left, right Value) Value {
 			return Value(left >= right)
 		}
 	}
-	panic("eval lte support: [int]")
+	panic("eval lte only support: [int]")
 }
 
 func (i *Interpreter) EvalLt(left, right Value) Value {
@@ -398,7 +400,7 @@ func (i *Interpreter) EvalLt(left, right Value) Value {
 			return Value(left < right)
 		}
 	}
-	panic("eval lt support: [int]")
+	panic("eval lt only support: [int]")
 }
 
 func (i *Interpreter) EvalLte(left, right Value) Value {
@@ -408,7 +410,7 @@ func (i *Interpreter) EvalLte(left, right Value) Value {
 			return Value(left <= right)
 		}
 	}
-	panic("eval lte support: [int]")
+	panic("eval lte only support: [int]")
 }
 
 func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
@@ -424,5 +426,5 @@ func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
 	default:
 		return Value(left == right)
 	}
-	panic("eval double eq support: [int]")
+	panic("eval double eq only support: [int]")
 }
