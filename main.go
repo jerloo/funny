@@ -11,13 +11,15 @@ import (
 var (
 	app = kingpin.New("funny", "funny lang")
 
-	script       = app.Arg("script", "script file path").String()
-	optionLexer  = app.Flag("lexer", "tokenizer script").Bool()
-	optionParser = app.Flag("parser", "parser AST").Bool()
-	optionFormat = app.Flag("format", "format script code").Bool()
+	script        = app.Arg("script", "script file path").String()
+	optionLexer   = app.Flag("lexer", "tokenizer script").Bool()
+	optionParser  = app.Flag("parser", "parser AST").Bool()
+	optionFormat  = app.Flag("format", "format script code").Bool()
+	optionVersion = app.Flag("version", "Show version.").Bool()
 )
 
 func main() {
+	kingpin.Version(langs.VERSION)
 	kingpin.MustParse(app.Parse(os.Args[1:]))
 	if *optionLexer {
 		lexer()
@@ -29,6 +31,10 @@ func main() {
 	}
 	if *optionFormat {
 		format()
+		return
+	}
+	if *optionVersion {
+		fmt.Printf("Version: %s\n", langs.VERSION)
 		return
 	}
 	if *script != "" {

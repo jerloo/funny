@@ -21,12 +21,27 @@ func NewInterpreterWithScope(vars Scope) *Interpreter {
 	}
 }
 
+func (i *Interpreter) Debug() bool {
+	v := i.Lookup("debug")
+	if v == nil {
+		return false
+	}
+	if v, ok := v.(bool); ok {
+		return v
+	}
+	return false
+}
+
 func (i *Interpreter) Run(v interface{}) Value {
-	defer func() {
-		if err := recover(); err != nil {
-			fmt.Printf("\nfunny runtime error: %s\n", err)
-		}
-	}()
+	if !i.Debug() {
+		//defer func() {
+		//	if err := recover(); err != nil {
+		//		fmt.Printf("\nfunny runtime error: %s\n", err)
+		//	}
+		//}()
+	} else {
+		fmt.Sprintln("Debug Mode on.")
+	}
 	switch v := v.(type) {
 	case Statement:
 		return i.EvalStatement(v)
@@ -83,6 +98,8 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 	case *Return:
 		return i.EvalExpression(item.Value)
 	case *NewLine:
+		return nil
+	case *Comment:
 		return nil
 	default:
 		panic(fmt.Sprintf("invalid statement [%s]", item.String()))
