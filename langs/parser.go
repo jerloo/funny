@@ -19,7 +19,7 @@ func NewParser(data []byte) *Parser {
 func (p *Parser) Consume(kind string) Token {
 	old := p.Current
 	if kind != "" && old.Kind != kind {
-		panic(fmt.Sprintf("Invalid token kind: %s  val: %s but except: %s at line: %s, col: %s", old.Kind,
+		panic(fmt.Sprintf("Invalid token kind: %s  val: %s but except: %s at line: %d, col: %d", old.Kind,
 			old.Data, kind, old.Position.Line, old.Position.Col))
 	}
 	p.Current = p.Lexer.Next()
@@ -93,6 +93,32 @@ func (p *Parser) ReadStatement() Statement {
 				}
 			}
 			return field
+		case LBracket:
+			p.Consume(LBracket)
+			key := p.Consume(STRING)
+			p.Consume(RBracket)
+			field := &Field{
+				Variable: Variable{
+					Name: current.Data,
+				},
+				Value: &Variable{
+					Name: key.Data,
+				},
+			}
+			switch p.Current.Kind {
+			case EQ:
+				p.Consume(EQ)
+				return &Assign{
+					Target: field,
+					Value:  p.ReadExpression(),
+				}
+			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
+				return &BinaryExpression{
+					Left:     field,
+					Operator: p.Consume(p.Current.Kind),
+					Right:    p.ReadExpression(),
+				}
+			}
 		}
 	case COMMENT:
 		return &Comment{
@@ -315,6 +341,33 @@ func (p *Parser) ReadExpression() Expression {
 				}
 			}
 			return field
+		case LBracket:
+			p.Consume(LBracket)
+			key := p.Consume(STRING)
+			p.Consume(RBracket)
+			field := &Field{
+				Variable: Variable{
+					Name: current.Data,
+				},
+				Value: &Variable{
+					Name: key.Data,
+				},
+			}
+			switch p.Current.Kind {
+			case EQ:
+				p.Consume(EQ)
+				return &Assign{
+					Target: field,
+					Value:  p.ReadExpression(),
+				}
+			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
+				return &BinaryExpression{
+					Left:     field,
+					Operator: p.Consume(p.Current.Kind),
+					Right:    p.ReadExpression(),
+				}
+			}
+
 		default:
 			if current.Data == "true" {
 				return &Boolen{
