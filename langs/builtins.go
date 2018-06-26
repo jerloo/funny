@@ -15,6 +15,7 @@ var (
 		"base64encode": Base64Encode,
 		"base64decode": Base64Decode,
 		"assert":       Assert,
+		"len":          Len,
 	}
 )
 
@@ -82,5 +83,14 @@ func Assert(interpreter *Interpreter, args []Value) Value {
 		}
 		panic("assert false")
 	}
-	panic("type error, support [bool]")
+	panic("type error, only support [bool]")
+}
+
+// Len return then length of the given list
+func Len(interpreter *Interpreter, args []Value) Value {
+	ack(args, 1)
+	if val, ok := args[0].(*List); ok {
+		return Value(len(val.Values))
+	}
+	panic("type error, only support [list]")
 }
