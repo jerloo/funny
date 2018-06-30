@@ -29,7 +29,10 @@ func collectBlock(block Block) []string {
 func intent(s string) string {
 	ss := strings.Split(s, "\n")
 	for index, item := range ss {
-		ss[index] = fmt.Sprintf("  %s", item)
+		if item == "" {
+			continue
+		}
+		ss[index] = fmt.Sprintf("  %s", strings.TrimRight(item, " \n"))
 	}
 	return strings.Join(ss, "\n")
 }
@@ -58,6 +61,9 @@ type Variable struct {
 }
 
 func (v *Variable) String() string {
+	if strings.Index(v.Name, "-") > -1 {
+		return fmt.Sprintf("'%s'", v.Name)
+	}
 	return fmt.Sprintf("%s", v.Name)
 }
 
@@ -116,6 +122,10 @@ func (a *Assign) Position() Position {
 }
 
 func (a *Assign) String() string {
+	switch a.Value.(type) {
+	case *Block:
+		return fmt.Sprintf("%s = {%s}", a.Target.String(), intent(a.Value.String()))
+	}
 	return fmt.Sprintf("%s = %s", a.Target.String(), a.Value.String())
 }
 
@@ -131,7 +141,7 @@ func (l *List) Position() Position {
 
 func (l *List) String() string {
 	var s []string
-	for _, item := range (l.Values) {
+	for _, item := range l.Values {
 		s = append(s, item.String())
 	}
 	return fmt.Sprintf("%s", strings.Join(s, ", "))
@@ -146,7 +156,7 @@ func (b *Block) Position() Position {
 
 func (b *Block) String() string {
 	var s []string
-	for _, item := range (*b) {
+	for _, item := range *b {
 		s = append(s, item.String())
 	}
 	return strings.Join(s, "")
@@ -166,7 +176,7 @@ func (f *Function) Position() Position {
 
 func (f *Function) String() string {
 	var args []string
-	for _, item := range (f.Parameters) {
+	for _, item := range f.Parameters {
 		args = append(args, item.String())
 	}
 	s := block(f.Body)
@@ -185,7 +195,7 @@ func (c *FunctionCall) Position() Position {
 
 func (c *FunctionCall) String() string {
 	var args []string
-	for _, item := range (c.Parameters) {
+	for _, item := range c.Parameters {
 		args = append(args, item.String())
 	}
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
@@ -263,7 +273,7 @@ func (i *IterableExpression) Position() Position {
 }
 
 func (i *IterableExpression) String() string {
-	return fmt.Sprintf("", )
+	return fmt.Sprintf("")
 }
 
 func (i *IterableExpression) Next() (int, Expression) {
@@ -323,6 +333,9 @@ func (f *Field) Position() Position {
 }
 
 func (f *Field) String() string {
+	if v, ok := f.Value.(*Variable); ok && strings.Index(v.Name, "-") > -1 {
+		return fmt.Sprintf("%s[%s]", f.Variable.String(), f.Value.String())
+	}
 	return fmt.Sprintf("%s.%s", f.Variable.String(), f.Value.String())
 }
 
@@ -365,5 +378,5 @@ func (c *Comment) Position() Position {
 }
 
 func (c *Comment) String() string {
-	return c.Value
+	return fmt.Sprintf("//%s\n", c.Value)
 }
