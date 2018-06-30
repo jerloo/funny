@@ -215,6 +215,8 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				}
 			case *NewLine:
 				break
+			case *Comment:
+				break
 			default:
 				panic("block must only contains assign")
 			}
