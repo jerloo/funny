@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/alecthomas/kingpin"
-	"io/ioutil"
-	"github.com/jeremaihloo/funny/langs"
-	"os"
 	"fmt"
+	"io/ioutil"
+	"os"
+
+	"github.com/alecthomas/kingpin"
+	"github.com/jeremaihloo/funny/langs"
 )
 
 var (
@@ -39,8 +40,9 @@ func main() {
 	}
 	if *script != "" {
 		run()
+		return
 	}
-
+	kingpin.Usage()
 }
 
 func lexer() {

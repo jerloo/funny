@@ -1,8 +1,8 @@
 package langs
 
 import (
-	"unicode/utf8"
 	"fmt"
+	"unicode/utf8"
 )
 
 type Position struct {
@@ -75,7 +75,7 @@ func (l *Lexer) Consume(n int) rune {
 		chString := string(ch)
 		fmt.Sprintf(chString)
 		l.Offset += size
-		n --
+		n--
 		if n == 0 {
 			return ch
 		}
@@ -94,11 +94,13 @@ func (l *Lexer) CreateToken(kind string) Token {
 	return token
 }
 
-func (l *Lexer) NewLine() {
+func (l *Lexer) NewLine() Token {
+	token := l.CreateToken(NEW_LINE)
 	l.CurrentPos.Col = 1
-	l.CurrentPos.Line++
+	l.CurrentPos.Line = l.CurrentPos.Line + 1
 
 	l.Reset()
+	return token
 }
 
 func isNameStart(ch rune) bool {
@@ -138,7 +140,7 @@ func (l *Lexer) Next() Token {
 			return l.CreateToken(EOF)
 		case '\n':
 			l.Consume(1)
-			return l.CreateToken(NEW_LINE)
+			return l.NewLine()
 		case ' ':
 			l.Consume(1)
 			break
