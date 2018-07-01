@@ -39,6 +39,23 @@ func TestInterpreter_Assign(t *testing.T) {
 			t.Error("assign error value not equal 1")
 		}
 	}
+	scope := Scope{}
+	i.PushScope(scope)
+	i.Assign("b", Value(2))
+	v := i.Lookup("b")
+	if v != 2 {
+		t.Errorf("val not eq 2 %s", v)
+	}
+	i.Assign("a", Value(3))
+	a := i.Lookup("a")
+	if a != 3 {
+		t.Errorf("a not eq 3 %s", a)
+	}
+	i.PopScope()
+	v = i.LookupDefault("b", nil)
+	if v != nil {
+		t.Error("pop scope error")
+	}
 }
 
 func TestInterpreter_Lookup(t *testing.T) {

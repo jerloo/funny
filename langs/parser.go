@@ -1,8 +1,8 @@
 package langs
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 )
 
 type Parser struct {
@@ -19,8 +19,7 @@ func NewParser(data []byte) *Parser {
 func (p *Parser) Consume(kind string) Token {
 	old := p.Current
 	if kind != "" && old.Kind != kind {
-		panic(fmt.Sprintf("Invalid token kind: %s  val: %s but except: %s at line: %d, col: %d", old.Kind,
-			old.Data, kind, old.Position.Line, old.Position.Col))
+		panic(P(fmt.Sprintf("Invalid token kind %s", old.String()), old.Position))
 	}
 	p.Current = p.Lexer.Next()
 	return old
@@ -125,9 +124,7 @@ func (p *Parser) ReadStatement() Statement {
 			Value: current.Data,
 		}
 	case NEW_LINE:
-		return &NewLine{
-
-		}
+		return &NewLine{}
 	case STRING:
 		switch p.Current.Kind {
 		case EQ:
@@ -140,8 +137,7 @@ func (p *Parser) ReadStatement() Statement {
 			}
 		}
 	default:
-		panic(fmt.Sprintf("ReadStatement Unknow Token kind: %s value: %s at line: %d, col: %d", current.Kind,
-			current.Data, current.Position.Line, current.Position.Col))
+		panic(P(fmt.Sprintf("ReadStatement Unknow Token %s", current.String()), current.Position))
 	}
 	return nil
 }
@@ -190,7 +186,7 @@ func (p *Parser) ReadFOR() Statement {
 			Name: val.Data,
 		}
 		if p.Current.Data != IN {
-			panic("ReadFOR")
+			panic(P("for must has in part", p.Current.Position))
 		}
 		p.Consume(NAME)
 		iterable := p.Consume(NAME)
@@ -425,7 +421,7 @@ func (p *Parser) ReadExpression() Expression {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic(fmt.Sprintf("Unknow Expression at line: %d, col: %d", current.Position.Line, current.Position.Col))
+	panic(P("Unknow Expression", current.Position))
 }
 
 func (p *Parser) ReadDict() Expression {

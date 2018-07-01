@@ -1,9 +1,9 @@
 package langs
 
 import (
+	"encoding/base64"
 	"fmt"
 	"time"
-	"encoding/base64"
 )
 
 type BuiltinFunction = func(interpreter *Interpreter, args []Value) Value
@@ -11,6 +11,7 @@ type BuiltinFunction = func(interpreter *Interpreter, args []Value) Value
 var (
 	FUNCTIONS = map[string]BuiltinFunction{
 		"echo":         Echo,
+		"echoln":       Echoln,
 		"now":          Now,
 		"base64encode": Base64Encode,
 		"base64decode": Base64Decode,
@@ -31,6 +32,16 @@ func Echo(interpreter *Interpreter, args []Value) Value {
 	fmt.Sprint(interpreter.Vars)
 	for _, item := range args {
 		fmt.Print(item)
+	}
+	return nil
+}
+
+// Echoln builtin function echos one or every item in a array
+func Echoln(interpreter *Interpreter, args []Value) Value {
+	fmt.Sprint(interpreter.Vars)
+	for _, item := range args {
+		fmt.Print(item)
+		fmt.Print("\n")
 	}
 	return nil
 }

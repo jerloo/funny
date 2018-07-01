@@ -40,6 +40,7 @@ func main() {
 	}
 	if *script != "" {
 		run()
+		fmt.Println()
 		return
 	}
 	kingpin.Usage()

@@ -22,7 +22,7 @@ func NewInterpreterWithScope(vars Scope) *Interpreter {
 }
 
 func (i *Interpreter) Debug() bool {
-	v := i.Lookup("debug")
+	v := i.LookupDefault("debug", Value(false))
 	if v == nil {
 		return false
 	}
@@ -34,11 +34,11 @@ func (i *Interpreter) Debug() bool {
 
 func (i *Interpreter) Run(v interface{}) Value {
 	if !i.Debug() {
-		//defer func() {
-		//	if err := recover(); err != nil {
-		//		fmt.Printf("\nfunny runtime error: %s\n", err)
-		//	}
-		//}()
+		defer func() {
+			if err := recover(); err != nil {
+				fmt.Printf("\nfunny runtime error: %s\n", err)
+			}
+		}()
 	} else {
 		fmt.Sprintln("Debug Mode on.")
 	}
@@ -48,12 +48,7 @@ func (i *Interpreter) Run(v interface{}) Value {
 	case Program:
 		return i.Run(&v)
 	case *Program:
-		for _, item := range v.Statements {
-			r := i.EvalStatement(item)
-			if r != nil {
-				return r
-			}
-		}
+		return i.EvalBlock(v.Statements)
 	case string:
 		return i.Run([]byte(v))
 	case []byte:
@@ -64,6 +59,16 @@ func (i *Interpreter) Run(v interface{}) Value {
 		return i.Run(program)
 	default:
 		panic(fmt.Sprintf("unknow type of running value: [%v]", v))
+	}
+	return Value(nil)
+}
+
+func (i *Interpreter) EvalBlock(block Block) Value {
+	for _, item := range block {
+		r := i.EvalStatement(item)
+		if r != nil {
+			return r
+		}
 	}
 	return Value(nil)
 }
@@ -85,7 +90,6 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 		case *Field:
 			i.AssignField(a, i.EvalExpression(item.Value))
 		}
-		break
 	case *IFStatement:
 	case *FORStatement:
 	case *FunctionCall:
@@ -102,7 +106,7 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 	case *Comment:
 		return nil
 	default:
-		panic(fmt.Sprintf("invalid statement [%s]", item.String()))
+		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item.Position()))
 	}
 	return Value(nil)
 }
@@ -124,16 +128,14 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
 }
 
 func (i *Interpreter) EvalFunction(item Function, params []Value) Value {
-
+	scope := Scope{}
+	i.PushScope(scope)
 	for index, p := range item.Parameters {
 		i.Assign(p.(*Variable).Name, params[index])
 	}
-	for _, b := range item.Body {
-		if r := i.EvalStatement(b); r != nil {
-			return r
-		}
-	}
-	return Value(nil)
+	r := i.EvalBlock(item.Body)
+	i.PopScope()
+	return r
 }
 
 func (i *Interpreter) AssignField(field *Field, val Value) {
@@ -151,15 +153,24 @@ func (i *Interpreter) Assign(name string, val Value) {
 	i.Vars[len(i.Vars)-1][name] = val
 }
 
-func (i *Interpreter) Lookup(name string) Value {
-	for _, item := range i.Vars {
+func (i *Interpreter) LookupDefault(name string, defaultVal Value) Value {
+	for index := len(i.Vars) - 1; index >= 0; index-- {
+		item := i.Vars[index]
 		for k, v := range item {
 			if k == name {
 				return v
 			}
 		}
 	}
-	return nil
+	return defaultVal
+}
+
+func (i *Interpreter) Lookup(name string) Value {
+	r := i.LookupDefault(name, Value(nil))
+	if r != nil {
+		return r
+	}
+	panic(fmt.Sprintf("variable [%s] not found", name))
 }
 
 func (i *Interpreter) PopScope() {
@@ -194,7 +205,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		case DOUBLE_EQ:
 			return i.EvalDoubleEq(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		default:
-			panic("support [+] [-] [*] [/] [>] [>=] [==] [<=] [<]")
+			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.Position()))
 		}
 	case *List:
 		var ls []interface{}
@@ -211,14 +222,14 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				if t, ok := d.Target.(*Variable); ok {
 					scope[t.Name] = i.EvalExpression(d.Value)
 				} else {
-					panic("block assign must be variable")
+					panic(P("block assignments must be variable", item.Position()))
 				}
 			case *NewLine:
 				break
 			case *Comment:
 				break
 			default:
-				panic("block must only contains assign")
+				panic(P("dict struct must only contains assignment", item.Position()))
 			}
 		}
 		return scope
@@ -233,7 +244,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 	case *Field:
 		return i.EvalField(item)
 	}
-	panic(fmt.Sprintf("eval expression error: [%s]", expression.String()))
+	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.Position()))
 }
 
 func (i *Interpreter) EvalField(item *Field) Value {
@@ -302,7 +313,7 @@ func (i *Interpreter) EvalPlus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus only support types: [int, list, dict]")
+	panic(fmt.Sprintf("eval plus only support types: [int, list, dict] given [%s]", Typing(left)))
 }
 
 func (i *Interpreter) EvalMinus(left, right Value) Value {
