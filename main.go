@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"os"
+
+	"strings"
 
 	"github.com/alecthomas/kingpin"
 	"github.com/jeremaihloo/funny/langs"
@@ -47,7 +50,13 @@ func main() {
 }
 
 func lexer() {
-	data, _ := ioutil.ReadFile(*script)
+	var data []byte
+	if *script != "" && strings.HasSuffix(*script, ".fun") {
+		data, _ = ioutil.ReadFile(*script)
+	} else {
+		data = []byte(*script)
+	}
+
 	lexer := langs.NewLexer(data)
 	for {
 		token := lexer.Next()
@@ -73,7 +82,17 @@ func parser() {
 }
 
 func format() {
-	data, _ := ioutil.ReadFile(*script)
+	var data []byte
+	if *script != "" && strings.HasSuffix(*script, ".fun") {
+		data, _ = ioutil.ReadFile(*script)
+	} else {
+		inputReader := bufio.NewScanner(os.Stdin)
+		for inputReader.Scan() {
+			data = append(data, inputReader.Bytes()...)
+			data = append(data, []byte("\n")...)
+		}
+	}
+
 	parser := langs.NewParser(data)
 	parser.Consume("")
 	flag := 0

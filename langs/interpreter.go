@@ -34,11 +34,11 @@ func (i *Interpreter) Debug() bool {
 
 func (i *Interpreter) Run(v interface{}) Value {
 	if !i.Debug() {
-		defer func() {
-			if err := recover(); err != nil {
-				fmt.Printf("\nfunny runtime error: %s\n", err)
-			}
-		}()
+		// defer func() {
+		// 	if err := recover(); err != nil {
+		// 		fmt.Printf("\nfunny runtime error: %s\n", err)
+		// 	}
+		// }()
 	} else {
 		fmt.Sprintln("Debug Mode on.")
 	}
@@ -66,7 +66,7 @@ func (i *Interpreter) Run(v interface{}) Value {
 func (i *Interpreter) EvalBlock(block Block) Value {
 	for _, item := range block {
 		r := i.EvalStatement(item)
-		if r != nil {
+		if _, ok := item.(*Return); ok {
 			return r
 		}
 	}
@@ -113,24 +113,30 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 			i.Assign(a.Name, i.EvalExpression(item.Value))
 		case *Field:
 			i.AssignField(a, i.EvalExpression(item.Value))
+		default:
+			panic(P("invalid assignment", item.Position()))
 		}
 	case *IFStatement:
 		i.EvalIfStatement(*item)
+		break
 	case *FORStatement:
 		i.EvalForStatement(*item)
+		break
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
 		break
 	case *Function:
 		i.Assign(item.Name, item)
+		break
 	case *Field:
-		return i.EvalField(item)
+		i.EvalField(item)
+		break
 	case *Return:
 		return i.EvalExpression(item.Value)
 	case *NewLine:
-		return nil
+		break
 	case *Comment:
-		return nil
+		break
 	default:
 		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item.Position()))
 	}
@@ -289,6 +295,8 @@ func (i *Interpreter) EvalField(item *Field) Value {
 }
 
 func (i *Interpreter) EvalPlus(left, right Value) Value {
+	fmt.Print(left)
+	fmt.Print(right)
 	switch left := left.(type) {
 	case string:
 		if right, ok := right.(string); ok {
