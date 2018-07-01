@@ -81,6 +81,30 @@ func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
 	return nil
 }
 
+func (i *Interpreter) EvalIfStatement(item IFStatement) Value {
+	exp := i.EvalExpression(item.Condition)
+	if exp, ok := exp.(bool); ok {
+		if exp {
+			r := i.EvalBlock(item.Body)
+			if r != nil {
+				return r
+			}
+		} else {
+			r := i.EvalBlock(item.Else)
+			if r != nil {
+				return r
+			}
+		}
+	} else {
+		panic(P("if statement condition must be boolen value", item.Position()))
+	}
+	return nil
+}
+
+func (i *Interpreter) EvalForStatement(item FORStatement) Value {
+	panic("NOT IMPLEMENT")
+}
+
 func (i *Interpreter) EvalStatement(item Statement) Value {
 	switch item := item.(type) {
 	case *Assign:
@@ -91,7 +115,9 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 			i.AssignField(a, i.EvalExpression(item.Value))
 		}
 	case *IFStatement:
+		i.EvalIfStatement(*item)
 	case *FORStatement:
+		i.EvalForStatement(*item)
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
 		break
