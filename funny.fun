@@ -20,14 +20,16 @@
 // fnIfReturnTest(2)
 // echo(3)
 
-gtTest(a,b){
-    if a>b{
-        return a
-    }else{
-        return b
-    }
+gtTest(a, b) {
+  if a > b {
+    return a
+  } else {
+    return b
+  }
 }
-r = gtTest(2,1)
+
+r = gtTest(2, 1)
+
 echoln(r)
 // fib(n) {
 //     echoln(n)

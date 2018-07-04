@@ -103,7 +103,7 @@ func format() {
 		}
 		switch item.(type) {
 		case *langs.NewLine:
-			flag += 1
+			flag++
 			if flag < 1 {
 				continue
 			}
