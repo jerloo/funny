@@ -66,7 +66,7 @@ func (i *Interpreter) Run(v interface{}) Value {
 func (i *Interpreter) EvalBlock(block Block) Value {
 	for _, item := range block {
 		r := i.EvalStatement(item)
-		if _, ok := item.(*Return); ok {
+		if r != nil {
 			return r
 		}
 	}
@@ -111,20 +111,19 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 		switch a := item.Target.(type) {
 		case *Variable:
 			i.Assign(a.Name, i.EvalExpression(item.Value))
+			break
 		case *Field:
 			i.AssignField(a, i.EvalExpression(item.Value))
+			break
 		default:
 			panic(P("invalid assignment", item.Position()))
 		}
 	case *IFStatement:
-		i.EvalIfStatement(*item)
-		break
+		return i.EvalIfStatement(*item)
 	case *FORStatement:
-		i.EvalForStatement(*item)
-		break
+		return i.EvalForStatement(*item)
 	case *FunctionCall:
-		i.EvalFunctionCall(item)
-		break
+		return i.EvalFunctionCall(item)
 	case *Function:
 		i.Assign(item.Name, item)
 		break
@@ -151,7 +150,7 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
 	if fn, ok := i.Functions[item.Name]; ok {
 		return fn(i, params)
 	}
-	look := i.Lookup(item.Name)
+	look := i.LookupDefault(item.Name,nil)
 	if look == nil {
 		panic(fmt.Sprintf("function [%s] not defined", item.Name))
 	}

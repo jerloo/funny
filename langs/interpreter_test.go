@@ -1,6 +1,7 @@
 package langs
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -10,11 +11,11 @@ func RunSingle(data interface{}) (*Interpreter, Value) {
 	switch data.(type) {
 	case string:
 		d = []byte(data.(string))
-	case []byte:
 	}
 	parser := NewParser(d)
+	block := parser.Parse()
 	r := i.Run(Program{
-		Statements: parser.Parse(),
+		Statements: block,
 	})
 	return i, Value(r)
 }
@@ -114,5 +115,21 @@ return d - 1`
 	_, r := RunSingle(data)
 	if r != 2 {
 		t.Error("RunSingle funny.fun must return 2")
+	}
+}
+
+func TestInterpreter_EvalBlock(t *testing.T) {
+	data := `
+a = 2
+b = 1
+if a > b {
+return a
+} else {
+return b
+}`
+
+	_, r := RunSingle(data)
+	if r != 2 {
+		t.Error(fmt.Sprintf("RunSingle funny.fun must return 2 but got %s", r))
 	}
 }
