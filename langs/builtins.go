@@ -39,9 +39,11 @@ func Echo(interpreter *Interpreter, args []Value) Value {
 // Echoln builtin function echos one or every item in a array
 func Echoln(interpreter *Interpreter, args []Value) Value {
 	fmt.Sprint(interpreter.Vars)
-	for _, item := range args {
+	for index, item := range args {
 		fmt.Print(item)
-		fmt.Print("\n")
+		if index == len(args)-1 {
+			fmt.Print("\n")
+		}
 	}
 	return nil
 }
