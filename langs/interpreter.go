@@ -32,7 +32,7 @@ func (i *Interpreter) Debug() bool {
 	return false
 }
 
-func (i *Interpreter) Run(v interface{}) Value {
+func (i *Interpreter) Run(v interface{}) (Value, bool) {
 	if !i.Debug() {
 		// defer func() {
 		// 	if err := recover(); err != nil {
@@ -60,17 +60,17 @@ func (i *Interpreter) Run(v interface{}) Value {
 	default:
 		panic(fmt.Sprintf("unknow type of running value: [%v]", v))
 	}
-	return Value(nil)
+	return Value(nil), false
 }
 
-func (i *Interpreter) EvalBlock(block Block) Value {
+func (i *Interpreter) EvalBlock(block Block) (Value, bool) {
 	for _, item := range block {
-		r := i.EvalStatement(item)
-		if r != nil {
-			return r
+		r, has := i.EvalStatement(item)
+		if has {
+			return r, has
 		}
 	}
-	return Value(nil)
+	return Value(nil), false
 }
 
 func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
@@ -81,31 +81,31 @@ func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
 	return nil
 }
 
-func (i *Interpreter) EvalIfStatement(item IFStatement) Value {
+func (i *Interpreter) EvalIfStatement(item IFStatement) (Value, bool) {
 	exp := i.EvalExpression(item.Condition)
 	if exp, ok := exp.(bool); ok {
 		if exp {
-			r := i.EvalBlock(item.Body)
-			if r != nil {
-				return r
+			r, has := i.EvalBlock(item.Body)
+			if has {
+				return r, true
 			}
 		} else {
-			r := i.EvalBlock(item.Else)
-			if r != nil {
-				return r
+			r, has := i.EvalBlock(item.Else)
+			if has {
+				return r, true
 			}
 		}
 	} else {
 		panic(P("if statement condition must be boolen value", item.Position()))
 	}
-	return nil
+	return Value(nil), false
 }
 
-func (i *Interpreter) EvalForStatement(item FORStatement) Value {
+func (i *Interpreter) EvalForStatement(item FORStatement) (Value, bool) {
 	panic("NOT IMPLEMENT")
 }
 
-func (i *Interpreter) EvalStatement(item Statement) Value {
+func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 	switch item := item.(type) {
 	case *Assign:
 		switch a := item.Target.(type) {
@@ -119,19 +119,25 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 			panic(P("invalid assignment", item.Position()))
 		}
 	case *IFStatement:
-		return i.EvalIfStatement(*item)
+		val, has := i.EvalIfStatement(*item)
+		if has {
+			return val, true
+		}
 	case *FORStatement:
-		return i.EvalForStatement(*item)
+		val, has := i.EvalForStatement(*item)
+		if has {
+			return val, true
+		}
 	case *FunctionCall:
-		return i.EvalFunctionCall(item)
+		i.EvalFunctionCall(item)
+	case *Return:
+		return i.EvalExpression(item.Value), true
 	case *Function:
 		i.Assign(item.Name, item)
 		break
 	case *Field:
 		i.EvalField(item)
 		break
-	case *Return:
-		return i.EvalExpression(item.Value)
 	case *NewLine:
 		break
 	case *Comment:
@@ -139,18 +145,18 @@ func (i *Interpreter) EvalStatement(item Statement) Value {
 	default:
 		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item.Position()))
 	}
-	return Value(nil)
+	return Value(nil), false
 }
 
-func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
+func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 	var params []Value
 	for _, p := range item.Parameters {
 		params = append(params, i.EvalExpression(p))
 	}
 	if fn, ok := i.Functions[item.Name]; ok {
-		return fn(i, params)
+		return fn(i, params), true
 	}
-	look := i.LookupDefault(item.Name,nil)
+	look := i.LookupDefault(item.Name, nil)
 	if look == nil {
 		panic(fmt.Sprintf("function [%s] not defined", item.Name))
 	}
@@ -158,15 +164,15 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) Value {
 	return i.EvalFunction(*fun, params)
 }
 
-func (i *Interpreter) EvalFunction(item Function, params []Value) Value {
+func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) {
 	scope := Scope{}
 	i.PushScope(scope)
 	for index, p := range item.Parameters {
 		i.Assign(p.(*Variable).Name, params[index])
 	}
-	r := i.EvalBlock(item.Body)
+	r, has := i.EvalBlock(item.Body)
 	i.PopScope()
-	return r
+	return r, has
 }
 
 func (i *Interpreter) AssignField(field *Field, val Value) {
@@ -271,7 +277,8 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 	case *Literal:
 		return Value(item.Value)
 	case *FunctionCall:
-		return i.EvalFunctionCall(item)
+		r, _ := i.EvalFunctionCall(item)
+		return r
 	case *Field:
 		return i.EvalField(item)
 	}
@@ -281,7 +288,8 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 func (i *Interpreter) EvalField(item *Field) Value {
 	switch v := item.Value.(type) {
 	case *FunctionCall:
-		return i.EvalFunctionCall(v)
+		r, _ := i.EvalFunctionCall(v)
+		return r
 	case *Variable:
 		ii := i.Lookup(item.Variable.Name)
 		if ii == nil {

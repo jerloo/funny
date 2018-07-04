@@ -1,6 +1,5 @@
 // 这是一个完整的测试
 
-// scope
 // a = 1
 // a = a + 1
 // scopeTest(a){
@@ -11,15 +10,15 @@
 // scopeTest(a)
 // echoln(a)
 
-// fnIfReturnTest(n) {
-//     echoln(n)
-//     if n > 1 {
-//         return n
-//     }
-//     echoln(n + 1)
-// }
-// fnIfReturnTest(2)
-// echo(3)
+fnIfReturnTest(n) {
+    echoln(n)
+    if n > 1 {
+        return n
+    }
+    echoln(n + 1)
+}
+fnIfReturnTest(2)
+echoln(3)
 
 gtTest(a, b) {
   if a > b {
