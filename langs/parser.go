@@ -366,6 +366,8 @@ func (p *Parser) ReadExpression() Expression {
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
 				}
+			default:
+				return field
 			}
 
 		default:
