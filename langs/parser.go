@@ -260,16 +260,20 @@ func (p *Parser) ReadFunction(name string) Statement {
 func (p *Parser) ReadList() Expression {
 	l := []Expression{}
 	for {
-		if p.Current.Kind == RBracket {
+		if p.Current.Kind == NEW_LINE {
+			p.Consume(NEW_LINE)
+			continue
+		} else if p.Current.Kind == LBrace {
+			p.Consume(LBrace)
+			dic := p.ReadDict()
+			l = append(l, dic)
+			continue
+		} else if p.Current.Kind == RBracket {
 			p.Consume(RBracket)
 			break
 		}
 		exp := p.ReadExpression()
 		l = append(l, exp)
-		if p.Current.Kind == RBracket {
-			p.Consume(RBracket)
-			break
-		}
 		p.Consume("")
 	}
 	return &List{
@@ -338,6 +342,7 @@ func (p *Parser) ReadExpression() Expression {
 			return field
 		case LBracket:
 			p.Consume(LBracket)
+			// Field access
 			key := p.Consume(STRING)
 			p.Consume(RBracket)
 			field := &Field{
@@ -421,7 +426,7 @@ func (p *Parser) ReadExpression() Expression {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic(P("Unknow Expression", current.Position))
+	panic(P(fmt.Sprintf("Unknow Expression Data: %s", current.Data), current.Position))
 }
 
 func (p *Parser) ReadDict() Expression {

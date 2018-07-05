@@ -125,6 +125,8 @@ func (a *Assign) String() string {
 	switch a.Value.(type) {
 	case *Block:
 		return fmt.Sprintf("%s = {%s}", a.Target.String(), intent(a.Value.String()))
+	case *List:
+		return fmt.Sprintf("%s = [%s]", a.Target.String(), intent(a.Value.String()))
 	}
 	return fmt.Sprintf("%s = %s", a.Target.String(), a.Value.String())
 }
@@ -142,7 +144,13 @@ func (l *List) Position() Position {
 func (l *List) String() string {
 	var s []string
 	for _, item := range l.Values {
-		s = append(s, item.String())
+		switch item.(type) {
+		case *Block:
+			s = append(s, fmt.Sprintf("\n{%s}\n", intent(item.String())))
+			break
+		default:
+			s = append(s, item.String())
+		}
 	}
 	return fmt.Sprintf("%s", strings.Join(s, ", "))
 }
