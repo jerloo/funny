@@ -75,6 +75,7 @@ func (l *Lexer) Consume(n int) rune {
 		chString := string(ch)
 		fmt.Sprintf(chString)
 		l.Offset += size
+		l.CurrentPos.Col += size
 		n--
 		if n == 0 {
 			return ch
@@ -86,11 +87,14 @@ func (l *Lexer) Consume(n int) rune {
 func (l *Lexer) CreateToken(kind string) Token {
 	st := l.Data[l.SaveOffset:l.Offset]
 	token := Token{
-		Kind:     kind,
-		Data:     string(st),
-		Position: l.CurrentPos,
+		Kind: kind,
+		Data: string(st),
+		Position: Position{
+			Col:  l.CurrentPos.Col - 1,
+			Line: l.CurrentPos.Line,
+		},
 	}
-	l.CurrentPos.Col += len(token.Data)
+	//l.CurrentPos.Col += len(token.Data)
 	return token
 }
 
