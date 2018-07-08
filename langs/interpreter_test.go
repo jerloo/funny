@@ -14,7 +14,7 @@ func RunSingle(data interface{}) (*Interpreter, Value) {
 	}
 	parser := NewParser(d)
 	block := parser.Parse()
-	r := i.Run(Program{
+	r, _ := i.Run(Program{
 		Statements: block,
 	})
 	return i, Value(r)
@@ -116,6 +116,41 @@ return d - 1`
 	if r != 2 {
 		t.Error("RunSingle funny.fun must return 2")
 	}
+}
+
+func TestInterpreter_Return(t *testing.T) {
+	data := `
+testReturn(t){
+    if t<1{
+        return t
+    }
+    return testReturn(t-1)
+}
+
+t = testReturn(10)`
+	_, r := RunSingle(data)
+	ty := Typing(r)
+	t.Log(ty)
+	t.Log(r)
+}
+
+func TestInterpreter_Fib(t *testing.T) {
+	data := `
+fib(n) {
+    echoln('n: ', n)
+    if n < 2 {
+      return n
+    } else {
+      return fib(n - 2) + fib(n - 1)
+    }
+}
+
+return fib(5)`
+
+	_, r := RunSingle(data)
+	ty := Typing(r)
+	t.Log(ty)
+	t.Log(r)
 }
 
 func TestInterpreter_EvalBlock(t *testing.T) {

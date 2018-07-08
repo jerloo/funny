@@ -8,6 +8,8 @@ import (
 
 	"strings"
 
+	"encoding/json"
+
 	"github.com/alecthomas/kingpin"
 	"github.com/jeremaihloo/funny/langs"
 )
@@ -57,28 +59,42 @@ func lexer() {
 		data = []byte(*script)
 	}
 
+	var tokens []langs.Token
 	lexer := langs.NewLexer(data)
 	for {
 		token := lexer.Next()
-		fmt.Printf("%v\n", token.String())
+		// fmt.Printf("%v\n", token.String())
 
 		if token.Kind == langs.EOF {
 			break
 		}
+		tokens = append(tokens, token)
 	}
+	data, err := json.MarshalIndent(tokens, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
 }
 
 func parser() {
 	data, _ := ioutil.ReadFile(*script)
 	parser := langs.NewParser(data)
 	parser.Consume("")
+	var items langs.Block
 	for {
 		item := parser.ReadStatement()
 		if item == nil {
 			break
 		}
-		fmt.Printf("%s %s\n", langs.Typing(item), item.String())
+		items = append(items, item)
+		// fmt.Printf("%s %s\n", langs.Typing(item), item.String())
 	}
+	data, err := json.MarshalIndent(items, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(data))
 }
 
 func format() {
