@@ -302,8 +302,6 @@ func (i *Interpreter) EvalField(item *Field) Value {
 }
 
 func (i *Interpreter) EvalPlus(left, right Value) Value {
-	fmt.Print(left)
-	fmt.Print(right)
 	switch left := left.(type) {
 	case string:
 		if right, ok := right.(string); ok {
