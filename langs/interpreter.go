@@ -265,8 +265,11 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				break
 			case *Comment:
 				break
+			case *Function:
+				scope[d.Name] = d
+				break
 			default:
-				panic(P("dict struct must only contains assignment", item.Position()))
+				panic(P("dict struct must only contains assignment and func", item.Position()))
 			}
 		}
 		return scope
@@ -286,16 +289,16 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 }
 
 func (i *Interpreter) EvalField(item *Field) Value {
+	root := i.Lookup(item.Variable.Name)
 	switch v := item.Value.(type) {
 	case *FunctionCall:
+		scope := root.(map[string]Value)
+		i.PushScope(scope)
 		r, _ := i.EvalFunctionCall(v)
+		i.PopScope()
 		return r
 	case *Variable:
-		ii := i.Lookup(item.Variable.Name)
-		if ii == nil {
-			return Value(nil)
-		}
-		iii := i.Lookup(item.Variable.Name).(map[string]Value)
+		iii := root.(map[string]Value)
 		return Value(iii[v.Name])
 	}
 	return Value(nil)

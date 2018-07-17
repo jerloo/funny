@@ -52,18 +52,12 @@ person = {
 assert(person.name == 'jeremaihloo')
 echoln(person.age)
 
-fn = {
-  echoln('fn')
-}
-
-fn()
-
-Object (){
+Object() {
   return {
     name = 'jeremaihloo'
     age = 10
-    isAdult(){
-      echoln('isAdult')
+    isAdult() {
+      return true
     }
   }
 }
@@ -72,3 +66,5 @@ obj = Object()
 assert(obj.name == 'jeremaihloo')
 obj.age = 20
 assert(obj.age == 20)
+assert(obj.isAdult())
+echoln(obj.isAdult())
