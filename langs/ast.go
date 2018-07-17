@@ -327,6 +327,10 @@ func (r *Return) Position() Position {
 }
 
 func (r *Return) String() string {
+	switch r.Value.(type) {
+	case *Block:
+		return fmt.Sprintf("return {%s}", intent(r.Value.String()))
+	}
 	return fmt.Sprintf("return %s", r.Value.String())
 }
 
