@@ -57,6 +57,9 @@ Object() {
     name = 'jeremaihloo'
     age = 10
     isAdult() {
+      this.age = this.age + 5
+      echoln('test')
+      echoln(this.age)
       return true
     }
   }
@@ -68,3 +71,4 @@ obj.age = 20
 assert(obj.age == 20)
 assert(obj.isAdult())
 echoln(obj.isAdult())
+echoln(obj.age)

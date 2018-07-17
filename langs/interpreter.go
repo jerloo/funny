@@ -156,12 +156,23 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 	if fn, ok := i.Functions[item.Name]; ok {
 		return fn(i, params), true
 	}
-	look := i.LookupDefault(item.Name, nil)
-	if look == nil {
-		panic(fmt.Sprintf("function [%s] not defined", item.Name))
+	this := i.LookupDefault("this", nil)
+	var look Value
+	if this != nil {
+		look = this.(map[string]Value)[item.Name]
 	}
-	fun := i.Lookup(item.Name).(*Function)
-	return i.EvalFunction(*fun, params)
+	if look == nil {
+		look := i.LookupDefault(item.Name, nil)
+		if look == nil {
+			panic(fmt.Sprintf("function [%s] not defined", item.Name))
+		}
+		fun := i.Lookup(item.Name).(*Function)
+		return i.EvalFunction(*fun, params)
+
+	} else {
+		fun := look.(*Function)
+		return i.EvalFunction(*fun, params)
+	}
 }
 
 func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) {
@@ -292,7 +303,10 @@ func (i *Interpreter) EvalField(item *Field) Value {
 	root := i.Lookup(item.Variable.Name)
 	switch v := item.Value.(type) {
 	case *FunctionCall:
-		scope := root.(map[string]Value)
+		this := root.(map[string]Value)
+		scope := Scope{
+			"this": this,
+		}
 		i.PushScope(scope)
 		r, _ := i.EvalFunctionCall(v)
 		i.PopScope()
