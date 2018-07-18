@@ -268,14 +268,18 @@ func (p *Parser) ReadList() Expression {
 			dic := p.ReadDict()
 			l = append(l, dic)
 			continue
+		} else if p.Current.Kind == COMMA {
+			p.Consume(COMMA)
+			continue
 		} else if p.Current.Kind == RBracket {
 			p.Consume(RBracket)
 			break
 		}
 		exp := p.ReadExpression()
 		l = append(l, exp)
-		p.Consume("")
+		// p.Consume("")
 	}
+
 	return &List{
 		Values: l,
 	}
