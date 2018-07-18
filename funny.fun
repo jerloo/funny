@@ -1,4 +1,4 @@
-// funny.fun
+// // funny.fun
 
 a = 1
 b = 2
@@ -72,3 +72,7 @@ assert(obj.age == 20)
 assert(obj.isAdult())
 echoln(obj.isAdult())
 echoln(obj.age)
+
+arrdemo = [1,2,3]
+echo(arrdemo[2])
+assert(arrdemo[2]==3)
