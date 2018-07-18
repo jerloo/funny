@@ -155,6 +155,20 @@ func (l *List) String() string {
 	return fmt.Sprintf("%s", strings.Join(s, ", "))
 }
 
+type ListAccess struct {
+	pos   Position
+	Index int
+	List  Variable
+}
+
+func (l *ListAccess) Position() Position {
+	return l.pos
+}
+
+func (l *ListAccess) String() string {
+	return fmt.Sprintf("%s[%d]", l.List.String(), l.Index)
+}
+
 // Block
 type Block []Statement
 

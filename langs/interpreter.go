@@ -295,6 +295,11 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		return r
 	case *Field:
 		return i.EvalField(item)
+	case *ListAccess:
+		ls := i.Lookup(item.List.Name)
+		lsEntry := ls.([]interface{})
+		val := lsEntry[item.Index]
+		return Value(val)
 	}
 	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.Position()))
 }

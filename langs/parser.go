@@ -346,32 +346,51 @@ func (p *Parser) ReadExpression() Expression {
 			return field
 		case LBracket:
 			p.Consume(LBracket)
-			// Field access
-			key := p.Consume(STRING)
-			p.Consume(RBracket)
-			field := &Field{
-				Variable: Variable{
-					Name: current.Data,
-				},
-				Value: &Variable{
-					Name: key.Data,
-				},
+			var exp Expression
+			if p.Current.Kind == STRING {
+				// Field access
+				key := p.Consume(STRING)
+				p.Consume(RBracket)
+				exp = &Field{
+					Variable: Variable{
+						Name: current.Data,
+					},
+					Value: &Variable{
+						Name: key.Data,
+					},
+				}
+			} else if p.Current.Kind == INT {
+				indexStr := p.Consume(INT).Data
+				index, err := strconv.Atoi(indexStr)
+				if err != nil {
+					panic("Bad list index ")
+				}
+				exp = &ListAccess{
+					List: Variable{
+						Name: current.Data,
+					},
+					Index: index,
+				}
+				p.Consume(RBracket)
+			} else {
+				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current.Position))
 			}
+
 			switch p.Current.Kind {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
-					Target: field,
+					Target: exp,
 					Value:  p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
-					Left:     field,
+					Left:     exp,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
 				}
 			default:
-				return field
+				return exp
 			}
 
 		default:
