@@ -1,4 +1,4 @@
-// // funny.fun
+// funny.fun
 
 a = 1
 b = 2
@@ -74,5 +74,13 @@ echoln(obj.isAdult())
 echoln(obj.age)
 
 arrdemo = [1,2,3]
-echo(arrdemo[2])
+echoln(arrdemo[2])
 assert(arrdemo[2]==3)
+
+echoln('hash')
+hashTest = 'haha'
+echoln(hashTest)
+echoln(hash('test'))
+echoln(hash(hashTest))
+
+echoln(max(10,20))

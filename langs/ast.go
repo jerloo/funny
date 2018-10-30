@@ -14,7 +14,7 @@ func collectBlock(block Block) []string {
 		}
 		switch item.(type) {
 		case *NewLine:
-			flag += 1
+			flag++
 			if flag < 1 {
 				continue
 			}
