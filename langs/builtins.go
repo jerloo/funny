@@ -23,6 +23,7 @@ var (
 		"len":          Len,
 		"hash":         Md5,
 		"max":          Max,
+		"typeof":       Typeof,
 	}
 )
 
@@ -168,4 +169,10 @@ func Max(interpreter *Interpreter, args []Value) Value {
 		break
 	}
 	panic("type error, only support [int]")
+}
+
+// Typeof builtin function echos one or every item in a array
+func Typeof(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	return Typing(args[0])
 }
