@@ -445,6 +445,16 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 		if r, ok := right.(int); ok {
 			return Value(l == r)
 		}
+		if r, ok := right.(float64); ok {
+			return Value(float64(l) == r)
+		}
+	case float64:
+		if r, ok := right.(float64); ok {
+			return Value(l == r)
+		}
+		if r, ok := right.(int); ok {
+			return Value(l == float64(r))
+		}
 	case *[]Value:
 		if r, ok := right.(*[]Value); ok {
 			if len(*l) != len(*r) {
