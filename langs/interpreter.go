@@ -483,6 +483,8 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 			}
 			return Value(true)
 		}
+	default:
+		panic(fmt.Sprintf("unsupport type [%s]", Typing(l)))
 	}
 	return Value(false)
 }
