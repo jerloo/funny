@@ -251,7 +251,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		case LTE:
 			return i.EvalLte(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case DOUBLE_EQ:
-			return i.EvalDoubleEq(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+			return i.EvalEqual(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		default:
 			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.Position()))
 		}
@@ -317,8 +317,16 @@ func (i *Interpreter) EvalField(item *Field) Value {
 		i.PopScope()
 		return r
 	case *Variable:
-		iii := root.(map[string]Value)
-		return Value(iii[v.Name])
+		if val, ok := root.(map[string]Value); ok {
+			return Value(val[v.Name])
+		}
+		if val, ok := root.(map[string]interface{}); ok {
+			return Value(val[v.Name])
+		}
+	case *Field:
+		return i.EvalField(v)
+	default:
+		panic(fmt.Sprintf("unknow type %v", v))
 	}
 	return Value(nil)
 }

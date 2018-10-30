@@ -1,4 +1,4 @@
-// funny.fun
+echoln('// funny.fun')
 
 a = 1
 b = 2
