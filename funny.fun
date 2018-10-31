@@ -84,3 +84,5 @@ echoln(hash('test'))
 echoln(hash(hashTest))
 
 echoln(max(10,20))
+
+import 'funny.imported.fun'

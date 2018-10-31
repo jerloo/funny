@@ -130,10 +130,11 @@ func format() {
 }
 
 func run() {
-	data, err := ioutil.ReadFile(*script)
+	data, err := langs.CombinedCode(*script)
 	if err != nil {
 		fmt.Printf("open file error : %s", err)
 	}
+	fmt.Printf(data)
 	interpreter := langs.NewInterpreterWithScope(langs.Scope{})
-	interpreter.Run(data)
+	interpreter.Run([]byte(data))
 }
