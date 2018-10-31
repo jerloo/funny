@@ -6,6 +6,8 @@ import (
 	"encoding/hex"
 	"fmt"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // BuiltinFunction function handler
@@ -24,6 +26,7 @@ var (
 		"hash":         Md5,
 		"max":          Max,
 		"typeof":       Typeof,
+		"uuid":         UUID,
 	}
 )
 
@@ -175,4 +178,11 @@ func Max(interpreter *Interpreter, args []Value) Value {
 func Typeof(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 1)
 	return Typing(args[0])
+}
+
+// UUID builtin function return a uuid string value
+func UUID(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 0)
+	u1 := uuid.NewV4()
+	return Value(fmt.Sprintf("%s", u1))
 }

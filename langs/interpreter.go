@@ -508,6 +508,11 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 			}
 			return Value(true)
 		}
+	case string:
+		if r, ok := right.(string); ok {
+			return Value(l == r)
+		}
+		return Value(false)
 	default:
 		panic(fmt.Sprintf("unsupport type [%s]", Typing(l)))
 	}
