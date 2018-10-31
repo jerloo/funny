@@ -15,7 +15,6 @@ func CombinedCode(filename string) (string, error) {
 	reg := regexp.MustCompile("import '(.*?)'")
 	newData := reg.ReplaceAllStringFunc(string(data), func(part string) string {
 		find := reg.FindStringSubmatch(part)
-		fmt.Print(find)
 		if len(find) == 0 {
 			panic(fmt.Sprintf("import error %s", part))
 		}

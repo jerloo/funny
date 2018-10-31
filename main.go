@@ -134,7 +134,6 @@ func run() {
 	if err != nil {
 		fmt.Printf("open file error : %s", err)
 	}
-	fmt.Printf(data)
 	interpreter := langs.NewInterpreterWithScope(langs.Scope{})
 	interpreter.Run([]byte(data))
 }

@@ -87,4 +87,15 @@ echoln(max(10,20))
 
 import 'funny.imported.fun'
 
-echo(uuid())
+echoln(uuid())
+
+test = {
+  a = {
+    b = {
+      c = 1
+    }
+  }
+}
+echoln(test.a)
+echoln(test.a.b)
+echoln(test.a.b.c)

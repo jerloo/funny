@@ -344,7 +344,14 @@ func (i *Interpreter) EvalField(item *Field) Value {
 			return Value(val[v.Name])
 		}
 	case *Field:
-		return i.EvalField(v)
+		scope := Scope{}
+		for key, val := range root.(map[string]Value) {
+			scope[key] = val
+		}
+		i.PushScope(scope)
+		r := i.EvalField(v)
+		i.PopScope()
+		return r
 	default:
 		panic(fmt.Sprintf("unknow type %v", v))
 	}
