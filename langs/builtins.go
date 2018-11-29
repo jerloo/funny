@@ -46,7 +46,6 @@ func ackGt(args []Value, count int) {
 
 // Echo builtin function echos one or every item in a array
 func Echo(interpreter *Interpreter, args []Value) Value {
-	fmt.Sprint(interpreter.Vars)
 	for _, item := range args {
 		fmt.Print(item)
 	}
@@ -55,7 +54,6 @@ func Echo(interpreter *Interpreter, args []Value) Value {
 
 // Echoln builtin function echos one or every item in a array
 func Echoln(interpreter *Interpreter, args []Value) Value {
-	fmt.Sprint(interpreter.Vars)
 	for index, item := range args {
 		fmt.Print(item)
 		if index == len(args)-1 {
