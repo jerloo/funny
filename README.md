@@ -12,7 +12,7 @@ go get github.com/jeremaihloo/funny
 
 ## Usage
 
-```funny
+```javascript
 
 // funny.fun
 
