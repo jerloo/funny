@@ -1,4 +1,6 @@
 // funny.fun
+// author: jeremaihloo@gmail.com
+// github: https://github.com/jeremaihloo/funny
 
 a = 1
 b = 2
