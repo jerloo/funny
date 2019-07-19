@@ -74,3 +74,30 @@ assert(obj.age == 20)
 assert(obj.isAdult())
 echoln(obj.isAdult())
 echoln(obj.age)
+
+arrdemo = [1,2,3]
+echoln(arrdemo[2])
+assert(arrdemo[2]==3)
+
+echoln('hash')
+hashTest = 'haha'
+echoln(hashTest)
+echoln(hash('test'))
+echoln(hash(hashTest))
+
+echoln(max(10,20))
+
+import 'funny.imported.fun'
+
+echoln(uuid())
+
+test = {
+  a = {
+    b = {
+      c = 1
+    }
+  }
+}
+echoln(test.a)
+echoln(test.a.b)
+echoln(test.a.b.c)
