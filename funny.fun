@@ -2,21 +2,37 @@
 // author: jeremaihloo@gmail.com
 // github: https://github.com/jeremaihloo/funny
 
+echoln('define a varible value 1')
 a = 1
+
+echoln('define b varible value 2')
 b = 2
+
+echoln('define c varible value a ')
 c = a
-echoln(c)
+
+echoln('a, b, c values: ')
+echoln('a = ', a,', b = ',  b, ', c = ', c)
+
+echoln('assert c equels 1')
 assert(c == 1)
+
 d = c + b
-echoln(d)
+
+echoln('assert (d = c + b) === ', d)
 assert(d == 3)
+
+echoln('define a function ')
+echoln('minus(a, b) {')
+echoln('  return b - a')
+echoln('}')
 
 minus(a, b) {
   return b - a
 }
 
 e = minus(a, b)
-echoln(e)
+echoln('minus(a, b) === ', e)
 assert(e == 1)
 
 if a > 0 {
@@ -60,8 +76,7 @@ Object() {
     age = 10
     isAdult() {
       this.age = this.age + 5
-      echoln('test')
-      echoln(this.age)
+      echoln('this.age ', this.age)
       return true
     }
   }
@@ -79,25 +94,24 @@ arrdemo = [1,2,3]
 echoln(arrdemo[2])
 assert(arrdemo[2]==3)
 
-echoln('hash')
-hashTest = 'haha'
+hashTest = 'i am string'
 echoln(hashTest)
-echoln(hash('test'))
-echoln(hash(hashTest))
+echoln('hash(i am string) => ', hash(hashTest))
 
-echoln(max(10,20))
+echoln('max(10, 20) => ', max(10,20))
 
 import 'funny.imported.fun'
 
-echoln(uuid())
+echoln('uuid => ', uuid())
 
-test = {
+deepObj = {
   a = {
     b = {
       c = 1
     }
   }
 }
-echoln(test.a)
-echoln(test.a.b)
-echoln(test.a.b.c)
+
+echoln('deepObj.a =>', test.a)
+echoln('deepObj.a.b =>', test.a.b)
+echoln('deepObj.a.b.c =>', test.a.b.c)
