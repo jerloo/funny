@@ -18,7 +18,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/jeremaihloo/funny/langs"
+	"github.com/jeremaihloo/funny/lang"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Verions of this build.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("Version: %s\n", langs.VERSION)
+		fmt.Printf("Version: %s\n", lang.VERSION)
 	},
 }
 

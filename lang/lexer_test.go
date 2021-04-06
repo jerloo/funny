@@ -1,14 +1,14 @@
-package langs
+package lang
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
 const (
 	DATA = "a = 1\nb=2\nc= a + b"
 )
-
 
 func TestLexer_LA(t *testing.T) {
 	lexer := NewLexer([]byte(DATA))

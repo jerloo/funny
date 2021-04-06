@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jeremaihloo/funny/langs"
+	"github.com/jeremaihloo/funny/lang"
 	"github.com/spf13/cobra"
 )
 
@@ -44,13 +44,13 @@ var lexerCmd = &cobra.Command{
 				data = []byte(filename)
 			}
 
-			var tokens []langs.Token
-			lexer := langs.NewLexer(data)
+			var tokens []lang.Token
+			lexer := lang.NewLexer(data)
 			for {
 				token := lexer.Next()
 				// fmt.Printf("%v\n", token.String())
 
-				if token.Kind == langs.EOF {
+				if token.Kind == lang.EOF {
 					break
 				}
 				tokens = append(tokens, token)

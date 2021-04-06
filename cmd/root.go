@@ -20,7 +20,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jeremaihloo/funny/langs"
+	"github.com/jeremaihloo/funny/lang"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -47,7 +47,7 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				fmt.Printf("open file error : %s", err)
 			}
-			interpreter := langs.NewInterpreterWithScope(langs.Scope{})
+			interpreter := lang.NewInterpreterWithScope(lang.Scope{})
 			interpreter.Run(data)
 		} else {
 			cmd.Usage()

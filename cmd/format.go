@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jeremaihloo/funny/langs"
+	"github.com/jeremaihloo/funny/lang"
 	"github.com/spf13/cobra"
 )
 
@@ -48,7 +48,7 @@ var formatCmd = &cobra.Command{
 				}
 			}
 
-			parser := langs.NewParser(data)
+			parser := lang.NewParser(data)
 			parser.Consume("")
 			flag := 0
 			for {
@@ -57,7 +57,7 @@ var formatCmd = &cobra.Command{
 					break
 				}
 				switch item.(type) {
-				case *langs.NewLine:
+				case *lang.NewLine:
 					flag++
 					if flag < 1 {
 						continue

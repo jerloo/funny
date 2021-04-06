@@ -21,7 +21,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/jeremaihloo/funny/langs"
+	"github.com/jeremaihloo/funny/lang"
 	"github.com/spf13/cobra"
 )
 
@@ -37,9 +37,9 @@ var parserCmd = &cobra.Command{
 				return
 			}
 			data, _ := ioutil.ReadFile(filename)
-			parser := langs.NewParser(data)
+			parser := lang.NewParser(data)
 			parser.Consume("")
-			var items langs.Block
+			var items lang.Block
 			for {
 				item := parser.ReadStatement()
 				if item == nil {

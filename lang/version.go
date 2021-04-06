@@ -1,4 +1,4 @@
-package langs
+package lang
 
 const (
 	// VERSION of funny
