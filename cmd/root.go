@@ -17,7 +17,6 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/jeremaihloo/funny/lang"
@@ -43,7 +42,11 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("file not found %s\n", filename)
 				return
 			}
-			data, err := ioutil.ReadFile(filename)
+			cdw, err := os.Getwd()
+			if err != nil {
+				panic(err)
+			}
+			data, err := lang.CombinedCode(cdw, filename)
 			if err != nil {
 				fmt.Printf("open file error : %s", err)
 			}

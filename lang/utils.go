@@ -3,12 +3,14 @@ package lang
 import (
 	"fmt"
 	"io/ioutil"
+	"path"
 	"regexp"
 )
 
 // CombinedCode get combined code that using import
-func CombinedCode(filename string) (string, error) {
-	data, err := ioutil.ReadFile(filename)
+func CombinedCode(basePath, filename string) (string, error) {
+	filePath := path.Join(basePath, filename)
+	data, err := ioutil.ReadFile(filePath)
 	if err != nil {
 		return "", err
 	}
@@ -18,9 +20,9 @@ func CombinedCode(filename string) (string, error) {
 		if len(find) == 0 {
 			panic(fmt.Sprintf("import error %s", part))
 		}
-		tmpCode, err := CombinedCode(find[1])
+		tmpCode, err := CombinedCode(path.Dir(filePath), find[1])
 		if err != nil {
-			return ""
+			return fmt.Sprintf("echoln('import %s error %s from %s')", find[1], err.Error(), filename)
 		}
 		return tmpCode
 	})

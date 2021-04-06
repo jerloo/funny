@@ -264,7 +264,6 @@ func (l *Lexer) ReadString() Token {
 			return token
 		default:
 			l.Consume(1)
-			break
 		}
 	}
 }

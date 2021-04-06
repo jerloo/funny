@@ -95,12 +95,12 @@ echoln(arrdemo[2])
 assert(arrdemo[2]==3)
 
 md5Test = 'i am string'
-echoln(md5)
-echoln('md5(i am string) => ', md5(hashTest))
+echoln(md5Test)
+echoln('md5(i am string) => ', md5(md5Test))
 
 echoln('max(10, 20) => ', max(10,20))
 
-// import 'funny.imported.fun'
+import 'funny.imported.fun'
 
 echoln('uuid => ', uuid())
 
