@@ -16,17 +16,18 @@ type BuiltinFunction func(interpreter *Interpreter, args []Value) Value
 var (
 	// FUNCTIONS all builtin functions
 	FUNCTIONS = map[string]BuiltinFunction{
-		"echo":         Echo,
-		"echoln":       Echoln,
-		"now":          Now,
-		"base64encode": Base64Encode,
-		"base64decode": Base64Decode,
-		"assert":       Assert,
-		"len":          Len,
-		"hash":         Md5,
-		"max":          Max,
-		"typeof":       Typeof,
-		"uuid":         UUID,
+		"echo":   Echo,
+		"echoln": Echoln,
+		"now":    Now,
+		"b64en":  Base64Encode,
+		"b64de":  Base64Decode,
+		"assert": Assert,
+		"len":    Len,
+		"md5":    Md5,
+		"max":    Max,
+		"min":    Min,
+		"typeof": Typeof,
+		"uuid":   UUID,
 	}
 )
 
@@ -149,7 +150,6 @@ func Max(interpreter *Interpreter, args []Value) Value {
 					flag = val
 				}
 			}
-			break
 		}
 		return Value(flag)
 	case *List:
@@ -162,7 +162,39 @@ func Max(interpreter *Interpreter, args []Value) Value {
 						flagA = val
 					}
 				}
-				break
+			}
+			return Value(flagA)
+		}
+	default:
+		break
+	}
+	panic("type error, only support [int]")
+}
+
+// Min return then length of the given list
+func Min(interpreter *Interpreter, args []Value) Value {
+	ackGt(args, 1)
+	switch v := args[0].(type) {
+	case int:
+		flag := v
+		for _, item := range args[1:] {
+			if val, ok := item.(int); ok {
+				if val < flag {
+					flag = val
+				}
+			}
+		}
+		return Value(flag)
+	case *List:
+		flag := interpreter.EvalExpression(v.Values[0])
+		if flagA, ok := flag.(int); ok {
+			for _, item := range v.Values {
+				val := interpreter.EvalExpression(item)
+				if val, ok := val.(int); ok {
+					if val < flagA {
+						flagA = val
+					}
+				}
 			}
 			return Value(flagA)
 		}
@@ -182,5 +214,5 @@ func Typeof(interpreter *Interpreter, args []Value) Value {
 func UUID(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 0)
 	u1 := uuid.NewV4()
-	return Value(fmt.Sprintf("%s", u1))
+	return Value(u1)
 }

@@ -237,7 +237,7 @@ func (l *Lexer) Next() Token {
 					chNext := l.LA(1)
 					chNS := string(chNext)
 					fmt.Sprintf("%s", chNS)
-					if !isNameStart(chNext) {
+					if !(isNameStart(chNext) || (chNext >= '0' && chNext <= '9')) {
 						return l.CreateToken(NAME)
 					}
 					l.Consume(1)

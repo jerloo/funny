@@ -1,11 +1,11 @@
-// funny.fun
-// author: jeremaihloo@gmail.com
-// github: https://github.com/jeremaihloo/funny
+// @Title funny.fun
+// @Author: jeremaihloo@gmail.com
+// @Homepage github: https://github.com/jerloo/funny
 
 echoln('define a varible value 1')
 a = 1
 
-echoln('define b varible value 2')
+echoln('define b varible value 2') 
 b = 2
 
 echoln('define c varible value a ')
@@ -94,13 +94,13 @@ arrdemo = [1,2,3]
 echoln(arrdemo[2])
 assert(arrdemo[2]==3)
 
-hashTest = 'i am string'
-echoln(hashTest)
-echoln('hash(i am string) => ', hash(hashTest))
+md5Test = 'i am string'
+echoln(md5)
+echoln('md5(i am string) => ', md5(hashTest))
 
 echoln('max(10, 20) => ', max(10,20))
 
-import 'funny.imported.fun'
+// import 'funny.imported.fun'
 
 echoln('uuid => ', uuid())
 
@@ -112,6 +112,6 @@ deepObj = {
   }
 }
 
-echoln('deepObj.a =>', test.a)
-echoln('deepObj.a.b =>', test.a.b)
-echoln('deepObj.a.b.c =>', test.a.b.c)
+echoln('deepObj.a =>', deepObj.a)
+echoln('deepObj.a.b =>', deepObj.a.b)
+echoln('deepObj.a.b.c =>', deepObj.a.b.c)

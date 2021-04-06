@@ -39,15 +39,15 @@ func (i *Interpreter) Debug() bool {
 
 // Run the part of the code
 func (i *Interpreter) Run(v interface{}) (Value, bool) {
-	if !i.Debug() {
-		// defer func() {
-		// 	if err := recover(); err != nil {
-		// 		fmt.Printf("\nfunny runtime error: %s\n", err)
-		// 	}
-		// }()
-	} else {
-		fmt.Sprintln("Debug Mode on.")
-	}
+	defer func() {
+		if err := recover(); err != nil {
+			if i.Debug() {
+				fmt.Print(err)
+			} else {
+				fmt.Printf("\nfunny runtime error: %s\n", err)
+			}
+		}
+	}()
 	switch v := v.(type) {
 	case Statement:
 		return i.EvalStatement(v)
