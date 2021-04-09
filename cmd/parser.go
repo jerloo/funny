@@ -18,7 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/jeremaihloo/funny/lang"
@@ -36,8 +35,15 @@ var parserCmd = &cobra.Command{
 				fmt.Printf("file not found %s\n", filename)
 				return
 			}
-			data, _ := ioutil.ReadFile(filename)
-			parser := lang.NewParser(data)
+			cdw, err := os.Getwd()
+			if err != nil {
+				panic(err)
+			}
+			data, err := lang.CombinedCode(cdw, filename)
+			if err != nil {
+				panic(err)
+			}
+			parser := lang.NewParser([]byte(data))
 			parser.Consume("")
 			var items lang.Block
 			for {
@@ -46,13 +52,13 @@ var parserCmd = &cobra.Command{
 					break
 				}
 				items = append(items, item)
-				// fmt.Printf("%s %s\n", langs.Typing(item), item.String())
+				fmt.Printf("===========%s %s\n", lang.Typing(item), item.String())
 			}
-			data, err := json.MarshalIndent(items, "", "  ")
+			echoJson, err := json.MarshalIndent(items, "", "  ")
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(string(data))
+			fmt.Println(string(echoJson))
 		}
 	},
 }

@@ -45,8 +45,7 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 				TextDocumentSync: &lsp.TextDocumentSyncOptionsOrKind{
 					Kind: &kind,
 				},
-				//TODO: Implement that completion provider?
-				CompletionProvider:     nil,
+				CompletionProvider:     &lsp.CompletionOptions{ResolveProvider: true, TriggerCharacters: []string{"(", "."}},
 				DefinitionProvider:     true,
 				TypeDefinitionProvider: true,
 				DocumentSymbolProvider: true,

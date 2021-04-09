@@ -60,10 +60,10 @@ func (l rpcLogger) Printf(format string, v ...interface{}) {
 }
 
 func run(ctx context.Context, args []string) error {
-	cfg := zap.NewProductionConfig()
-	cfg.OutputPaths = []string{
-		"log.txt",
-	}
+	cfg := zap.NewDevelopmentConfig()
+	// cfg.OutputPaths = []string{
+	// 	"log.txt",
+	// }
 	logger, err := cfg.Build()
 	if err != nil {
 		log.Printf("failed to create logger: %v\n", err)

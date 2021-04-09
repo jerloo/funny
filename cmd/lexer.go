@@ -18,7 +18,6 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 
@@ -39,7 +38,15 @@ var lexerCmd = &cobra.Command{
 			}
 			var data []byte
 			if filename != "" && strings.HasSuffix(filename, ".fun") {
-				data, _ = ioutil.ReadFile(filename)
+				cdw, err := os.Getwd()
+				if err != nil {
+					panic(err)
+				}
+				ds, err := lang.CombinedCode(cdw, filename)
+				if err != nil {
+					panic(err)
+				}
+				data = []byte(ds)
 			} else {
 				data = []byte(filename)
 			}
