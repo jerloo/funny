@@ -55,6 +55,7 @@ func (p *Parser) ReadStatement() Statement {
 		if current.Data == "return" {
 
 			return &Return{
+				pos:   current.Position,
 				Value: p.ReadExpression(),
 			}
 		}
@@ -66,16 +67,22 @@ func (p *Parser) ReadStatement() Statement {
 			case FOR:
 				return p.ReadFOR()
 			case BREAK:
-				return &Break{}
+				return &Break{
+					pos: current.Position,
+				}
 			case CONTINUE:
-				return &Continue{}
+				return &Continue{
+					pos: current.Position,
+				}
 			}
 		}
 		next := p.Consume("")
 		switch next.Kind {
 		case EQ:
 			return &Assign{
+				pos: current.Position,
 				Target: &Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Value: p.ReadExpression(),
@@ -84,7 +91,9 @@ func (p *Parser) ReadStatement() Statement {
 			return p.ReadFunction(current.Data)
 		case DOT:
 			field := &Field{
+				pos: current.Position,
 				Variable: Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Value: p.ReadField(),
@@ -92,6 +101,7 @@ func (p *Parser) ReadStatement() Statement {
 			if p.Current.Kind == EQ {
 				p.Consume(EQ)
 				return &Assign{
+					pos:    current.Position,
 					Target: field,
 					Value:  p.ReadExpression(),
 				}
@@ -101,10 +111,13 @@ func (p *Parser) ReadStatement() Statement {
 			key := p.Consume(STRING)
 			p.Consume(RBracket)
 			field := &Field{
+				pos: current.Position,
 				Variable: Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Value: &Variable{
+					pos:  current.Position,
 					Name: key.Data,
 				},
 			}
@@ -112,11 +125,13 @@ func (p *Parser) ReadStatement() Statement {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
+					pos:    current.Position,
 					Target: field,
 					Value:  p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
+					pos:      current.Position,
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -129,13 +144,17 @@ func (p *Parser) ReadStatement() Statement {
 			Value: current.Data,
 		}
 	case NEW_LINE:
-		return &NewLine{}
+		return &NewLine{
+			pos: current.Position,
+		}
 	case STRING:
 		switch p.Current.Kind {
 		case EQ:
 			p.Consume(EQ)
 			return &Assign{
+				pos: current.Position,
 				Target: &Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Value: p.ReadExpression(),
@@ -185,11 +204,13 @@ func (p *Parser) ReadFOR() Statement {
 	if p.Current.Kind == NAME {
 		index := p.Consume(NAME)
 		item.CurrentIndex = Variable{
+			pos:  p.Current.Position,
 			Name: index.Data,
 		}
 		p.Consume(COMMA)
 		val := p.Consume(NAME)
 		item.CurrentItem = &Variable{
+			pos:  p.Current.Position,
 			Name: val.Data,
 		}
 		if p.Current.Data != IN {
@@ -198,19 +219,25 @@ func (p *Parser) ReadFOR() Statement {
 		p.Consume(NAME)
 		iterable := p.Consume(NAME)
 		item.Iterable = IterableExpression{
+			pos: p.Current.Position,
 			Name: Variable{
+				pos:  p.Current.Position,
 				Name: iterable.Data,
 			},
 		}
 	} else {
 		item.CurrentIndex = Variable{
+			pos:  p.Current.Position,
 			Name: "index",
 		}
 		item.CurrentItem = &Variable{
+			pos:  p.Current.Position,
 			Name: "item",
 		}
 		item.Iterable = IterableExpression{
+			pos: p.Current.Position,
 			Name: Variable{
+				pos:  p.Current.Position,
 				Name: "items",
 			},
 		}
@@ -260,6 +287,7 @@ func (p *Parser) ReadFunction(name string) Statement {
 
 	}
 	return &FunctionCall{
+		pos:        p.Current.Position,
 		Name:       fn.Name,
 		Parameters: fn.Parameters,
 	}
@@ -290,6 +318,7 @@ func (p *Parser) ReadList() Expression {
 	}
 
 	return &List{
+		pos:    p.Current.Position,
 		Values: l,
 	}
 }
@@ -302,7 +331,9 @@ func (p *Parser) ReadExpression() Expression {
 		switch p.Current.Kind {
 		case PLUS, MINUS, TIMES, DEVIDE:
 			return &BinaryExpression{
+				pos: current.Position,
 				Left: &Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
@@ -310,7 +341,9 @@ func (p *Parser) ReadExpression() Expression {
 			}
 		case LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
+				pos: current.Position,
 				Left: &Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
@@ -324,6 +357,7 @@ func (p *Parser) ReadExpression() Expression {
 				switch p.Current.Kind {
 				case MINUS, PLUS, TIMES, DEVIDE:
 					return &BinaryExpression{
+						pos:      current.Position,
 						Left:     item,
 						Operator: p.Consume(p.Current.Kind),
 						Right:    p.ReadExpression(),
@@ -334,7 +368,9 @@ func (p *Parser) ReadExpression() Expression {
 		case DOT:
 			p.Consume(DOT)
 			field := &Field{
+				pos: current.Position,
 				Variable: Variable{
+					pos:  current.Position,
 					Name: current.Data,
 				},
 				Value: p.ReadField(),
@@ -343,11 +379,13 @@ func (p *Parser) ReadExpression() Expression {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
+					pos:    current.Position,
 					Target: field,
 					Value:  p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
+					pos:      current.Position,
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -362,7 +400,9 @@ func (p *Parser) ReadExpression() Expression {
 				key := p.Consume(STRING)
 				p.Consume(RBracket)
 				exp = &Field{
+					pos: current.Position,
 					Variable: Variable{
+						pos:  current.Position,
 						Name: current.Data,
 					},
 					Value: &Variable{
@@ -376,7 +416,9 @@ func (p *Parser) ReadExpression() Expression {
 					panic("Bad list index ")
 				}
 				exp = &ListAccess{
+					pos: current.Position,
 					List: Variable{
+						pos:  current.Position,
 						Name: current.Data,
 					},
 					Index: index,
@@ -390,11 +432,13 @@ func (p *Parser) ReadExpression() Expression {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
+					pos:    current.Position,
 					Target: exp,
 					Value:  p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
+					pos:      current.Position,
 					Left:     exp,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -406,11 +450,13 @@ func (p *Parser) ReadExpression() Expression {
 		default:
 			if current.Data == "true" {
 				return &Boolen{
+					pos:   current.Position,
 					Value: true,
 				}
 			}
 			if current.Data == "false" {
 				return &Boolen{
+					pos:   current.Position,
 					Value: false,
 				}
 			}
@@ -420,6 +466,7 @@ func (p *Parser) ReadExpression() Expression {
 				return p.ReadExpression()
 			}
 			return &Variable{
+				pos:  current.Position,
 				Name: current.Data,
 			}
 		}
@@ -430,7 +477,9 @@ func (p *Parser) ReadExpression() Expression {
 		switch p.Current.Kind {
 		case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
+				pos: current.Position,
 				Left: &Literal{
+					pos:   current.Position,
 					Value: value,
 				},
 				Operator: p.Consume(p.Current.Kind),
@@ -438,13 +487,16 @@ func (p *Parser) ReadExpression() Expression {
 			}
 		}
 		return &Literal{
+			pos:   current.Position,
 			Value: value,
 		}
 	case STRING:
 		switch p.Current.Kind {
 		case PLUS, MINUS:
 			return &BinaryExpression{
+				pos: current.Position,
 				Left: &Literal{
+					pos:   current.Position,
 					Value: current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
@@ -452,6 +504,7 @@ func (p *Parser) ReadExpression() Expression {
 			}
 		}
 		return &Literal{
+			pos:   current.Position,
 			Value: current.Data,
 		}
 	case LParenthese:
@@ -484,7 +537,9 @@ func (p *Parser) ReadField() Expression {
 	if p.Current.Kind == DOT {
 		p.Consume(DOT)
 		return &Field{
+			pos: p.Current.Position,
 			Variable: Variable{
+				pos:  p.Current.Position,
 				Name: name.Data,
 			},
 			Value: p.ReadField(),
@@ -495,6 +550,7 @@ func (p *Parser) ReadField() Expression {
 		return p.ReadFunction(name.Data)
 	}
 	return &Variable{
+		pos:  p.Current.Position,
 		Name: name.Data,
 	}
 }

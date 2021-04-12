@@ -1,6 +1,6 @@
-// @Title funny.fun
-// @Author: jeremaihloo@gmail.com
-// @Homepage github: https://github.com/jerloo/funny
+// @title funny.fun
+// @author: jerloo@gmail.com
+// @homepage github: https://github.com/jerloo/funny
 
 echoln('define a varible value 1')
 a = 1
@@ -64,15 +64,15 @@ r = fib(8)
 echoln(r)
 
 person = {
-  name = 'jeremaihloo'
+  name = 'jerloo'
   age = 10
 }
-assert(person.name == 'jeremaihloo')
+assert(person.name == 'jerloo')
 echoln(person.age)
 
 Object() {
   return {
-    name = 'jeremaihloo'
+    name = 'jerloo'
     age = 10
     isAdult() {
       this.age = this.age + 5
@@ -83,7 +83,7 @@ Object() {
 }
 
 obj = Object()
-assert(obj.name == 'jeremaihloo')
+assert(obj.name == 'jerloo')
 obj.age = 20
 assert(obj.age == 20)
 assert(obj.isAdult())

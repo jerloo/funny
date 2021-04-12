@@ -4,6 +4,13 @@ A funny language interpreter written in golang.
 
 It begins just for fun.
 
+## Target
+
+To make creating dsl easily based on funny.
+
+- apitest dsl
+- api declare dsl
+
 ## Installation
 
 ```console
@@ -156,7 +163,10 @@ Args:
 - Fix echo
 - Add more builtin functions
 - Add tests
-- Fix import feature
+- ~~Fix import feature~~
+- Typings
+- module and package feature
+- module repo based on github
 
 ## License
 

@@ -1,7 +1,0 @@
-{"level":"info","ts":1617761222.6704671,"caller":"cmd/lsp.go:62","msg":"Starting up..."}
-{"level":"info","ts":1617765129.2556758,"caller":"cmd/lsp.go:73","msg":"Starting up..."}
-{"level":"info","ts":1617765138.2055428,"caller":"cmd/lsp.go:81","msg":"Signal received"}
-{"level":"info","ts":1617765138.205709,"caller":"cmd/lsp.go:87","msg":"Stopped..."}
-{"level":"info","ts":1617765242.3260539,"caller":"cmd/lsp.go:73","msg":"Starting up..."}
-{"level":"info","ts":1617779431.895189,"caller":"cmd/lsp.go:81","msg":"Signal received"}
-{"level":"info","ts":1617779431.8966851,"caller":"cmd/lsp.go:87","msg":"Stopped..."}
