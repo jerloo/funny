@@ -115,3 +115,4 @@ deepObj = {
 echoln('deepObj.a =>', deepObj.a)
 echoln('deepObj.a.b =>', deepObj.a.b)
 echoln('deepObj.a.b.c =>', deepObj.a.b.c)
+

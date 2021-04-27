@@ -147,6 +147,12 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 }
 
 func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.CompletionParams) (*lsp.CompletionList, error) {
+	if !IsURI(params.TextDocument.URI) {
+		return nil, &jsonrpc2.Error{
+			Code:    jsonrpc2.CodeInvalidParams,
+			Message: fmt.Sprintf("textDocument/completion not yet supported for out-of-workspace URI (%q)", params.TextDocument.URI),
+		}
+	}
 	citems := []lsp.CompletionItem{
 		{
 			Kind:             lsp.CIKConstant,
@@ -163,6 +169,8 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 			},
 		},
 	}
+	filename := UriToRealPath(params.TextDocument.URI)
+	GetCompletionItem(filename)
 	return &lsp.CompletionList{
 		IsIncomplete: false,
 		Items:        citems,
