@@ -29,6 +29,10 @@ func (h Handler) Handle(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc2.
 		h.log.Error("response", zap.Error(err))
 		return
 	}
+	err = conn.Reply(ctx, req.ID, resp)
+	if err != nil {
+		h.log.Error("handle: error sending response", zap.Error(err))
+	}
 	h.log.Info("response", zap.Any("resp", resp))
 }
 
@@ -57,15 +61,36 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		}, nil
 
 	case "initialized":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		kind := lsp.TDSKIncremental
 		// A notification that the client is ready to receive requests. Ignore
-		return nil, nil
+		return lsp.InitializeResult{
+			Capabilities: lsp.ServerCapabilities{
+				TextDocumentSync: &lsp.TextDocumentSyncOptionsOrKind{
+					Kind: &kind,
+				},
+				CompletionProvider: &lsp.CompletionOptions{
+					ResolveProvider:   true,
+					TriggerCharacters: []string{"(", "."},
+				},
+				DefinitionProvider:     true,
+				TypeDefinitionProvider: true,
+				DocumentSymbolProvider: true,
+				HoverProvider:          true,
+				ReferencesProvider:     true,
+				ImplementationProvider: true,
+				SignatureHelpProvider:  &lsp.SignatureHelpOptions{TriggerCharacters: []string{"(", ","}},
+			},
+		}, nil
 
-	case "shutdown":
-		return nil, nil
+	// case "shutdown":
+	// 	return nil, nil
 
-	case "exit":
-		conn.Close()
-		return nil, nil
+	// case "exit":
+	// 	conn.Close()
+	// 	return nil, nil
 
 	case "$/cancelRequest":
 		// notification, don't send back results/errors
@@ -153,26 +178,22 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 			Message: fmt.Sprintf("textDocument/completion not yet supported for out-of-workspace URI (%q)", params.TextDocument.URI),
 		}
 	}
-	citems := []lsp.CompletionItem{
-		{
-			Kind:             lsp.CIKConstant,
-			Label:            "A constant",
-			Detail:           "Its type",
-			InsertTextFormat: lsp.ITFPlainText,
-			InsertText:       "New Text",
-			TextEdit: &lsp.TextEdit{
-				Range: lsp.Range{
-					Start: lsp.Position{Line: params.Position.Line, Character: params.Position.Character - len("New Text")},
-					End:   lsp.Position{Line: params.Position.Line, Character: params.Position.Character},
-				},
-				NewText: "New Text",
-			},
-		},
-	}
+	// citems := []lsp.CompletionItem{
+	// 	{
+	// 		Kind:             lsp.CIKConstant,
+	// 		Label:            "A constant",
+	// 		Detail:           "Its type",
+	// 		InsertTextFormat: lsp.ITFPlainText,
+	// 		InsertText:       "New Text",
+	// 		TextEdit: &lsp.TextEdit{
+	// 			Range: lsp.Range{
+	// 				Start: lsp.Position{Line: params.Position.Line, Character: params.Position.Character},
+	// 				End:   lsp.Position{Line: params.Position.Line, Character: params.Position.Character + len("New Text")},
+	// 			},
+	// 			NewText: "New Text",
+	// 		},
+	// 	},
+	// }
 	filename := UriToRealPath(params.TextDocument.URI)
-	GetCompletionItem(filename)
-	return &lsp.CompletionList{
-		IsIncomplete: false,
-		Items:        citems,
-	}, nil
+	return GetCompletionItem(filename)
 }
