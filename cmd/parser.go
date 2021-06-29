@@ -52,7 +52,7 @@ var parserCmd = &cobra.Command{
 					break
 				}
 				items = append(items, item)
-				fmt.Printf("===========%s %s\n", lang.Typing(item), item.String())
+				fmt.Printf("===========%s %s\n", item.Type(), item.String())
 			}
 			echoJson, err := json.MarshalIndent(items, "", "  ")
 			if err != nil {

@@ -37,10 +37,34 @@ func intent(s string) string {
 	return strings.Join(ss, "\n")
 }
 
+const (
+	STNewLine            = "NewLine"
+	STVariable           = "Variable"
+	STLiteral            = "Literal"
+	STBinaryExpression   = "BinaryExpression"
+	STAssign             = "Assign"
+	STBlock              = "Block"
+	STList               = "List"
+	STListAccess         = "ListAccess"
+	STFunction           = "Function"
+	STFunctionCall       = "FunctionCall"
+	STIfStatement        = "IfStatement"
+	STForStatement       = "ForStatement"
+	STIterableExpression = "IterableExpression"
+	STBreak              = "Break"
+	STContinue           = "Continue"
+	STReturn             = "Return"
+	STField              = "Field"
+	STBoolean            = "Boolean"
+	STStringExpression   = "StringExpression"
+	STComment            = "Comment"
+)
+
 // Statement abstract
 type Statement interface {
 	Position() Position
 	String() string
+	Type() string
 }
 
 // NewLine \n
@@ -57,6 +81,10 @@ func (n *NewLine) String() string {
 	return "\n"
 }
 
+func (n *NewLine) Type() string {
+	return STNewLine
+}
+
 // Variable means var
 type Variable struct {
 	pos  Position
@@ -64,7 +92,7 @@ type Variable struct {
 }
 
 func (v *Variable) String() string {
-	if strings.Index(v.Name, "-") > -1 {
+	if strings.Contains(v.Name, "-") {
 		return fmt.Sprintf("'%s'", v.Name)
 	}
 	return fmt.Sprintf("%s", v.Name)
@@ -73,6 +101,10 @@ func (v *Variable) String() string {
 // Position of Variable
 func (v *Variable) Position() Position {
 	return v.pos
+}
+
+func (n *Variable) Type() string {
+	return STVariable
 }
 
 // Literal like 1
@@ -93,10 +125,15 @@ func (l *Literal) String() string {
 	return fmt.Sprintf("%v", l.Value)
 }
 
+func (n *Literal) Type() string {
+	return STVariable
+}
+
 // Expression abstract
 type Expression interface {
 	Position() Position
 	String() string
+	Type() string
 }
 
 // BinaryExpression like a > 10
@@ -114,6 +151,10 @@ func (b *BinaryExpression) Position() Position {
 
 func (b *BinaryExpression) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left.String(), b.Operator.Data, b.Right.String())
+}
+
+func (n *BinaryExpression) Type() string {
+	return STBinaryExpression
 }
 
 // Assign like a = 2
@@ -136,6 +177,10 @@ func (a *Assign) String() string {
 		return fmt.Sprintf("%s = [%s]", a.Target.String(), intent(a.Value.String()))
 	}
 	return fmt.Sprintf("%s = %s", a.Target.String(), a.Value.String())
+}
+
+func (a *Assign) Type() string {
+	return STAssign
 }
 
 // List like [1, 2, 3]
@@ -163,6 +208,10 @@ func (l *List) String() string {
 	return fmt.Sprintf("%s", strings.Join(s, ", "))
 }
 
+func (a *List) Type() string {
+	return STList
+}
+
 // ListAccess like a[0]
 type ListAccess struct {
 	pos   Position
@@ -179,6 +228,10 @@ func (l *ListAccess) String() string {
 	return fmt.Sprintf("%s[%d]", l.List.String(), l.Index)
 }
 
+func (l *ListAccess) Type() string {
+	return STListAccess
+}
+
 // Block contains many statments
 type Block []Statement
 
@@ -193,6 +246,10 @@ func (b *Block) String() string {
 		s = append(s, item.String())
 	}
 	return strings.Join(s, "")
+}
+
+func (a *Block) Type() string {
+	return STBlock
 }
 
 // Function like test(a, b){}
@@ -217,6 +274,10 @@ func (f *Function) String() string {
 	return fmt.Sprintf("%s(%s) {%s}", f.Name, strings.Join(args, ", "), s)
 }
 
+func (a *Function) Type() string {
+	return STFunction
+}
+
 // FunctionCall like test(a, b)
 type FunctionCall struct {
 	pos        Position
@@ -235,6 +296,10 @@ func (c *FunctionCall) String() string {
 		args = append(args, item.String())
 	}
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
+}
+
+func (c *FunctionCall) Type() string {
+	return STFunctionCall
 }
 
 func block(b Block) string {
@@ -276,6 +341,10 @@ func (i *IFStatement) String() string {
 	}
 }
 
+func (i *IFStatement) Type() string {
+	return STIfStatement
+}
+
 // FORStatement like for
 type FORStatement struct {
 	pos      Position
@@ -299,6 +368,10 @@ func (f *FORStatement) String() string {
 		intent(f.Block.String()))
 }
 
+func (i *FORStatement) Type() string {
+	return STForStatement
+}
+
 // IterableExpression like for in
 type IterableExpression struct {
 	pos   Position
@@ -314,6 +387,10 @@ func (i *IterableExpression) Position() Position {
 
 func (i *IterableExpression) String() string {
 	return fmt.Sprintf("")
+}
+
+func (i *IterableExpression) Type() string {
+	return STIterableExpression
 }
 
 // Next part of IterableExpression
@@ -340,6 +417,10 @@ func (b *Break) String() string {
 	return "break"
 }
 
+func (i *Break) Type() string {
+	return STBreak
+}
+
 // Continue like continue in for
 type Continue struct {
 	pos Position
@@ -352,6 +433,10 @@ func (b *Continue) Position() Position {
 
 func (b *Continue) String() string {
 	return "continue"
+}
+
+func (i *Continue) Type() string {
+	return STContinue
 }
 
 // Return like return varA
@@ -373,6 +458,10 @@ func (r *Return) String() string {
 	return fmt.Sprintf("return %s", r.Value.String())
 }
 
+func (i *Return) Type() string {
+	return STReturn
+}
+
 // Field like obj.age
 type Field struct {
 	pos      Position
@@ -386,10 +475,14 @@ func (f *Field) Position() Position {
 }
 
 func (f *Field) String() string {
-	if v, ok := f.Value.(*Variable); ok && strings.Index(v.Name, "-") > -1 {
+	if v, ok := f.Value.(*Variable); ok && strings.Contains(v.Name, "-") {
 		return fmt.Sprintf("%s[%s]", f.Variable.String(), f.Value.String())
 	}
 	return fmt.Sprintf("%s.%s", f.Variable.String(), f.Value.String())
+}
+
+func (i *Field) Type() string {
+	return STField
 }
 
 // Boolen like true, false
@@ -410,6 +503,10 @@ func (b *Boolen) String() string {
 	return "false"
 }
 
+func (b *Boolen) Type() string {
+	return STBoolean
+}
+
 // StringExpression like 'hello world !'
 type StringExpression struct {
 	pos   Position
@@ -425,6 +522,10 @@ func (s *StringExpression) String() string {
 	return s.Value
 }
 
+func (b *StringExpression) Type() string {
+	return STStringExpression
+}
+
 // Comment line for sth
 type Comment struct {
 	pos   Position
@@ -438,4 +539,8 @@ func (c *Comment) Position() Position {
 
 func (c *Comment) String() string {
 	return fmt.Sprintf("//%s\n", c.Value)
+}
+
+func (b *Comment) Type() string {
+	return STComment
 }
