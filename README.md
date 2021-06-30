@@ -14,7 +14,7 @@ To make creating dsl easily based on funny.
 ## Installation
 
 ```console
-go get github.com/jeremaihloo/funny
+go install github.com/jeremaihloo/funny/cmd/funny@latest
 ```
 
 ## Usage

@@ -16,19 +16,20 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
+	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 
-	"github.com/jeremaihloo/funny/lang"
+	"github.com/jeremaihloo/funny"
 	"github.com/spf13/cobra"
 )
 
-// lexerCmd represents the lexer command
-var lexerCmd = &cobra.Command{
-	Use:   "lexer",
-	Short: "Lexer dumps json for tokenizer a funny script file or funny script text.",
+// formatCmd represents the format command
+var formatCmd = &cobra.Command{
+	Use:   "format",
+	Short: "Format a funny script file or funny script text.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
 			filename := args[0]
@@ -38,49 +39,47 @@ var lexerCmd = &cobra.Command{
 			}
 			var data []byte
 			if filename != "" && strings.HasSuffix(filename, ".fun") {
-				cdw, err := os.Getwd()
-				if err != nil {
-					panic(err)
-				}
-				ds, err := lang.CombinedCode(cdw, filename)
-				if err != nil {
-					panic(err)
-				}
-				data = []byte(ds)
+				data, _ = ioutil.ReadFile(filename)
 			} else {
-				data = []byte(filename)
+				inputReader := bufio.NewScanner(os.Stdin)
+				for inputReader.Scan() {
+					data = append(data, inputReader.Bytes()...)
+					data = append(data, []byte("\n")...)
+				}
 			}
 
-			var tokens []lang.Token
-			lexer := lang.NewLexer(data)
+			parser := funny.NewParser(data)
+			parser.Consume("")
+			flag := 0
 			for {
-				token := lexer.Next()
-				// fmt.Printf("%v\n", token.String())
-
-				if token.Kind == lang.EOF {
+				item := parser.ReadStatement()
+				if item == nil {
 					break
 				}
-				tokens = append(tokens, token)
+				switch item.(type) {
+				case *funny.NewLine:
+					flag++
+					if flag < 1 {
+						continue
+					}
+					break
+				}
+				fmt.Printf("%s", item.String())
 			}
-			data, err := json.MarshalIndent(tokens, "", "  ")
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(string(data))
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(lexerCmd)
+	rootCmd.AddCommand(formatCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// lexerCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// formatCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// lexerCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// formatCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

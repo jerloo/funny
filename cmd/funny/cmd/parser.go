@@ -1,5 +1,5 @@
 /*
-Copyright © 2019 NAME HERE <EMAIL ADDRESS>
+Copyright © 2019 jerloo jeremaihloo1024@gmail.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,20 +16,18 @@ limitations under the License.
 package cmd
 
 import (
-	"bufio"
+	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
-	"strings"
 
-	"github.com/jeremaihloo/funny/lang"
+	"github.com/jeremaihloo/funny"
 	"github.com/spf13/cobra"
 )
 
-// formatCmd represents the format command
-var formatCmd = &cobra.Command{
-	Use:   "format",
-	Short: "Format a funny script file or funny script text.",
+// parserCmd represents the parser command
+var parserCmd = &cobra.Command{
+	Use:   "parser",
+	Short: "Parser dumps json parse a funny script file or funny script text into AST.",
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) == 1 {
 			filename := args[0]
@@ -37,49 +35,44 @@ var formatCmd = &cobra.Command{
 				fmt.Printf("file not found %s\n", filename)
 				return
 			}
-			var data []byte
-			if filename != "" && strings.HasSuffix(filename, ".fun") {
-				data, _ = ioutil.ReadFile(filename)
-			} else {
-				inputReader := bufio.NewScanner(os.Stdin)
-				for inputReader.Scan() {
-					data = append(data, inputReader.Bytes()...)
-					data = append(data, []byte("\n")...)
-				}
+			cdw, err := os.Getwd()
+			if err != nil {
+				panic(err)
 			}
-
-			parser := lang.NewParser(data)
+			data, err := funny.CombinedCode(cdw, filename)
+			if err != nil {
+				panic(err)
+			}
+			parser := funny.NewParser([]byte(data))
 			parser.Consume("")
-			flag := 0
+			var items funny.Block
 			for {
 				item := parser.ReadStatement()
 				if item == nil {
 					break
 				}
-				switch item.(type) {
-				case *lang.NewLine:
-					flag++
-					if flag < 1 {
-						continue
-					}
-					break
-				}
-				fmt.Printf("%s", item.String())
+				items = append(items, item)
+				fmt.Printf("===========%s %s\n", item.Type(), item.String())
 			}
+			echoJson, err := json.MarshalIndent(items, "", "  ")
+			if err != nil {
+				panic(err)
+			}
+			fmt.Println(string(echoJson))
 		}
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(formatCmd)
+	rootCmd.AddCommand(parserCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// formatCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// parserCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// formatCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// parserCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

@@ -15,7 +15,7 @@ limitations under the License.
 */
 package main
 
-import "github.com/jeremaihloo/funny/cmd"
+import "github.com/jeremaihloo/funny/cmd/funny/cmd"
 
 func main() {
 	cmd.Execute()

@@ -1,4 +1,4 @@
-package lang
+package funny
 
 const (
 	LBrace      = "{"

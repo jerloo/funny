@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jeremaihloo/funny/lang"
+	"github.com/jeremaihloo/funny"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -46,11 +46,11 @@ var rootCmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-			data, err := lang.CombinedCode(cdw, filename)
+			data, err := funny.CombinedCode(cdw, filename)
 			if err != nil {
 				fmt.Printf("open file error : %s", err)
 			}
-			interpreter := lang.NewInterpreterWithScope(lang.Scope{})
+			interpreter := funny.NewInterpreterWithScope(funny.Scope{})
 			interpreter.Run(data)
 		} else {
 			cmd.Usage()
