@@ -5,6 +5,6 @@ import (
 )
 
 // P panic
-func P(keyword string, pos Position) string {
-	return fmt.Sprintf("funny error [%s] at position %s", keyword, pos.String())
+func P(keyword string, pos Position) error {
+	return fmt.Errorf("funny error [%s] at position %s", keyword, pos.String())
 }

@@ -3,8 +3,10 @@ package lsp
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
-	"os"
+	"path"
+	"strings"
 
 	"github.com/jeremaihloo/funny"
 	"github.com/sourcegraph/go-lsp"
@@ -14,12 +16,14 @@ import (
 
 type Handler struct {
 	jsonrpc2.Handler
-	log *zap.Logger
+	log              *zap.Logger
+	documentContents *documentContents
 }
 
 func NewHandler(logger *zap.Logger) Handler {
 	return Handler{
-		log: logger,
+		log:              logger,
+		documentContents: newDocumentContents(logger),
 	}
 }
 
@@ -97,6 +101,46 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		}
 		return nil, nil
 
+	case "textDocument/didOpen":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.DidOpenTextDocumentParams
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		return nil, h.handleTextDocumentDidOpen(ctx, conn, req, params)
+	case "textDocument/didChange":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.DidChangeTextDocumentParams
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		//return h.handleHover(ctx, conn, req, params)
+		return nil, h.handleTextDocumentDidChange(ctx, conn, req, params)
+	case "textDocument/didSave":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.TextDocumentPositionParams
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		//return h.handleHover(ctx, conn, req, params)
+		return nil, nil
+	case "textDocument/didClose":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.TextDocumentPositionParams
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		//return h.handleHover(ctx, conn, req, params)
+		return nil, nil
+
 	case "textDocument/hover":
 		if req.Params == nil {
 			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
@@ -165,7 +209,35 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 	return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeMethodNotFound, Message: fmt.Sprintf("method not supported: %s", req.Method)}
 }
 
+func (h Handler) handleTextDocumentDidOpen(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.DidOpenTextDocumentParams) (err error) {
+	_, fileName := path.Split(string(params.TextDocument.URI))
+	if !strings.HasSuffix(fileName, ".funny") {
+		return
+	}
+	// Cache the template doc.
+	h.documentContents.Set(string(params.TextDocument.URI), []byte(params.TextDocument.Text))
+	return
+}
+
+func (h Handler) handleTextDocumentDidChange(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.DidChangeTextDocumentParams) (err error) {
+	_, fileName := path.Split(string(params.TextDocument.URI))
+	if !strings.HasSuffix(fileName, ".funny") {
+		return
+	}
+	// Apply content changes to the cached template.
+	_, err = h.documentContents.Apply(string(params.TextDocument.URI), params.ContentChanges)
+	if err != nil {
+		return
+	}
+	return
+}
+
 func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.CompletionParams) (*lsp.CompletionList, error) {
+	defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+		if err := recover(); err != nil {
+			h.log.Error("error happend", zap.Error(err.(error)))
+		}
+	}()
 	if !IsURI(params.TextDocument.URI) {
 		return nil, &jsonrpc2.Error{
 			Code:    jsonrpc2.CodeInvalidParams,
@@ -173,16 +245,15 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		}
 	}
 
-	filename := UriToRealPath(params.TextDocument.URI)
 	cl := &lsp.CompletionList{
 		IsIncomplete: false,
 		Items:        make([]lsp.CompletionItem, 0),
 	}
-	file, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
+	contents, ok := h.documentContents.Get(string(params.TextDocument.URI))
+	if !ok {
+		return cl, errors.New("document content not found")
 	}
-	parser := funny.NewParser(file)
+	parser := funny.NewParser(contents)
 	parser.Consume("")
 	var items funny.Block
 	for {
@@ -191,6 +262,19 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 			break
 		}
 		items = append(items, item)
+	}
+	var currentToken *funny.Token
+	for _, token := range parser.Tokens {
+		if token.Position.Line == params.Position.Line && token.Position.Col == params.Position.Character {
+			currentToken = &token
+			break
+		}
+	}
+	h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
+	l := 0
+	if currentToken != nil {
+		l = len(currentToken.Data)
+		h.log.Info("current", zap.Any("current", currentToken))
 	}
 	for _, item := range items {
 		ci := lsp.CompletionItem{}
@@ -221,18 +305,7 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 				ci.InsertText = tt.Name
 			}
 		}
-		var currentToken *funny.Token
-		for _, token := range parser.Tokens {
-			if token.Position.Line == params.Position.Line && token.Position.Col == params.Position.Character {
-				currentToken = &token
-			}
-		}
-		h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
-		l := 0
-		if currentToken != nil {
-			l = len(currentToken.Data)
-			h.log.Info("current", zap.Any("current", currentToken))
-		}
+
 		ci.TextEdit = &lsp.TextEdit{
 			Range: lsp.Range{
 				Start: lsp.Position{

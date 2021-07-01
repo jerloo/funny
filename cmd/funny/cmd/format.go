@@ -38,7 +38,7 @@ var formatCmd = &cobra.Command{
 				return
 			}
 			var data []byte
-			if filename != "" && strings.HasSuffix(filename, ".fun") {
+			if filename != "" && strings.HasSuffix(filename, ".funny") {
 				data, _ = ioutil.ReadFile(filename)
 			} else {
 				inputReader := bufio.NewScanner(os.Stdin)
@@ -62,7 +62,6 @@ var formatCmd = &cobra.Command{
 					if flag < 1 {
 						continue
 					}
-					break
 				}
 				fmt.Printf("%s", item.String())
 			}
