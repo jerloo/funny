@@ -14,6 +14,6 @@ doob = {
   }
 }
 
-doob.a
+doob.a.b.b.c
 
 // @doob

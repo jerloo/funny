@@ -22,7 +22,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/jeremaihloo/funny"
+	"github.com/jerloo/funny"
 	"github.com/spf13/cobra"
 )
 

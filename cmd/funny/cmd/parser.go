@@ -1,5 +1,5 @@
 /*
-Copyright © 2019 jerloo jeremaihloo1024@gmail.com
+Copyright © 2019 jerloo jerloo1024@gmail.com
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jeremaihloo/funny"
+	"github.com/jerloo/funny"
 	prettyjson "github.com/jerloo/go-prettyjson"
 	"github.com/spf13/cobra"
 )

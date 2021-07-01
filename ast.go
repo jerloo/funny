@@ -738,10 +738,15 @@ func (b *Comment) Type() string {
 }
 
 func (n *Comment) Descriptor() *AstDescriptor {
+	name := ""
+	arr := strings.Split(n.Value, " ")
+	if len(arr) > 0 {
+		name = arr[0]
+	}
 	return &AstDescriptor{
 		Type:     n.Type(),
 		Position: n.Position(),
-		Name:     "",
-		Text:     "",
+		Name:     name,
+		Text:     name,
 	}
 }

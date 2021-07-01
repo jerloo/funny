@@ -1,4 +1,4 @@
-module github.com/jeremaihloo/funny
+module github.com/jerloo/funny
 
 go 1.12
 

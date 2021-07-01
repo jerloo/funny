@@ -19,7 +19,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/jeremaihloo/funny"
+	"github.com/jerloo/funny"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"

@@ -14,7 +14,7 @@ To make creating dsl easily based on funny.
 ## Installation
 
 ```console
-go install github.com/jeremaihloo/funny/cmd/funny@latest
+go install github.com/jerloo/funny/cmd/funny@latest
 ```
 
 ## Usage
@@ -22,8 +22,8 @@ go install github.com/jeremaihloo/funny/cmd/funny@latest
 ```javascript
 
 // funny.fun
-// author: jeremaihloo@gmail.com
-// github: https://github.com/jeremaihloo/funny
+// author: jerloo@gmail.com
+// github: https://github.com/jerloo/funny
 
 echoln('define a varible value 1')
 a = 1
@@ -87,15 +87,15 @@ r = fib(8)
 echoln(r)
 
 person = {
-  name = 'jeremaihloo'
+  name = 'jerloo'
   age = 10
 }
-assert(person.name == 'jeremaihloo')
+assert(person.name == 'jerloo')
 echoln(person.age)
 
 Object() {
   return {
-    name = 'jeremaihloo'
+    name = 'jerloo'
     age = 10
     isAdult() {
       this.age = this.age + 5
@@ -106,7 +106,7 @@ Object() {
 }
 
 obj = Object()
-assert(obj.name == 'jeremaihloo')
+assert(obj.name == 'jerloo')
 obj.age = 20
 assert(obj.age == 20)
 assert(obj.isAdult())
@@ -173,4 +173,4 @@ Args:
 
 The MIT License (MIT)
 
-Copyright (c) 2018 jeremaihloo
+Copyright (c) 2018 jerloo

@@ -22,7 +22,7 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/jeremaihloo/funny/lsp"
+	"github.com/jerloo/funny/lsp"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 

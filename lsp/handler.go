@@ -8,7 +8,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/jeremaihloo/funny"
+	"github.com/jerloo/funny"
 	"github.com/sourcegraph/go-lsp"
 	"github.com/sourcegraph/jsonrpc2"
 	"go.uber.org/zap"
