@@ -14,12 +14,6 @@ doob = {
   }
 }
 
-a = 2
+doob.a
 
-c = a
-echoln(c)
-
-post = 1
-c = 2
-b = 3
-c=3
+// @doob

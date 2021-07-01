@@ -65,6 +65,7 @@ type AstDescriptor struct {
 	Position Position
 	Name     string
 	Text     string
+	Children []*AstDescriptor
 }
 
 // Statement abstract
@@ -112,7 +113,7 @@ func (v *Variable) String() string {
 	if strings.Contains(v.Name, "-") {
 		return fmt.Sprintf("'%s'", v.Name)
 	}
-	return fmt.Sprintf("%s", v.Name)
+	return v.Name
 }
 
 // Position of Variable
@@ -169,6 +170,7 @@ type Expression interface {
 	Position() Position
 	String() string
 	Type() string
+	Descriptor() *AstDescriptor
 }
 
 // BinaryExpression like a > 10
@@ -198,6 +200,10 @@ func (n *BinaryExpression) Descriptor() *AstDescriptor {
 		Position: n.Position(),
 		Name:     "",
 		Text:     "",
+		Children: []*AstDescriptor{
+			n.Left.Descriptor(),
+			n.Right.Descriptor(),
+		},
 	}
 }
 
@@ -233,6 +239,9 @@ func (n *Assign) Descriptor() *AstDescriptor {
 		Position: n.Position(),
 		Name:     n.Target.String(),
 		Text:     n.Target.String(),
+		Children: []*AstDescriptor{
+			n.Value.Descriptor(),
+		},
 	}
 }
 
@@ -253,12 +262,11 @@ func (l *List) String() string {
 		switch item.(type) {
 		case *Block:
 			s = append(s, fmt.Sprintf("\n{%s}\n", intent(item.String())))
-			break
 		default:
 			s = append(s, item.String())
 		}
 	}
-	return fmt.Sprintf("%s", strings.Join(s, ", "))
+	return strings.Join(s, ", ")
 }
 
 func (n *List) Descriptor() *AstDescriptor {
@@ -319,16 +327,21 @@ func (b *Block) String() string {
 	return strings.Join(s, "")
 }
 
-func (a *Block) Type() string {
+func (b *Block) Type() string {
 	return STBlock
 }
 
-func (n *Block) Descriptor() *AstDescriptor {
+func (b *Block) Descriptor() *AstDescriptor {
+	var children []*AstDescriptor
+	for _, item := range *b {
+		children = append(children, item.Descriptor())
+	}
 	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
+		Type:     b.Type(),
+		Position: b.Position(),
 		Name:     "",
 		Text:     "",
+		Children: children,
 	}
 }
 
@@ -362,8 +375,8 @@ func (n *Function) Descriptor() *AstDescriptor {
 	return &AstDescriptor{
 		Type:     n.Type(),
 		Position: n.Position(),
-		Name:     "",
-		Text:     "",
+		Name:     n.Name,
+		Text:     n.Name,
 	}
 }
 
@@ -502,7 +515,7 @@ func (i *IterableExpression) Position() Position {
 }
 
 func (i *IterableExpression) String() string {
-	return fmt.Sprintf("")
+	return ""
 }
 
 func (i *IterableExpression) Type() string {

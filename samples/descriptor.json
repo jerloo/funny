@@ -1,0 +1,325 @@
+{
+  "Children": [
+    {
+      "Children": [
+        {
+          "Children": [
+            {
+              "Children": null,
+              "Name": "",
+              "Position": {
+                "Col": 11,
+                "Line": 0
+              },
+              "Text": "",
+              "Type": "NewLine"
+            },
+            {
+              "Children": [
+                {
+                  "Children": [
+                    {
+                      "Children": null,
+                      "Name": "",
+                      "Position": {
+                        "Col": 8,
+                        "Line": 1
+                      },
+                      "Text": "",
+                      "Type": "NewLine"
+                    },
+                    {
+                      "Children": [
+                        {
+                          "Children": [
+                            {
+                              "Children": null,
+                              "Name": "",
+                              "Position": {
+                                "Col": 10,
+                                "Line": 2
+                              },
+                              "Text": "",
+                              "Type": "NewLine"
+                            },
+                            {
+                              "Children": [
+                                {
+                                  "Children": null,
+                                  "Name": "",
+                                  "Position": {
+                                    "Col": 11,
+                                    "Line": 3
+                                  },
+                                  "Text": "",
+                                  "Type": "Variable"
+                                }
+                              ],
+                              "Name": "c",
+                              "Position": {
+                                "Col": 7,
+                                "Line": 3
+                              },
+                              "Text": "c",
+                              "Type": "Assign"
+                            },
+                            {
+                              "Children": null,
+                              "Name": "",
+                              "Position": {
+                                "Col": 12,
+                                "Line": 3
+                              },
+                              "Text": "",
+                              "Type": "NewLine"
+                            }
+                          ],
+                          "Name": "",
+                          "Position": {
+                            "Col": 0,
+                            "Line": 0
+                          },
+                          "Text": "",
+                          "Type": "Block"
+                        }
+                      ],
+                      "Name": "b",
+                      "Position": {
+                        "Col": 5,
+                        "Line": 2
+                      },
+                      "Text": "b",
+                      "Type": "Assign"
+                    },
+                    {
+                      "Children": null,
+                      "Name": "",
+                      "Position": {
+                        "Col": 6,
+                        "Line": 4
+                      },
+                      "Text": "",
+                      "Type": "NewLine"
+                    }
+                  ],
+                  "Name": "",
+                  "Position": {
+                    "Col": 0,
+                    "Line": 0
+                  },
+                  "Text": "",
+                  "Type": "Block"
+                }
+              ],
+              "Name": "a",
+              "Position": {
+                "Col": 3,
+                "Line": 1
+              },
+              "Text": "a",
+              "Type": "Assign"
+            },
+            {
+              "Children": null,
+              "Name": "",
+              "Position": {
+                "Col": 4,
+                "Line": 5
+              },
+              "Text": "",
+              "Type": "NewLine"
+            }
+          ],
+          "Name": "",
+          "Position": {
+            "Col": 0,
+            "Line": 0
+          },
+          "Text": "",
+          "Type": "Block"
+        }
+      ],
+      "Name": "deepObj",
+      "Position": {
+        "Col": 6,
+        "Line": 0
+      },
+      "Text": "deepObj",
+      "Type": "Assign"
+    },
+    {
+      "Children": null,
+      "Name": "",
+      "Position": {
+        "Col": 2,
+        "Line": 6
+      },
+      "Text": "",
+      "Type": "NewLine"
+    },
+    {
+      "Children": null,
+      "Name": "",
+      "Position": {
+        "Col": 1,
+        "Line": 7
+      },
+      "Text": "",
+      "Type": "NewLine"
+    },
+    {
+      "Children": [
+        {
+          "Children": [
+            {
+              "Children": null,
+              "Name": "",
+              "Position": {
+                "Col": 9,
+                "Line": 8
+              },
+              "Text": "",
+              "Type": "NewLine"
+            },
+            {
+              "Children": [
+                {
+                  "Children": [
+                    {
+                      "Children": null,
+                      "Name": "",
+                      "Position": {
+                        "Col": 8,
+                        "Line": 9
+                      },
+                      "Text": "",
+                      "Type": "NewLine"
+                    },
+                    {
+                      "Children": [
+                        {
+                          "Children": [
+                            {
+                              "Children": null,
+                              "Name": "",
+                              "Position": {
+                                "Col": 10,
+                                "Line": 10
+                              },
+                              "Text": "",
+                              "Type": "NewLine"
+                            },
+                            {
+                              "Children": [
+                                {
+                                  "Children": null,
+                                  "Name": "",
+                                  "Position": {
+                                    "Col": 11,
+                                    "Line": 11
+                                  },
+                                  "Text": "",
+                                  "Type": "Variable"
+                                }
+                              ],
+                              "Name": "c",
+                              "Position": {
+                                "Col": 7,
+                                "Line": 11
+                              },
+                              "Text": "c",
+                              "Type": "Assign"
+                            },
+                            {
+                              "Children": null,
+                              "Name": "",
+                              "Position": {
+                                "Col": 12,
+                                "Line": 11
+                              },
+                              "Text": "",
+                              "Type": "NewLine"
+                            }
+                          ],
+                          "Name": "",
+                          "Position": {
+                            "Col": 0,
+                            "Line": 0
+                          },
+                          "Text": "",
+                          "Type": "Block"
+                        }
+                      ],
+                      "Name": "b",
+                      "Position": {
+                        "Col": 5,
+                        "Line": 10
+                      },
+                      "Text": "b",
+                      "Type": "Assign"
+                    },
+                    {
+                      "Children": null,
+                      "Name": "",
+                      "Position": {
+                        "Col": 6,
+                        "Line": 12
+                      },
+                      "Text": "",
+                      "Type": "NewLine"
+                    }
+                  ],
+                  "Name": "",
+                  "Position": {
+                    "Col": 0,
+                    "Line": 0
+                  },
+                  "Text": "",
+                  "Type": "Block"
+                }
+              ],
+              "Name": "a",
+              "Position": {
+                "Col": 3,
+                "Line": 9
+              },
+              "Text": "a",
+              "Type": "Assign"
+            },
+            {
+              "Children": null,
+              "Name": "",
+              "Position": {
+                "Col": 4,
+                "Line": 13
+              },
+              "Text": "",
+              "Type": "NewLine"
+            }
+          ],
+          "Name": "",
+          "Position": {
+            "Col": 0,
+            "Line": 0
+          },
+          "Text": "",
+          "Type": "Block"
+        }
+      ],
+      "Name": "doob",
+      "Position": {
+        "Col": 4,
+        "Line": 8
+      },
+      "Text": "doob",
+      "Type": "Assign"
+    }
+  ],
+  "Name": "",
+  "Position": {
+    "Col": 0,
+    "Line": 0
+  },
+  "Text": "",
+  "Type": "Block"
+}

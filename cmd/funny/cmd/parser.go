@@ -16,11 +16,11 @@ limitations under the License.
 package cmd
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
 	"github.com/jeremaihloo/funny"
+	prettyjson "github.com/jerloo/go-prettyjson"
 	"github.com/spf13/cobra"
 )
 
@@ -52,9 +52,9 @@ var parserCmd = &cobra.Command{
 					break
 				}
 				items = append(items, item)
-				fmt.Printf("===========%s %s\n", item.Type(), item.String())
 			}
-			echoJson, err := json.MarshalIndent(items, "", "  ")
+			descriptor := items.Descriptor()
+			echoJson, err := prettyjson.Marshal(descriptor)
 			if err != nil {
 				panic(err)
 			}

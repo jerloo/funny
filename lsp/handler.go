@@ -263,6 +263,7 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		}
 		items = append(items, item)
 	}
+	descriptor := items.Descriptor()
 	var currentToken *funny.Token
 	for _, token := range parser.Tokens {
 		if token.Position.Line == params.Position.Line && token.Position.Col == params.Position.Character {
@@ -276,36 +277,9 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		l = len(currentToken.Data)
 		h.log.Info("current", zap.Any("current", currentToken))
 	}
-	for _, item := range items {
-		ci := lsp.CompletionItem{}
-		switch item.Type() {
-		case funny.STVariable:
-			t := item.(*funny.Variable)
-			ci.Label = t.Name
-			ci.Data = t.Name
-			ci.Kind = lsp.CIKVariable
-			ci.InsertTextFormat = lsp.ITFPlainText
-			ci.InsertText = t.Name
-		case funny.STFunction:
-			t := item.(*funny.Function)
-			ci.Label = t.Name
-			ci.Data = t.Name
-			ci.Kind = lsp.CIKFunction
-			ci.InsertTextFormat = lsp.ITFPlainText
-			ci.InsertText = t.Name
-		case funny.STAssign:
-			t := item.(*funny.Assign)
-			switch t.Target.Type() {
-			case funny.STVariable:
-				tt := t.Target.(*funny.Variable)
-				ci.Label = tt.Name
-				ci.Data = tt.Name
-				ci.Kind = lsp.CIKVariable
-				ci.InsertTextFormat = lsp.ITFPlainText
-				ci.InsertText = tt.Name
-			}
-		}
-
+	fds := flatDescriptor(descriptor)
+	for _, item := range fds {
+		ci := convertDescriptor(item)
 		ci.TextEdit = &lsp.TextEdit{
 			Range: lsp.Range{
 				Start: lsp.Position{
@@ -324,4 +298,35 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		}
 	}
 	return cl, nil
+}
+
+func flatDescriptor(descriptor *funny.AstDescriptor) (items []*funny.AstDescriptor) {
+	if descriptor != nil {
+		items = append(items, descriptor)
+		if descriptor.Children != nil {
+			for _, child := range descriptor.Children {
+				newItems := flatDescriptor(child)
+				items = append(items, newItems...)
+			}
+		}
+	}
+	return items
+}
+
+func convertDescriptor(t *funny.AstDescriptor) lsp.CompletionItem {
+	ci := lsp.CompletionItem{}
+	ci.Label = t.Name
+	ci.Data = t.Name
+	ci.Kind = lsp.CIKVariable
+	ci.InsertTextFormat = lsp.ITFPlainText
+	ci.InsertText = t.Name
+	switch t.Type {
+	case funny.STVariable:
+		ci.Kind = lsp.CIKVariable
+	case funny.STFunction:
+		ci.Kind = lsp.CIKFunction
+	case funny.STAssign:
+		ci.Kind = lsp.CIKVariable
+	}
+	return ci
 }
