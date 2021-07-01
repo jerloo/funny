@@ -1,4 +1,5 @@
 
-// @a: 我司变量A的注视
-get('/api/users')
-a = 1
+// test test desc
+
+// 你们好
+name = 'test'

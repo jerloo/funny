@@ -278,11 +278,10 @@ func (l *Lexer) ReadComments() Token {
 			return l.CreateToken(EOF)
 		case '\n':
 			token := l.CreateToken(COMMENT)
-			l.Consume(1)
+			// l.Consume(1)
 			return token
 		default:
 			l.Consume(1)
-			break
 		}
 	}
 }

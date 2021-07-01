@@ -730,7 +730,7 @@ func (c *Comment) Position() Position {
 }
 
 func (c *Comment) String() string {
-	return fmt.Sprintf("//%s\n", c.Value)
+	return fmt.Sprintf("//%s", c.Value)
 }
 
 func (b *Comment) Type() string {
@@ -747,6 +747,6 @@ func (n *Comment) Descriptor() *AstDescriptor {
 		Type:     n.Type(),
 		Position: n.Position(),
 		Name:     name,
-		Text:     name,
+		Text:     n.Value,
 	}
 }

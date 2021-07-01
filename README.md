@@ -168,6 +168,7 @@ Args:
 - module and package feature
 - module repo based on github
 - Add everything with(have) comment's feature
+- Chinese comments length
 
 ## License
 
