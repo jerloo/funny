@@ -19,7 +19,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/jeremaihloo/funny"
 	"github.com/spf13/cobra"
@@ -37,7 +36,7 @@ var lexerCmd = &cobra.Command{
 				return
 			}
 			var data []byte
-			if filename != "" && strings.HasSuffix(filename, ".fun") {
+			if filename != "" {
 				cdw, err := os.Getwd()
 				if err != nil {
 					panic(err)
@@ -51,7 +50,6 @@ var lexerCmd = &cobra.Command{
 				data = []byte(filename)
 			}
 
-			var tokens []funny.Token
 			lexer := funny.NewLexer(data)
 			for {
 				token := lexer.Next()
@@ -60,13 +58,12 @@ var lexerCmd = &cobra.Command{
 				if token.Kind == funny.EOF {
 					break
 				}
-				tokens = append(tokens, token)
+				data, err := json.MarshalIndent(token, "", "  ")
+				if err != nil {
+					panic(err)
+				}
+				fmt.Println(string(data))
 			}
-			data, err := json.MarshalIndent(tokens, "", "  ")
-			if err != nil {
-				panic(err)
-			}
-			fmt.Println(string(data))
 		}
 	},
 }

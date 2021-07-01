@@ -47,8 +47,8 @@ func NewLexer(data []byte) *Lexer {
 	return &Lexer{
 		Data: data,
 		CurrentPos: Position{
-			Line: 1,
-			Col:  1,
+			Line: 0,
+			Col:  0,
 		},
 	}
 }

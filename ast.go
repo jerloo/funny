@@ -60,14 +60,22 @@ const (
 	STComment            = "Comment"
 )
 
+type AstDescriptor struct {
+	Type     string
+	Position Position
+	Name     string
+	Text     string
+}
+
 // Statement abstract
 type Statement interface {
 	Position() Position
 	String() string
 	Type() string
+	Descriptor() *AstDescriptor
 }
 
-// NewLine \n
+// NewLine @impl Statement \n
 type NewLine struct {
 	pos Position
 }
@@ -83,6 +91,15 @@ func (n *NewLine) String() string {
 
 func (n *NewLine) Type() string {
 	return STNewLine
+}
+
+func (n *NewLine) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Variable means var
@@ -107,6 +124,15 @@ func (n *Variable) Type() string {
 	return STVariable
 }
 
+func (n *Variable) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     n.Name,
+		Text:     n.Name,
+	}
+}
+
 // Literal like 1
 type Literal struct {
 	pos   Position
@@ -127,6 +153,15 @@ func (l *Literal) String() string {
 
 func (n *Literal) Type() string {
 	return STVariable
+}
+
+func (n *Literal) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Expression abstract
@@ -157,6 +192,15 @@ func (n *BinaryExpression) Type() string {
 	return STBinaryExpression
 }
 
+func (n *BinaryExpression) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // Assign like a = 2
 type Assign struct {
 	pos    Position
@@ -181,6 +225,15 @@ func (a *Assign) String() string {
 
 func (a *Assign) Type() string {
 	return STAssign
+}
+
+func (n *Assign) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     n.Target.String(),
+		Text:     n.Target.String(),
+	}
 }
 
 // List like [1, 2, 3]
@@ -208,6 +261,15 @@ func (l *List) String() string {
 	return fmt.Sprintf("%s", strings.Join(s, ", "))
 }
 
+func (n *List) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 func (a *List) Type() string {
 	return STList
 }
@@ -232,6 +294,15 @@ func (l *ListAccess) Type() string {
 	return STListAccess
 }
 
+func (n *ListAccess) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // Block contains many statments
 type Block []Statement
 
@@ -250,6 +321,15 @@ func (b *Block) String() string {
 
 func (a *Block) Type() string {
 	return STBlock
+}
+
+func (n *Block) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Function like test(a, b){}
@@ -278,6 +358,15 @@ func (a *Function) Type() string {
 	return STFunction
 }
 
+func (n *Function) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // FunctionCall like test(a, b)
 type FunctionCall struct {
 	pos        Position
@@ -300,6 +389,15 @@ func (c *FunctionCall) String() string {
 
 func (c *FunctionCall) Type() string {
 	return STFunctionCall
+}
+
+func (n *FunctionCall) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     n.Name,
+		Text:     n.Name,
+	}
 }
 
 func block(b Block) string {
@@ -345,6 +443,15 @@ func (i *IFStatement) Type() string {
 	return STIfStatement
 }
 
+func (n *IFStatement) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // FORStatement like for
 type FORStatement struct {
 	pos      Position
@@ -372,6 +479,15 @@ func (i *FORStatement) Type() string {
 	return STForStatement
 }
 
+func (n *FORStatement) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // IterableExpression like for in
 type IterableExpression struct {
 	pos   Position
@@ -391,6 +507,15 @@ func (i *IterableExpression) String() string {
 
 func (i *IterableExpression) Type() string {
 	return STIterableExpression
+}
+
+func (n *IterableExpression) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Next part of IterableExpression
@@ -421,6 +546,15 @@ func (i *Break) Type() string {
 	return STBreak
 }
 
+func (n *Break) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // Continue like continue in for
 type Continue struct {
 	pos Position
@@ -437,6 +571,15 @@ func (b *Continue) String() string {
 
 func (i *Continue) Type() string {
 	return STContinue
+}
+
+func (n *Continue) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Return like return varA
@@ -462,6 +605,15 @@ func (i *Return) Type() string {
 	return STReturn
 }
 
+func (n *Return) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // Field like obj.age
 type Field struct {
 	pos      Position
@@ -483,6 +635,15 @@ func (f *Field) String() string {
 
 func (i *Field) Type() string {
 	return STField
+}
+
+func (n *Field) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }
 
 // Boolen like true, false
@@ -507,6 +668,15 @@ func (b *Boolen) Type() string {
 	return STBoolean
 }
 
+func (n *Boolen) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // StringExpression like 'hello world !'
 type StringExpression struct {
 	pos   Position
@@ -526,6 +696,15 @@ func (b *StringExpression) Type() string {
 	return STStringExpression
 }
 
+func (n *StringExpression) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
+}
+
 // Comment line for sth
 type Comment struct {
 	pos   Position
@@ -543,4 +722,13 @@ func (c *Comment) String() string {
 
 func (b *Comment) Type() string {
 	return STComment
+}
+
+func (n *Comment) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     n.Type(),
+		Position: n.Position(),
+		Name:     "",
+		Text:     "",
+	}
 }

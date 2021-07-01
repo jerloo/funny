@@ -1,60 +1,34 @@
 package lsp
 
-import (
-	"os"
+// var funnyTypeCIKMap = map[string]lsp.CompletionItemKind{
+// 	funny.STVariable: lsp.CIKVariable,
+// 	funny.STFunction: lsp.CIKFunction,
+// }
 
-	"github.com/jeremaihloo/funny"
-	"github.com/sourcegraph/go-lsp"
-)
+// func convertDescriptorToCompletionItem(descriptor *funny.AstDescriptor) lsp.CompletionItem {
+// 	return lsp.CompletionItem{
+// 		Label:            descriptor.Name,
+// 		Data:             descriptor.Text,
+// 		Kind:             funnyTypeCIKMap[descriptor.Type],
+// 		InsertTextFormat: lsp.ITFPlainText,
+// 		InsertText:       descriptor.Text,
+// 		TextEdit: &lsp.TextEdit{
+// 			Range: lsp.Range{
+// 				Start: lsp.Position{
+// 					Line:      params.Position.Line,
+// 					Character: params.Position.Character,
+// 				},
+// 				End: lsp.Position{
+// 					Line:      params.Position.Line,
+// 					Character: params.Position.Character + len(ci.Label),
+// 				},
+// 			},
+// 			NewText: ci.Label,
+// 		},
+// 	}
+// }
 
-var funnyTypeCIKMap = map[string]lsp.CompletionItemKind{
-	funny.STVariable: lsp.CIKVariable,
-	funny.STFunction: lsp.CIKFunction,
-}
+// func GetCompletionItem(filename string, params lsp.CompletionParams) (cl *lsp.CompletionList, err error) {
 
-func GetCompletionItem(filename string) (cl *lsp.CompletionList, err error) {
-	cl = &lsp.CompletionList{
-		IsIncomplete: false,
-		Items:        make([]lsp.CompletionItem, 0),
-	}
-	file, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
-	parser := funny.NewParser(file)
-	parser.Consume("")
-	var items funny.Block
-	for {
-		item := parser.ReadStatement()
-		if item == nil {
-			break
-		}
-		items = append(items, item)
-	}
-	for _, item := range items {
-		ci := lsp.CompletionItem{}
-		switch item.Type() {
-		case funny.STVariable:
-			t := item.(*funny.Variable)
-			ci.Label = t.Name
-			ci.Data = t.Name
-			ci.Kind = lsp.CIKVariable
-		case funny.STFunction:
-			t := item.(*funny.Function)
-			ci.Label = t.Name
-			ci.Data = t.Name
-			ci.Kind = lsp.CIKFunction
-		case funny.STAssign:
-			t := item.(*funny.Assign)
-			switch t.Target.Type() {
-			case funny.STVariable:
-				tt := t.Target.(*funny.Variable)
-				ci.Label = tt.Name
-				ci.Data = tt.Name
-				ci.Kind = lsp.CIKVariable
-			}
-		}
-		cl.Items = append(cl.Items, ci)
-	}
-	return
-}
+// 	return
+// }

@@ -9,6 +9,8 @@ import (
 type Parser struct {
 	Lexer   *Lexer
 	Current Token
+
+	Tokens []Token
 }
 
 // NewParser create a new parser
@@ -21,8 +23,10 @@ func NewParser(data []byte) *Parser {
 // Consume get next token
 func (p *Parser) Consume(kind string) Token {
 	old := p.Current
+	p.Tokens = append(p.Tokens, old)
 	if kind != "" && old.Kind != kind {
-		panic(P(fmt.Sprintf("Invalid token kind %s", old.String()), old.Position))
+		return old
+		// panic(P(fmt.Sprintf("Invalid token kind %s", old.String()), old.Position))
 	}
 	p.Current = p.Lexer.Next()
 	return old
