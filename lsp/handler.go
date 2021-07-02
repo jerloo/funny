@@ -64,12 +64,13 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 					ResolveProvider:   true,
 					TriggerCharacters: []string{"(", "."},
 				},
-				DefinitionProvider:     true,
-				TypeDefinitionProvider: true,
-				DocumentSymbolProvider: true,
-				HoverProvider:          true,
-				ReferencesProvider:     true,
-				ImplementationProvider: true,
+				DefinitionProvider:         true,
+				TypeDefinitionProvider:     true,
+				DocumentSymbolProvider:     true,
+				HoverProvider:              true,
+				ReferencesProvider:         true,
+				ImplementationProvider:     true,
+				DocumentFormattingProvider: true,
 				SignatureHelpProvider: &lsp.SignatureHelpOptions{
 					TriggerCharacters: []string{"(", ","},
 				},
@@ -140,6 +141,15 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		}
 		//return h.handleHover(ctx, conn, req, params)
 		return nil, nil
+	case "textDocument/formatting":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.DocumentFormattingParams
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		return h.handleTextDocumentFormating(ctx, conn, req, params)
 
 	case "textDocument/hover":
 		if req.Params == nil {
@@ -207,6 +217,45 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		return nil, nil
 	}
 	return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeMethodNotFound, Message: fmt.Sprintf("method not supported: %s", req.Method)}
+}
+
+func (h Handler) handleTextDocumentFormating(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.DocumentFormattingParams) (resp []lsp.TextEdit, err error) {
+	_, fileName := path.Split(string(params.TextDocument.URI))
+	if !strings.HasSuffix(fileName, ".funny") {
+		return
+	}
+	// Format the current document.
+	contents, _ := h.documentContents.Get(string(params.TextDocument.URI))
+	parser := funny.NewParser(contents)
+	parser.Consume("")
+	flag := 0
+	lines := 0
+	w := new(strings.Builder)
+	for {
+		item := parser.ReadStatement()
+		if item == nil {
+			break
+		}
+		switch item.(type) {
+		case *funny.NewLine:
+			flag++
+			if flag < 1 {
+				continue
+			}
+		}
+		lines++
+		w.WriteString(item.String())
+	}
+
+	// Replace everything.
+	resp = append(resp, lsp.TextEdit{
+		Range: lsp.Range{
+			Start: lsp.Position{},
+			End:   lsp.Position{Line: lines + 1, Character: 0},
+		},
+		NewText: w.String(),
+	})
+	return
 }
 
 func (h Handler) handleTextDocumentDidOpen(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.DidOpenTextDocumentParams) (err error) {
