@@ -302,16 +302,13 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	if !ok {
 		return cl, errors.New("document content not found")
 	}
+	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny))
+	builtinBlock := builtinParser.Parse()
+	builtinDescriptor := builtinBlock.Descriptor()
+
 	parser := funny.NewParser(contents)
 	parser.Consume("")
-	var items funny.Block
-	for {
-		item := parser.ReadStatement()
-		if item == nil {
-			break
-		}
-		items = append(items, item)
-	}
+	items := parser.Parse()
 	descriptor := items.Descriptor()
 	var currentToken *funny.Token
 	for _, token := range parser.Tokens {
@@ -326,7 +323,9 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		l = len(currentToken.Data)
 		h.log.Info("current", zap.Any("current", currentToken))
 	}
+	builtinFds := flatDescriptor(builtinDescriptor)
 	fds := flatDescriptor(descriptor)
+	fds = append(fds, builtinFds...)
 	for _, item := range fds {
 		ci := convertDescriptor(item)
 		ci.TextEdit = &lsp.TextEdit{

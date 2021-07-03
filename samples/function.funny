@@ -1,0 +1,11 @@
+
+
+testFn() {
+  return echoln('test')
+}
+
+a = testFn
+
+a()
+
+echoln(md5('test'))

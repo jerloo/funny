@@ -2,6 +2,7 @@ package funny
 
 import (
 	"crypto/md5"
+	_ "embed"
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
@@ -9,6 +10,9 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 )
+
+//go:embed builtins.funny
+var BuiltinsDotFunny string
 
 // BuiltinFunction function handler
 type BuiltinFunction func(interpreter *Interpreter, args []Value) Value

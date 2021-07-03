@@ -1,0 +1,36 @@
+
+// echo something
+echo(arg1, arg2, arg3, arg4, arg5, arg6) {}
+
+// echo something with newline
+echoln(arg1, arg2, arg3, arg4, arg5, arg6) {}
+
+// get now time
+now() {}
+
+// base64 encode
+b64en(data) {}
+
+// base64 decode
+b64de(data) {}
+
+// assert
+assert(condition) {}
+
+// get length of something
+len('length') {}
+
+// get md5 of content
+md5(content) {}
+
+// return max of between value
+max(a, b) {}
+
+// return min of between value
+min(a, b) {}
+
+// typeof something
+typeof(a) {}
+
+// create new uuid string
+uuid() {}
