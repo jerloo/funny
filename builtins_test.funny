@@ -15,7 +15,7 @@ b64en('data')
 b64de('data')
 
 // Assert
-assert(1==1)
+assert(2 > 1)
 
 // Get length of something
 len('length')
@@ -24,13 +24,13 @@ len('length')
 md5('content')
 
 // Return max of between value
-max(a, b)
+max(1, 2)
 
 // Return min of between value
-min(a, b)
+min(1, 2)
 
 // Typeof something
-// typeof([1,2])
+typeof([1,2])
 
 // Create new uuid string
 uuid()

@@ -118,16 +118,19 @@ func Assert(interpreter *Interpreter, args []Value) Value {
 		}
 		panic("assert false")
 	}
-	panic("type error, only support [bool]")
+	panic("assert type error, only support [bool]")
 }
 
 // Len return then length of the given list
 func Len(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 1)
-	if val, ok := args[0].(*List); ok {
-		return Value(len(val.Values))
+	switch v := args[0].(type) {
+	case *List:
+		return Value(len(v.Values))
+	case string:
+		return Value(len(v))
 	}
-	panic("type error, only support [list]")
+	panic("len type error, only support [list, string]")
 }
 
 // Md5 return then length of the given list
@@ -141,7 +144,7 @@ func Md5(interpreter *Interpreter, args []Value) Value {
 	default:
 		break
 	}
-	panic("type error, only support [string]")
+	panic("md5 type error, only support [string]")
 }
 
 // Max return then length of the given list
@@ -174,7 +177,7 @@ func Max(interpreter *Interpreter, args []Value) Value {
 	default:
 		break
 	}
-	panic("type error, only support [int]")
+	panic("max type error, only support [int]")
 }
 
 // Min return then length of the given list
@@ -207,7 +210,7 @@ func Min(interpreter *Interpreter, args []Value) Value {
 	default:
 		break
 	}
-	panic("type error, only support [int]")
+	panic("min type error, only support [int]")
 }
 
 // Typeof builtin function echos one or every item in a array
