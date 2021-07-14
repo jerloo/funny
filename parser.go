@@ -57,7 +57,6 @@ func (p *Parser) ReadStatement() Statement {
 		return nil
 	case NAME:
 		if current.Data == "return" {
-
 			return &Return{
 				pos:   current.Position,
 				Value: p.ReadExpression(),
@@ -165,7 +164,7 @@ func (p *Parser) ReadStatement() Statement {
 			}
 		}
 	default:
-		panic(P(fmt.Sprintf("ReadStatement Unknow Token %s", current.String()), current.Position))
+		panic(P(fmt.Sprintf("ReadStatement Unknow Token %s", current.String()), current))
 	}
 	return nil
 }
@@ -218,7 +217,7 @@ func (p *Parser) ReadFOR() Statement {
 			Name: val.Data,
 		}
 		if p.Current.Data != IN {
-			panic(P("for must has in part", p.Current.Position))
+			panic(P("for must has in part", p.Current))
 		}
 		p.Consume(NAME)
 		iterable := p.Consume(NAME)
@@ -429,7 +428,7 @@ func (p *Parser) ReadExpression() Expression {
 				}
 				p.Consume(RBracket)
 			} else {
-				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current.Position))
+				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current))
 			}
 
 			switch p.Current.Kind {
@@ -518,7 +517,7 @@ func (p *Parser) ReadExpression() Expression {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic(P(fmt.Sprintf("Unknow Expression Data: %s", current.Data), current.Position))
+	panic(P(fmt.Sprintf("Unknow Expression Data: %s", current.Data), current))
 }
 
 // ReadDict read dict expression

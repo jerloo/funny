@@ -23,7 +23,7 @@ type Token struct {
 	Data     string
 }
 
-func (t *Token) String() string {
+func (t Token) String() string {
 	dt := t.Data
 	if t.Data == "\n" {
 		dt = "\\n"

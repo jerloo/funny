@@ -44,7 +44,7 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 			if i.Debug() {
 				fmt.Print(err)
 			} else {
-				fmt.Printf("\nfunny runtime error: %s\n", err)
+				fmt.Printf("\nfunny runtime error: %s\n", err.(error).Error())
 			}
 		}
 	}()
@@ -89,7 +89,7 @@ func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
 }
 
 // EvalIfStatement eval if statement
-func (i *Interpreter) EvalIfStatement(item IFStatement) (Value, bool) {
+func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
 	exp := i.EvalExpression(item.Condition)
 	if exp, ok := exp.(bool); ok {
 		if exp {
@@ -104,13 +104,13 @@ func (i *Interpreter) EvalIfStatement(item IFStatement) (Value, bool) {
 			}
 		}
 	} else {
-		panic(P("if statement condition must be boolen value", item.Position()))
+		panic(P("if statement condition must be boolen value", item))
 	}
 	return Value(nil), false
 }
 
 // EvalForStatement eval for statement
-func (i *Interpreter) EvalForStatement(item FORStatement) (Value, bool) {
+func (i *Interpreter) EvalForStatement(item *FORStatement) (Value, bool) {
 	panic("NOT IMPLEMENT")
 }
 
@@ -126,15 +126,15 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 			i.AssignField(a, i.EvalExpression(item.Value))
 			break
 		default:
-			panic(P("invalid assignment", item.Position()))
+			panic(P("invalid assignment", item))
 		}
 	case *IFStatement:
-		val, has := i.EvalIfStatement(*item)
+		val, has := i.EvalIfStatement(item)
 		if has {
 			return val, true
 		}
 	case *FORStatement:
-		val, has := i.EvalForStatement(*item)
+		val, has := i.EvalForStatement(item)
 		if has {
 			return val, true
 		}
@@ -153,7 +153,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 	case *Comment:
 		break
 	default:
-		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item.Position()))
+		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item))
 	}
 	return Value(nil), false
 }
@@ -272,7 +272,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		case DOUBLE_EQ:
 			return i.EvalEqual(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		default:
-			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.Position()))
+			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression))
 		}
 	case *List:
 		var ls []interface{}
@@ -289,7 +289,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				if t, ok := d.Target.(*Variable); ok {
 					scope[t.Name] = i.EvalExpression(d.Value)
 				} else {
-					panic(P("block assignments must be variable", item.Position()))
+					panic(P("block assignments must be variable", item))
 				}
 			case *NewLine:
 				break
@@ -299,7 +299,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				scope[d.Name] = d
 				break
 			default:
-				panic(P("dict struct must only contains assignment and func", item.Position()))
+				panic(P("dict struct must only contains assignment and func", item))
 			}
 		}
 		return scope
@@ -320,7 +320,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		val := lsEntry[item.Index]
 		return Value(val)
 	}
-	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.Position()))
+	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression))
 }
 
 // EvalField person.age

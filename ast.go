@@ -456,10 +456,10 @@ func (i *IFStatement) Type() string {
 	return STIfStatement
 }
 
-func (n *IFStatement) Descriptor() *AstDescriptor {
+func (i *IFStatement) Descriptor() *AstDescriptor {
 	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
+		Type:     i.Type(),
+		Position: i.Position(),
 		Name:     "",
 		Text:     "",
 	}
