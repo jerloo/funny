@@ -1,31 +1,6 @@
 deepObj = {
-  a = {
-    b = {
-      c = 1
-    }
-  }
+  a = 1
+  b = 2
 }
 
-doob = {
-  a = {
-    b = {
-      c = 1
-    }
-  }
-}
-
-doob.a.b.b.c
-
-// @doob
-
-ajax = {
-  get(url){
-    echoln(url)
-  }
-  post(url){
-    echoln(url)
-  }
-}
-
-resp = httpreq('GET', 'http://www.baidu.com')
-echoln(resp)
+echoln(deepObj.a)

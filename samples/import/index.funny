@@ -1,0 +1,5 @@
+
+// import('./module_a.funny')
+
+a = import('./module_a.funny')
+echoln(a.b)

@@ -42,16 +42,8 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("file not found %s\n", filename)
 				return
 			}
-			cdw, err := os.Getwd()
-			if err != nil {
-				panic(err)
-			}
-			data, err := funny.CombinedCode(cdw, filename)
-			if err != nil {
-				fmt.Printf("open file error : %s", err)
-			}
 			interpreter := funny.NewInterpreterWithScope(funny.Scope{})
-			interpreter.Run(data)
+			interpreter.RunFile(filename)
 		} else {
 			cmd.Usage()
 		}

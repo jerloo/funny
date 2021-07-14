@@ -48,6 +48,7 @@ const (
 	STListAccess         = "ListAccess"
 	STFunction           = "Function"
 	STFunctionCall       = "FunctionCall"
+	STImportFunctionCall = "Import"
 	STIfStatement        = "IfStatement"
 	STForStatement       = "ForStatement"
 	STIterableExpression = "IterableExpression"
@@ -410,6 +411,36 @@ func (n *FunctionCall) Descriptor() *AstDescriptor {
 		Position: n.Position(),
 		Name:     n.Name,
 		Text:     n.Name,
+	}
+}
+
+// ImportFunctionCall like test(a, b)
+type ImportFunctionCall struct {
+	pos        Position
+	ModulePath string
+	Block      *Block
+}
+
+// Position of ImportFunctionCall
+func (c *ImportFunctionCall) Position() Position {
+	return c.pos
+}
+
+func (c *ImportFunctionCall) String() string {
+	return fmt.Sprintf("import(%s)", c.ModulePath)
+}
+
+func (c *ImportFunctionCall) Type() string {
+	return STImportFunctionCall
+}
+
+func (c *ImportFunctionCall) Descriptor() *AstDescriptor {
+	return &AstDescriptor{
+		Type:     c.Type(),
+		Position: c.Position(),
+		Name:     "import",
+		Text:     "import",
+		Children: []*AstDescriptor{c.Block.Descriptor()},
 	}
 }
 

@@ -2,7 +2,10 @@ package funny
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"strconv"
+	"strings"
 )
 
 // Parser the parser
@@ -11,6 +14,8 @@ type Parser struct {
 	Current Token
 
 	Tokens []Token
+
+	ContentFile string
 }
 
 // NewParser create a new parser
@@ -288,6 +293,42 @@ func (p *Parser) ReadFunction(name string) Statement {
 		}
 		return &fn
 
+	}
+	if fn.Name == "import" {
+		if len(fn.Parameters) == 0 {
+			panic(P("import module path can not be empty", &fn))
+		}
+		arg := fn.Parameters[0]
+		moduleArg, ok := arg.(*Literal)
+		if !ok {
+			panic(P(fmt.Sprintf("import module path not string type %s", fn.Parameters[0].String()), p.Current))
+		}
+		moduleFileName := moduleArg.Value.(string)
+		if strings.HasPrefix(moduleFileName, ".") {
+			if p.ContentFile == "" {
+				currentDir, err := os.Getwd()
+				if err != nil {
+					panic(P(fmt.Sprintf("import module path not found %s", moduleFileName), p.Current))
+				}
+				moduleFileName = path.Join(currentDir, moduleFileName)
+			} else {
+				currentDir := path.Dir(p.ContentFile)
+				moduleFileName = path.Join(currentDir, moduleFileName)
+			}
+		} else {
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current))
+		}
+		importData, err := os.ReadFile(moduleFileName)
+		if err != nil {
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current))
+		}
+		importParser := NewParser(importData)
+		block := importParser.Parse()
+		return &ImportFunctionCall{
+			pos:        p.Current.Position,
+			ModulePath: fn.Parameters[0].String(),
+			Block:      &block,
+		}
 	}
 	return &FunctionCall{
 		pos:        p.Current.Position,

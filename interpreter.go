@@ -1,6 +1,10 @@
 package funny
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"path"
+)
 
 // Value one value of some like variable
 type Value interface {
@@ -37,6 +41,39 @@ func (i *Interpreter) Debug() bool {
 	return false
 }
 
+func (i *Interpreter) RunFile(filename string) (Value, bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			if i.Debug() {
+				fmt.Print(err)
+			} else {
+				if e, ok := err.(error); ok {
+					fmt.Printf("\nfunny runtime error: %s\n", e.Error())
+				} else {
+					fmt.Printf("\nfunny runtime error: %s\n", err)
+				}
+			}
+		}
+	}()
+	if !path.IsAbs(filename) {
+		currentDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		filename = path.Join(currentDir, filename)
+	}
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		panic(err)
+	}
+	parser := NewParser(data)
+	parser.ContentFile = filename
+	program := Program{
+		Statements: parser.Parse(),
+	}
+	return i.Run(program)
+}
+
 // Run the part of the code
 func (i *Interpreter) Run(v interface{}) (Value, bool) {
 	defer func() {
@@ -44,7 +81,11 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 			if i.Debug() {
 				fmt.Print(err)
 			} else {
-				fmt.Printf("\nfunny runtime error: %s\n", err.(error).Error())
+				if e, ok := err.(error); ok {
+					fmt.Printf("\nfunny runtime error: %s\n", e.Error())
+				} else {
+					fmt.Printf("\nfunny runtime error: %s\n", err)
+				}
 			}
 		}
 	}()
@@ -121,10 +162,8 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 		switch a := item.Target.(type) {
 		case *Variable:
 			i.Assign(a.Name, i.EvalExpression(item.Value))
-			break
 		case *Field:
 			i.AssignField(a, i.EvalExpression(item.Value))
-			break
 		default:
 			panic(P("invalid assignment", item))
 		}
@@ -140,14 +179,15 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 		}
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
+	case *ImportFunctionCall:
+		panic(P("global import not support yet", item))
+		// i.EvalImportFunctionCall(item)
 	case *Return:
 		return i.EvalExpression(item.Value), true
 	case *Function:
 		i.Assign(item.Name, item)
-		break
 	case *Field:
 		i.EvalField(item)
-		break
 	case *NewLine:
 		break
 	case *Comment:
@@ -297,7 +337,6 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 				break
 			case *Function:
 				scope[d.Name] = d
-				break
 			default:
 				panic(P("dict struct must only contains assignment and func", item))
 			}
@@ -319,6 +358,28 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		lsEntry := ls.([]interface{})
 		val := lsEntry[item.Index]
 		return Value(val)
+	case *ImportFunctionCall:
+		scope := make(map[string]Value)
+
+		for _, d := range *item.Block {
+			switch d := d.(type) {
+			case *Assign:
+				if t, ok := d.Target.(*Variable); ok {
+					scope[t.Name] = i.EvalExpression(d.Value)
+				} else {
+					panic(P("block assignments must be variable", item))
+				}
+			case *NewLine:
+				break
+			case *Comment:
+				break
+			case *Function:
+				scope[d.Name] = d
+			default:
+				panic(P("module must only contains assignment and func", item))
+			}
+		}
+		return scope
 	}
 	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression))
 }
@@ -573,17 +634,17 @@ func (i *Interpreter) EvalLte(left, right Value) Value {
 // EvalDoubleEq ==
 func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
 	return left == right
-	switch left := left.(type) {
-	case int:
-		if right, ok := right.(int); ok {
-			return Value(left == right)
-		}
-	case nil:
-		if left == nil && right == nil {
-			return Value(true)
-		}
-	default:
-		return Value(left == right)
-	}
-	panic("eval double eq only support: [int]")
+	// switch left := left.(type) {
+	// case int:
+	// 	if right, ok := right.(int); ok {
+	// 		return Value(left == right)
+	// 	}
+	// case nil:
+	// 	if left == nil && right == nil {
+	// 		return Value(true)
+	// 	}
+	// default:
+	// 	return Value(left == right)
+	// }
+	// panic("eval double eq only support: [int]")
 }
