@@ -180,8 +180,24 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
 	case *ImportFunctionCall:
-		panic(P("global import not support yet", item))
-		// i.EvalImportFunctionCall(item)
+		for _, d := range *item.Block {
+			switch d := d.(type) {
+			case *Assign:
+				if t, ok := d.Target.(*Variable); ok {
+					i.Assign(t.Name, i.EvalExpression(d.Value))
+				} else {
+					panic(P("block assignments must be variable", item))
+				}
+			case *NewLine:
+				break
+			case *Comment:
+				break
+			case *Function:
+				i.Assign(d.Name, d)
+			default:
+				panic(P("module must only contains assignment and func", item))
+			}
+		}
 	case *Return:
 		return i.EvalExpression(item.Value), true
 	case *Function:
