@@ -1,39 +1,39 @@
 
 // Echo something
-echo(arg1, arg2, arg3, arg4, arg5, arg6) {}
+echo('arg1', 2, ['3',4])
 
 // Echo something with newline
-echoln(arg1, arg2, arg3, arg4, arg5, arg6) {}
+echoln('arg1', 2, ['3',4])
 
 // Get now time
-now() {}
+now()
 
 // Base64 encode
-b64en(data) {}
+b64en('data')
 
 // Base64 decode
-b64de(data) {}
+b64de('data')
 
 // Assert
-assert(condition) {}
+assert(1==1)
 
 // Get length of something
-len('length') {}
+len('length')
 
 // Get md5 of content
-md5(content) {}
+md5('content')
 
 // Return max of between value
-max(a, b) {}
+max(a, b)
 
 // Return min of between value
-min(a, b) {}
+min(a, b)
 
 // Typeof something
-typeof(a) {}
+// typeof([1,2])
 
 // Create new uuid string
-uuid() {}
+uuid()
 
 // Http request
-httpreq(method, url, data, headers, debug) {}
+httpreq('GET', 'https://baidu.com', {}, {}, true)

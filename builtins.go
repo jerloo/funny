@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/guonaihong/gout"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -20,18 +21,19 @@ type BuiltinFunction func(interpreter *Interpreter, args []Value) Value
 var (
 	// FUNCTIONS all builtin functions
 	FUNCTIONS = map[string]BuiltinFunction{
-		"echo":   Echo,
-		"echoln": Echoln,
-		"now":    Now,
-		"b64en":  Base64Encode,
-		"b64de":  Base64Decode,
-		"assert": Assert,
-		"len":    Len,
-		"md5":    Md5,
-		"max":    Max,
-		"min":    Min,
-		"typeof": Typeof,
-		"uuid":   UUID,
+		"echo":    Echo,
+		"echoln":  Echoln,
+		"now":     Now,
+		"b64en":   Base64Encode,
+		"b64de":   Base64Decode,
+		"assert":  Assert,
+		"len":     Len,
+		"md5":     Md5,
+		"max":     Max,
+		"min":     Min,
+		"typeof":  Typeof,
+		"uuid":    UUID,
+		"httpreq": HttpRequest,
 	}
 )
 
@@ -219,4 +221,60 @@ func UUID(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 0)
 	u1 := uuid.NewV4()
 	return Value(u1)
+}
+
+// HttpRequest builtin function for http request
+func HttpRequest(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 5)
+	method := ""
+	url := ""
+	data := make(map[string]interface{})
+	headers := make(map[string]interface{})
+	debug := false
+	if m, ok := args[0].(string); ok {
+		method = m
+	}
+	if u, ok := args[1].(string); ok {
+		url = u
+	}
+	if d, ok := args[2].(map[string]interface{}); ok {
+		data = d
+	}
+	if h, ok := args[3].(map[string]interface{}); ok {
+		headers = h
+	}
+	if de, ok := args[4].(bool); ok {
+		debug = de
+	}
+	switch method {
+	case "GET":
+		jsonResult := make(map[string]interface{})
+		err := gout.GET(url).Debug(debug).SetQuery(data).SetHeader(headers).BindJSON(&jsonResult).Do()
+		if err != nil {
+			panic(fmt.Errorf("response not json format"))
+		}
+		return Value(jsonResult)
+	case "POST":
+		jsonResult := make(map[string]interface{})
+		err := gout.POST(url).Debug(debug).SetJSON(data).SetHeader(headers).BindJSON(&jsonResult).Do()
+		if err != nil {
+			panic(fmt.Errorf("response not json format"))
+		}
+		return Value(jsonResult)
+	case "PUT":
+		jsonResult := make(map[string]interface{})
+		err := gout.PUT(url).Debug(debug).SetHeader(headers).BindJSON(&jsonResult).Do()
+		if err != nil {
+			panic(fmt.Errorf("response not json format"))
+		}
+		return Value(jsonResult)
+	case "DELETE":
+		jsonResult := make(map[string]interface{})
+		err := gout.DELETE(url).Debug(debug).SetHeader(headers).BindJSON(&jsonResult).Do()
+		if err != nil {
+			panic(fmt.Errorf("response not json format"))
+		}
+		return Value(jsonResult)
+	}
+	panic(fmt.Errorf("method %s not support yet", method))
 }

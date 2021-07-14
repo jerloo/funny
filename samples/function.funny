@@ -9,3 +9,6 @@ a = testFn
 a()
 
 echoln(md5('test'))
+
+l = [  1, 2]
+echoln(len(l))

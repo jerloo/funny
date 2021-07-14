@@ -17,3 +17,15 @@ doob = {
 doob.a.b.b.c
 
 // @doob
+
+ajax = {
+  get(url){
+    echoln(url)
+  }
+  post(url){
+    echoln(url)
+  }
+}
+
+resp = httpreq('GET', 'http://www.baidu.com')
+echoln(resp)
