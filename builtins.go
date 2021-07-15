@@ -232,7 +232,10 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	method := ""
 	url := ""
 	data := make(map[string]interface{})
-	headers := make(map[string]interface{})
+	headers := map[string]interface{}{
+		"User-Agent": "Funny HttpRequest",
+		"Accept":     "*/*",
+	}
 	debug := false
 	if m, ok := args[0].(string); ok {
 		method = m
@@ -244,7 +247,9 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 		data = d
 	}
 	if h, ok := args[3].(map[string]interface{}); ok {
-		headers = h
+		for key, val := range h {
+			headers[key] = val
+		}
 	}
 	if de, ok := args[4].(bool); ok {
 		debug = de
