@@ -2,6 +2,7 @@ package funny
 
 import (
 	"fmt"
+	"unicode"
 	"unicode/utf8"
 )
 
@@ -145,7 +146,6 @@ func (l *Lexer) Next() Token {
 		l.Reset()
 		ch := l.LA(1)
 		chString := string(ch)
-		fmt.Sprintf(chString)
 		switch ch {
 		case -1:
 			l.Consume(1)
@@ -230,7 +230,9 @@ func (l *Lexer) Next() Token {
 			}
 			return l.ReadString()
 		default:
-
+			if !unicode.Is(unicode.ASCII_Hex_Digit, ch) {
+				panic(fmt.Errorf("only support ascii %s in %d:%d", chString, l.CurrentPos.Line, l.CurrentPos.Col))
+			}
 			if isNameStart(ch) {
 				l.Consume(1)
 				for {
