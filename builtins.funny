@@ -73,3 +73,13 @@ httpreq(method, url, data, headers, debug) {
 env(key, value) {
 
 }
+
+// JwtEncode
+jwten(method, secret, claims) {
+
+}
+
+// JwtDecode
+jwtde(method, secret, token) {
+
+}

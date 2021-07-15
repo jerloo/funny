@@ -5,10 +5,13 @@ import (
 	_ "embed"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/guonaihong/gout"
 	uuid "github.com/satori/go.uuid"
 )
@@ -22,20 +25,26 @@ type BuiltinFunction func(interpreter *Interpreter, args []Value) Value
 var (
 	// FUNCTIONS all builtin functions
 	FUNCTIONS = map[string]BuiltinFunction{
-		"echo":    Echo,
-		"echoln":  Echoln,
-		"now":     Now,
-		"b64en":   Base64Encode,
-		"b64de":   Base64Decode,
-		"assert":  Assert,
-		"len":     Len,
-		"md5":     Md5,
-		"max":     Max,
-		"min":     Min,
-		"typeof":  Typeof,
-		"uuid":    UUID,
-		"httpreq": HttpRequest,
-		"env":     Env,
+		"echo":     Echo,
+		"echoln":   Echoln,
+		"now":      Now,
+		"b64en":    Base64Encode,
+		"b64de":    Base64Decode,
+		"assert":   Assert,
+		"len":      Len,
+		"md5":      Md5,
+		"max":      Max,
+		"min":      Min,
+		"typeof":   Typeof,
+		"uuid":     UUID,
+		"httpreq":  HttpRequest,
+		"env":      Env,
+		"strjoin":  StrJoin,
+		"strsplit": StrSplit,
+		"str":      Str,
+		"int":      Int,
+		"jwten":    JwtEncode,
+		"jwtde":    JwtDecode,
 	}
 )
 
@@ -303,4 +312,104 @@ func Env(interpreter *Interpreter, args []Value) Value {
 		return Value(val)
 	}
 	panic("env type error, env key only support [string]")
+}
+
+// StrJoin equal strings.Join
+func StrJoin(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 2)
+	if arr, ok := args[0].(*List); ok {
+		var strArr []string
+		for _, item := range arr.Values {
+			val := interpreter.EvalExpression(item)
+			strArr = append(strArr, fmt.Sprintf("%v", val))
+		}
+		if sp, o := args[1].(string); o {
+			return strings.Join(strArr, sp)
+		}
+		panic("strjoin type error, join part only support [string]")
+	}
+	panic("strjoin type error, join data only support [array]")
+}
+
+// StrSplit equal strings.Split
+func StrSplit(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	if key, ok := args[0].(string); ok {
+		val := os.Getenv(key)
+		if val == "" && len(args) > 1 {
+			return Value(args[1])
+		}
+		return Value(val)
+	}
+	panic("strsplit type error, strsplit value only support [string]")
+}
+
+// Str like string(1)
+func Str(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	return fmt.Sprint(args[0])
+	// panic("str type error, str data only support [string]")
+}
+
+// Int like int('1')
+func Int(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	dataStr := fmt.Sprint(args[0])
+	for _, ch := range dataStr {
+		if !isNameStart(ch) {
+			panic("int type error, int only support [int format]")
+		}
+	}
+	panic("int type error, int only support [int format]")
+}
+
+// JwtEncode jwten(method, secret, claims) string
+func JwtEncode(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 3)
+	method := fmt.Sprint(args[0])
+	secret := fmt.Sprint(args[1])
+
+	if v, ok := args[2].(map[string]Value); ok {
+		bts, err := json.Marshal(&v)
+		if err != nil {
+			panic(err)
+		}
+		var claims jwt.MapClaims
+		err = json.Unmarshal(bts, &claims)
+		if err != nil {
+			panic(err)
+		}
+		m := jwt.SigningMethodHS256
+		if method == "HS256" {
+			m = jwt.SigningMethodHS256
+		}
+		token := jwt.NewWithClaims(m, claims)
+		result, err := token.SignedString([]byte(secret))
+		if err != nil {
+			panic(err)
+		}
+		return Value(result)
+	}
+	panic("jwten type error, claims only support [map[string]interface{}]")
+}
+
+// JwtDecode jwtde(method, secret, token) string
+func JwtDecode(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 3)
+	// method := fmt.Sprint(args[0])
+	secret := fmt.Sprint(args[1])
+	tokenString := fmt.Sprint(args[2])
+	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid { // 校验token
+		return Value(claims)
+	}
+	panic("jwtde type error, token not valid")
 }
