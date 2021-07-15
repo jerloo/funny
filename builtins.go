@@ -65,7 +65,17 @@ func ackGt(args []Value, count int) {
 // Echo builtin function echos one or every item in a array
 func Echo(interpreter *Interpreter, args []Value) Value {
 	for _, item := range args {
-		fmt.Print(item)
+		switch v := item.(type) {
+		case map[string]Value:
+		case map[string]interface{}:
+			bts, err := json.Marshal(&v)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Print(string(bts))
+		default:
+			fmt.Print(item)
+		}
 	}
 	return nil
 }
@@ -73,7 +83,18 @@ func Echo(interpreter *Interpreter, args []Value) Value {
 // Echoln builtin function echos one or every item in a array
 func Echoln(interpreter *Interpreter, args []Value) Value {
 	for index, item := range args {
-		fmt.Print(item)
+		switch v := item.(type) {
+		case map[string]Value:
+		case map[string]interface{}:
+			bts, err := json.Marshal(&v)
+			if err != nil {
+				panic(err)
+			}
+			fmt.Print(string(bts))
+		default:
+			fmt.Print(item)
+		}
+
 		if index == len(args)-1 {
 			fmt.Print("\n")
 		}
@@ -399,7 +420,7 @@ func JwtDecode(interpreter *Interpreter, args []Value) Value {
 	// method := fmt.Sprint(args[0])
 	secret := fmt.Sprint(args[1])
 	tokenString := fmt.Sprint(args[2])
-	token, err := jwt.ParseWithClaims(tokenString, &jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
+	token, err := jwt.ParseWithClaims(tokenString, jwt.MapClaims{}, func(token *jwt.Token) (i interface{}, err error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
@@ -408,8 +429,17 @@ func JwtDecode(interpreter *Interpreter, args []Value) Value {
 	if err != nil {
 		panic(err)
 	}
-	if claims, ok := token.Claims.(*jwt.MapClaims); ok && token.Valid { // 校验token
-		return Value(claims)
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid { // 校验token
+		bts, err := json.Marshal(&claims)
+		if err != nil {
+			panic(err)
+		}
+		var result map[string]interface{}
+		err = json.Unmarshal(bts, &result)
+		if err != nil {
+			panic(err)
+		}
+		return Value(result)
 	}
 	panic("jwtde type error, token not valid")
 }
