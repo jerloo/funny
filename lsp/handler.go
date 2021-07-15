@@ -194,6 +194,16 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		}
 		return h.handleTextDocumentCompletion(ctx, conn, req, params)
 
+	case "completionItem/resolve":
+		if req.Params == nil {
+			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
+		}
+		var params lsp.CompletionItem
+		if err := json.Unmarshal(*req.Params, &params); err != nil {
+			return nil, err
+		}
+		return h.handleTextDocumentCompletionResolve(ctx, conn, req, params)
+
 	case "textDocument/implementation":
 		if req.Params == nil {
 			return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeInvalidParams}
@@ -311,8 +321,12 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	builtinFds := flatDescriptor(builtinDescriptor)
 	fds := flatDescriptor(descriptor)
 	fds = append(fds, builtinFds...)
-	for _, item := range fds {
+	for i, item := range fds {
 		ci := convertDescriptor(item)
+		if i > 1 && fds[i-2].Type == funny.STComment {
+			ci.Detail = fds[i-2].Text
+			ci.Documentation = fds[i-2].Text
+		}
 		ci.TextEdit = &lsp.TextEdit{
 			Range: lsp.Range{
 				Start: lsp.Position{
@@ -331,6 +345,15 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		}
 	}
 	return cl, nil
+}
+
+func (h Handler) handleTextDocumentCompletionResolve(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.CompletionItem) (*lsp.CompletionItem, error) {
+	defer func() { // 必须要先声明defer，否则不能捕获到panic异常
+		if err := recover(); err != nil {
+			h.log.Error("error happend", zap.Error(err.(error)))
+		}
+	}()
+	return &params, nil
 }
 
 func flatDescriptor(descriptor *funny.AstDescriptor) (items []*funny.AstDescriptor) {

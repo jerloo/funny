@@ -36,7 +36,7 @@ b() {
 `
 
 func TestFormat(t *testing.T) {
-	result := Format([]byte(testNewLine))
+	result := Format([]byte(testNewLine), "")
 	fmt.Println(result)
 	assert.Equal(t, testNewLineResult, result)
 }
