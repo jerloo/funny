@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/guonaihong/gout"
@@ -34,6 +35,7 @@ var (
 		"typeof":  Typeof,
 		"uuid":    UUID,
 		"httpreq": HttpRequest,
+		"env":     Env,
 	}
 )
 
@@ -253,6 +255,9 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	}
 	if de, ok := args[4].(bool); ok {
 		debug = de
+		if !debug {
+			debug = interpreter.Debug()
+		}
 	}
 	switch method {
 	case "GET":
@@ -285,4 +290,17 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 		return Value(jsonResult)
 	}
 	panic(fmt.Errorf("method %s not support yet", method))
+}
+
+// Env return the value of env key
+func Env(interpreter *Interpreter, args []Value) Value {
+	ackGt(args, 0)
+	if key, ok := args[0].(string); ok {
+		val := os.Getenv(key)
+		if val == "" && len(args) > 1 {
+			return Value(args[1])
+		}
+		return Value(val)
+	}
+	panic("env type error, env key only support [string]")
 }

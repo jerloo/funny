@@ -27,6 +27,7 @@ import (
 )
 
 var cfgFile string
+var debug bool
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
@@ -43,6 +44,7 @@ var rootCmd = &cobra.Command{
 				return
 			}
 			interpreter := funny.NewInterpreterWithScope(funny.Scope{})
+			interpreter.Assign("debug", debug)
 			interpreter.RunFile(filename)
 		} else {
 			err := cmd.Usage()
@@ -74,6 +76,7 @@ func init() {
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "debug mode")
 }
 
 // initConfig reads in config file and ENV variables if set.
