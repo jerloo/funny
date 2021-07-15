@@ -346,6 +346,32 @@ func (b *Block) Descriptor() *AstDescriptor {
 	}
 }
 
+func (b *Block) Format() string {
+	sb := new(strings.Builder)
+	flag := 0
+	for _, item := range *b {
+		if item == nil {
+			break
+		}
+		switch v := item.(type) {
+		case *NewLine:
+			flag++
+			if flag > 2 {
+				continue
+			} else {
+				sb.WriteString(item.String())
+			}
+		case *Block:
+			sb.WriteString(v.Format())
+		default:
+			flag = 0
+			sb.WriteString(item.String())
+		}
+
+	}
+	return sb.String()
+}
+
 // Function like test(a, b){}
 type Function struct {
 	pos        Position
