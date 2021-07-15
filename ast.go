@@ -18,7 +18,6 @@ func collectBlock(block Block) []string {
 			if flag < 1 {
 				continue
 			}
-			break
 		}
 		flag = 0
 		s = append(s, item.String())
@@ -346,30 +345,35 @@ func (b *Block) Descriptor() *AstDescriptor {
 	}
 }
 
-func (b *Block) Format() string {
+func (b *Block) Format(root bool) string {
 	sb := new(strings.Builder)
 	flag := 0
-	for _, item := range *b {
+	for index, item := range *b {
 		if item == nil {
 			break
 		}
 		switch v := item.(type) {
 		case *NewLine:
-			flag++
-			if flag > 2 {
-				continue
-			} else {
-				sb.WriteString(item.String())
+			if flag < 2 {
+				if index != 0 && index != len(*b)-1 {
+					sb.WriteString(item.String())
+					flag++
+				}
 			}
 		case *Block:
-			sb.WriteString(v.Format())
+			sb.WriteString(v.Format(false))
+			flag = 0
 		default:
 			flag = 0
 			sb.WriteString(item.String())
 		}
 
 	}
-	return sb.String()
+	if root {
+		return sb.String()
+	} else {
+		return fmt.Sprintf("{\n%s\n}", intent(sb.String()))
+	}
 }
 
 // Function like test(a, b){}
@@ -390,8 +394,8 @@ func (f *Function) String() string {
 	for _, item := range f.Parameters {
 		args = append(args, item.String())
 	}
-	s := block(f.Body)
-	return fmt.Sprintf("%s(%s) {%s}", f.Name, strings.Join(args, ", "), s)
+	s := f.Body.Format(false)
+	return fmt.Sprintf("%s(%s) %s", f.Name, strings.Join(args, ", "), s)
 }
 
 func (a *Function) Type() string {
@@ -399,11 +403,17 @@ func (a *Function) Type() string {
 }
 
 func (n *Function) Descriptor() *AstDescriptor {
+	var children []*AstDescriptor
+	for _, item := range n.Parameters {
+		children = append(children, item.Descriptor())
+	}
+	children = append(children, n.Body.Descriptor())
 	return &AstDescriptor{
 		Type:     n.Type(),
 		Position: n.Position(),
 		Name:     n.Name,
 		Text:     n.Name,
+		Children: children,
 	}
 }
 
@@ -422,7 +432,11 @@ func (c *FunctionCall) Position() Position {
 func (c *FunctionCall) String() string {
 	var args []string
 	for _, item := range c.Parameters {
-		args = append(args, item.String())
+		if v, ok := item.(*Block); ok {
+			args = append(args, v.Format(false))
+		} else {
+			args = append(args, item.String())
+		}
 	}
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
@@ -431,12 +445,17 @@ func (c *FunctionCall) Type() string {
 	return STFunctionCall
 }
 
-func (n *FunctionCall) Descriptor() *AstDescriptor {
+func (c *FunctionCall) Descriptor() *AstDescriptor {
+	children := make([]*AstDescriptor, len(c.Parameters))
+	for index, item := range c.Parameters {
+		children[index] = item.Descriptor()
+	}
 	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     n.Name,
-		Text:     n.Name,
+		Type:     c.Type(),
+		Position: c.Position(),
+		Name:     c.Name,
+		Text:     c.Name,
+		Children: children,
 	}
 }
 
@@ -664,9 +683,9 @@ func (r *Return) Position() Position {
 }
 
 func (r *Return) String() string {
-	switch r.Value.(type) {
+	switch v := r.Value.(type) {
 	case *Block:
-		return fmt.Sprintf("return {%s}", intent(r.Value.String()))
+		return fmt.Sprintf("return %s", intent(v.Format(false)))
 	}
 	return fmt.Sprintf("return %s", r.Value.String())
 }
@@ -681,6 +700,9 @@ func (n *Return) Descriptor() *AstDescriptor {
 		Position: n.Position(),
 		Name:     "",
 		Text:     "",
+		Children: []*AstDescriptor{
+			n.Value.Descriptor(),
+		},
 	}
 }
 

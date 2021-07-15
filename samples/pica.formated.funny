@@ -1,0 +1,47 @@
+token = ''
+baseUrl = 'http://localhost:5000/'
+debug = false
+
+createPosts(data) {
+
+  return httpreq('POST', baseUrl + 'api/posts', data, {
+
+    Authorization = 'Bearer ' + token
+
+  }, debug)
+
+}
+
+updatePosts(data) {
+
+  return httpreq('PUT', baseUrl + 'api/posts', data, {
+
+    Authorization = 'Bearer ' + token
+
+  }, debug)
+
+}
+
+deletePosts(q1, q2) {
+
+  return httpreq('DELETE', baseUrl + 'api/posts', {
+
+  }, {
+
+    Authorization = 'Bearer ' + token
+
+  }, debug)
+
+}
+
+getPosts(q1, q2) {
+
+  return httpreq('GET', baseUrl + 'api/posts', {
+
+  }, {
+
+    Authorization = 'Bearer ' + token
+
+  }, debug)
+
+}

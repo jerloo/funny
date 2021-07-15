@@ -48,23 +48,7 @@ var formatCmd = &cobra.Command{
 				}
 			}
 
-			parser := funny.NewParser(data)
-			parser.Consume("")
-			flag := 0
-			for {
-				item := parser.ReadStatement()
-				if item == nil {
-					break
-				}
-				switch item.(type) {
-				case *funny.NewLine:
-					flag++
-					if flag < 1 {
-						continue
-					}
-				}
-				fmt.Printf("%s", item.String())
-			}
+			fmt.Println(funny.Format(data))
 		}
 	},
 }
