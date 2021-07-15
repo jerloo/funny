@@ -398,6 +398,14 @@ func (f *Function) String() string {
 	return fmt.Sprintf("%s(%s) %s", f.Name, strings.Join(args, ", "), s)
 }
 
+func (f *Function) SignatureString() string {
+	var args []string
+	for _, item := range f.Parameters {
+		args = append(args, item.String())
+	}
+	return fmt.Sprintf("%s(%s)", f.Name, strings.Join(args, ", "))
+}
+
 func (a *Function) Type() string {
 	return STFunction
 }
@@ -408,11 +416,12 @@ func (n *Function) Descriptor() *AstDescriptor {
 		children = append(children, item.Descriptor())
 	}
 	children = append(children, n.Body.Descriptor())
+
 	return &AstDescriptor{
 		Type:     n.Type(),
 		Position: n.Position(),
 		Name:     n.Name,
-		Text:     n.Name,
+		Text:     n.SignatureString(),
 		Children: children,
 	}
 }
