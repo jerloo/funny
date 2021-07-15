@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/jerloo/funny"
 	prettyjson "github.com/jerloo/go-prettyjson"
@@ -39,20 +40,14 @@ var parserCmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-			data, err := funny.CombinedCode(cdw, filename)
+			filename = path.Join(cdw, filename)
+			data, err := os.ReadFile(filename)
 			if err != nil {
 				panic(err)
 			}
 			parser := funny.NewParser([]byte(data))
-			parser.Consume("")
-			var items funny.Block
-			for {
-				item := parser.ReadStatement()
-				if item == nil {
-					break
-				}
-				items = append(items, item)
-			}
+			parser.ContentFile = filename
+			items := parser.Parse()
 			descriptor := items.Descriptor()
 			echoJson, err := prettyjson.Marshal(descriptor)
 			if err != nil {

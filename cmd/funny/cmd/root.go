@@ -45,7 +45,10 @@ var rootCmd = &cobra.Command{
 			interpreter := funny.NewInterpreterWithScope(funny.Scope{})
 			interpreter.RunFile(filename)
 		} else {
-			cmd.Usage()
+			err := cmd.Usage()
+			if err != nil {
+				panic(err)
+			}
 		}
 	},
 }

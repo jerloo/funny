@@ -48,7 +48,7 @@ var formatCmd = &cobra.Command{
 				}
 			}
 
-			fmt.Println(funny.Format(data))
+			fmt.Println(funny.Format(data, filename))
 		}
 	},
 }

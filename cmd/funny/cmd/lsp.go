@@ -69,7 +69,12 @@ func run(ctx context.Context, args []string) error {
 		log.Printf("failed to create logger: %v\n", err)
 		os.Exit(1)
 	}
-	defer logger.Sync()
+	defer func() {
+		err = logger.Sync()
+		if err != nil {
+			fmt.Println(err)
+		}
+	}()
 	logger.Info("Starting up...")
 	handler := lsp.NewHandler(logger)
 

@@ -226,26 +226,11 @@ func (h Handler) handleTextDocumentFormating(ctx context.Context, conn jsonrpc2.
 	}
 	// Format the current document.
 	contents, _ := h.documentContents.Get(string(params.TextDocument.URI))
-	parser := funny.NewParser(contents)
-	parser.Consume("")
-	flag := 0
-	lines := 0
+	formated := funny.Format(contents, UriToRealPath(params.TextDocument.URI))
+
+	lines := len(string(contents))
 	w := new(strings.Builder)
-	for {
-		item := parser.ReadStatement()
-		if item == nil {
-			break
-		}
-		switch item.(type) {
-		case *funny.NewLine:
-			flag++
-			if flag < 1 {
-				continue
-			}
-		}
-		lines++
-		w.WriteString(item.String())
-	}
+	w.WriteString(formated)
 
 	// Replace everything.
 	resp = append(resp, lsp.TextEdit{
@@ -307,7 +292,7 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	builtinDescriptor := builtinBlock.Descriptor()
 
 	parser := funny.NewParser(contents)
-	parser.Consume("")
+	parser.ContentFile = UriToRealPath(params.TextDocument.URI)
 	items := parser.Parse()
 	descriptor := items.Descriptor()
 	var currentToken *funny.Token
