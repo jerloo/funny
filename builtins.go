@@ -16,6 +16,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/guonaihong/gout"
 	uuid "github.com/satori/go.uuid"
+	"golang.org/x/xerrors"
 )
 
 //go:embed builtins.funny
@@ -282,7 +283,7 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	if d, ok := args[2].(map[string]interface{}); ok {
 		data = d
 	}
-	if h, ok := args[3].(map[string]interface{}); ok {
+	if h, ok := args[3].(map[string]Value); ok {
 		for key, val := range h {
 			headers[key] = val
 		}
@@ -298,28 +299,28 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 		jsonResult := make(map[string]interface{})
 		err := gout.GET(url).Debug(debug).SetQuery(data).SetHeader(headers).BindJSON(&jsonResult).Do()
 		if err != nil {
-			panic(fmt.Errorf("response not json format"))
+			panic(xerrors.Errorf("response not json format %w", err))
 		}
 		return Value(jsonResult)
 	case "POST":
 		jsonResult := make(map[string]interface{})
 		err := gout.POST(url).Debug(debug).SetJSON(data).SetHeader(headers).BindJSON(&jsonResult).Do()
 		if err != nil {
-			panic(fmt.Errorf("response not json format"))
+			panic(xerrors.Errorf("response not json format: %w", err))
 		}
 		return Value(jsonResult)
 	case "PUT":
 		jsonResult := make(map[string]interface{})
 		err := gout.PUT(url).Debug(debug).SetHeader(headers).BindJSON(&jsonResult).Do()
 		if err != nil {
-			panic(fmt.Errorf("response not json format"))
+			panic(xerrors.Errorf("response not json format: %w", err))
 		}
 		return Value(jsonResult)
 	case "DELETE":
 		jsonResult := make(map[string]interface{})
 		err := gout.DELETE(url).Debug(debug).SetHeader(headers).BindJSON(&jsonResult).Do()
 		if err != nil {
-			panic(fmt.Errorf("response not json format"))
+			panic(xerrors.Errorf("response not json format: %w", err))
 		}
 		return Value(jsonResult)
 	}
@@ -379,6 +380,9 @@ func Str(interpreter *Interpreter, args []Value) Value {
 // Int like int('1')
 func Int(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 1)
+	if v, ok := args[0].(time.Time); ok {
+		return Value(int(v.Unix()))
+	}
 	dataStr := fmt.Sprint(args[0])
 	for _, ch := range dataStr {
 		if !isNameStart(ch) {
