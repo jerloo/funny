@@ -2,6 +2,7 @@ package funny
 
 import (
 	"crypto/md5"
+	"database/sql"
 	_ "embed"
 	"encoding/base64"
 	"encoding/hex"
@@ -12,6 +13,7 @@ import (
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/guonaihong/gout"
 	uuid "github.com/satori/go.uuid"
 )
@@ -45,6 +47,8 @@ var (
 		"int":      Int,
 		"jwten":    JwtEncode,
 		"jwtde":    JwtDecode,
+		"sqlquery": SqlQuery,
+		"sqlexec":  SqlExec,
 	}
 )
 
@@ -442,4 +446,100 @@ func JwtDecode(interpreter *Interpreter, args []Value) Value {
 		return Value(result)
 	}
 	panic("jwtde type error, token not valid")
+}
+
+// SqlQuery sqlquery(connection, sqlRaw, args) string
+func SqlQuery(interpreter *Interpreter, args []Value) Value {
+	ackGt(args, 1)
+	switch v := args[0].(type) {
+	case map[string]Value:
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			v["user"],
+			v["password"],
+			v["host"],
+			v["port"],
+			v["database"])
+
+		db, err := sql.Open("mysql", dsn)
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+		var sqlArgs []interface{}
+		for _, arg := range args[2:] {
+			sqlArgs = append(sqlArgs, arg)
+		}
+		rows, err := db.Query(fmt.Sprint(args[1]), sqlArgs...)
+		if err != nil {
+			panic(err)
+		}
+		defer rows.Close()
+		r := make([]map[string]interface{}, 0)
+		for rows.Next() {
+			cols, err := rows.Columns()
+			if err != nil {
+				panic(err)
+			}
+			fields := make([]interface{}, len(cols))
+			for index := range fields {
+				fields[index] = Value(new(interface{}))
+			}
+			err = rows.Scan(fields...)
+			if err != nil {
+				panic(err)
+			}
+			row := make(map[string]interface{})
+			for index, col := range cols {
+				row[col] = fields[index]
+			}
+			r = append(r, row)
+		}
+		rows.Close()
+		if err := rows.Err(); err != nil {
+			panic(err)
+		}
+		return Value(r)
+	}
+	panic("sqlquery type error, connection")
+}
+
+// SqlExec sqlexec(connection, sqlRaw, args) string
+func SqlExec(interpreter *Interpreter, args []Value) Value {
+	ackGt(args, 1)
+	switch v := args[0].(type) {
+	case map[string]Value:
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			v["user"],
+			v["password"],
+			v["host"],
+			v["port"],
+			v["database"])
+
+		db, err := sql.Open("mysql", dsn)
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+		var sqlArgs []interface{}
+		for _, arg := range args[2:] {
+			sqlArgs = append(sqlArgs, arg)
+		}
+		result, err := db.Exec(fmt.Sprint(args[1]), sqlArgs...)
+		if err != nil {
+			panic(err)
+		}
+		last, err := result.LastInsertId()
+		if err != nil {
+			panic(err)
+		}
+		row, err := result.RowsAffected()
+		if err != nil {
+			panic(err)
+		}
+		return Value(map[string]interface{}{
+			"lastInsertId": last,
+			"rowsAffected": row,
+		})
+	}
+	panic("sqlexec type error, connection")
 }

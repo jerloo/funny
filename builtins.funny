@@ -83,3 +83,13 @@ jwten(method, secret, claims) {
 jwtde(method, secret, token) {
 
 }
+
+// sqlquery
+sqlquery(connection, sqlRaw) {
+
+}
+
+// sqlexec
+sqlexec(connection, sqlRaw) {
+
+}
