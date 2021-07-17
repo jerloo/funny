@@ -1,9 +1,8 @@
-
 // Echo something
-echo('arg1', 2, ['3',4])
+echo('arg1', 2, '3', 4)
 
 // Echo something with newline
-echoln('arg1', 2, ['3',4])
+echoln('arg1', 2, '3', 4)
 
 // Get now time
 now()
@@ -30,10 +29,14 @@ max(1, 2)
 min(1, 2)
 
 // Typeof something
-typeof([1,2])
+typeof(1, 2)
 
 // Create new uuid string
 uuid()
 
 // Http request
-httpreq('GET', 'https://baidu.com', {}, {}, true)
+httpreq('GET', 'https://baidu.com', {
+
+}, {
+
+}, true)

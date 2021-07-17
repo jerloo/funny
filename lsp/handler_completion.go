@@ -40,83 +40,76 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 
 	var currentToken *funny.Token
 	for _, token := range parser.Tokens {
-		if token.Position.Line == params.Position.Line && token.Position.Col == params.Position.Character {
+		if token.Position.Line == params.Position.Line && (token.Position.Col+token.Position.Length) >= params.Position.Character {
 			currentToken = &token
 			break
 		}
 	}
-	h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
+	// h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
 	l := 0
 	if currentToken != nil {
 		l = len(currentToken.Data)
 		h.log.Info("current", zap.Any("current", currentToken))
 	}
 
-	stack := stackByPosition(params.Position.Line, items, &BlockStack{})
+	blocks := collectBlocks(h.log, params.Position.Line, items)
+	h.log.Info("funny:completion", zap.Any("blocks", blocks))
 
-	fds := getNamedItems(stack.Blocks)
-	fdsBuiltins := getNamedItems([]*funny.Block{builtinBlock})
+	fds := collectCompletionItems(params, blocks, l)
+	fdsBuiltins := collectCompletionItems(params, []*funny.Block{builtinBlock}, l)
 	fds = append(fds, fdsBuiltins...)
-
-	for _, item := range fds {
-		ci := lsp.CompletionItem{}
-		switch v := item.(type) {
-		case *funny.Function:
-			ci.Label = v.Name
-			ci.Detail = v.SignatureString()
-		case *funny.Variable:
-			ci.Label = v.Name
-		}
-		ci.TextEdit = &lsp.TextEdit{
-			Range: lsp.Range{
-				Start: lsp.Position{
-					Line:      params.Position.Line,
-					Character: params.Position.Character - l,
-				},
-				End: lsp.Position{
-					Line:      params.Position.Line,
-					Character: params.Position.Character,
-				},
-			},
-			NewText: ci.Label,
-		}
-		if ci.Label != "" {
-			cl.Items = append(cl.Items, ci)
-		}
-	}
+	h.log.Info("funny:completion", zap.Any("fds", fds))
+	cl.Items = fds
 	return cl, nil
 }
 
-func stackByPosition(line int, block *funny.Block, stack *BlockStack) *BlockStack {
+func collectBlocks(logger *zap.Logger, line int, block *funny.Block) (results []*funny.Block) {
+	if len(results) == 0 {
+		results = append(results, block)
+	}
 	for _, statement := range block.Statements {
 		if v, ok := statement.(*funny.Block); ok {
 			if line >= v.GetPosition().Line && line < v.EndPosition().Line {
-				stack.Push(v)
+				results = append(results, v)
 			}
 		}
 	}
-	return stack
+	return
 }
 
-type BlockStack struct {
-	Blocks []*funny.Block
-}
-
-func (bs *BlockStack) Push(block *funny.Block) {
-	bs.Blocks = append(bs.Blocks, block)
-}
-
-func (bs *BlockStack) Pop() {
-	bs.Blocks = bs.Blocks[:len(bs.Blocks)-1]
-}
-
-func getNamedItems(block []*funny.Block) (results []funny.Statement) {
+func collectCompletionItems(params lsp.CompletionParams, block []*funny.Block, l int) (results []lsp.CompletionItem) {
 	for _, b := range block {
 		for _, statement := range b.Statements {
+			ci := lsp.CompletionItem{}
 			switch v := statement.(type) {
 			case *funny.Function:
+				ci.Label = v.Name
+				ci.Detail = v.SignatureString()
 			case *funny.Variable:
-				results = append(results, v)
+				ci.Label = v.Name
+			case *funny.Assign:
+				if target, ok := v.Target.(*funny.Variable); ok {
+					ci.Label = target.Name
+				}
+			case *funny.Block:
+				brs := collectCompletionItems(params, []*funny.Block{v}, l)
+				results = append(results, brs...)
+			}
+			ci.TextEdit = &lsp.TextEdit{
+				Range: lsp.Range{
+					Start: lsp.Position{
+						Line:      params.Position.Line,
+						Character: params.Position.Character - l,
+					},
+					End: lsp.Position{
+						Line:      params.Position.Line,
+						Character: params.Position.Character,
+					},
+				},
+				NewText: ci.Label,
+			}
+			if ci.Label != "" {
+				results = append(results, ci)
 			}
 		}
 	}
