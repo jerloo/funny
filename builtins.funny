@@ -1,3 +1,9 @@
+funny = {
+  version = '0.0.1'
+  homepage = 'https://github.com/jerloo/funny'
+}
+author = 'funny'
+
 // bool true
 true = true
 
@@ -91,5 +97,10 @@ sqlquery(connection, sqlRaw) {
 
 // sqlexec
 sqlexec(connection, sqlRaw) {
+
+}
+
+// format data
+format(data, formatStr) {
 
 }

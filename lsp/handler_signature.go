@@ -20,42 +20,42 @@ func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonr
 	if !ok {
 		return nil, errors.New("document content not found")
 	}
-	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny))
+	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny), UriToRealPath(params.TextDocument.URI))
 	builtinBlock := builtinParser.Parse()
-	builtinDescriptor := builtinBlock.Descriptor()
 
-	parser := funny.NewParser(contents)
+	parser := funny.NewParser(contents, UriToRealPath(params.TextDocument.URI))
 	parser.ContentFile = UriToRealPath(params.TextDocument.URI)
 	items := parser.Parse()
-	descriptor := items.Descriptor()
-	builtinFds := flatDescriptor(builtinDescriptor)
-	fds := flatDescriptor(descriptor)
-	fds = append(fds, builtinFds...)
-	var signatures []*funny.AstDescriptor
-	for _, item := range fds {
-		if item.Type == funny.STFunction {
-			signatures = append(signatures, item)
-		}
-	}
-	for _, item := range fds {
-		if item.Position.Line == params.Position.Line {
+
+	builtinFuncs := getFunctions(builtinBlock.Statements)
+	parsedFuncs := getFunctions(items.Statements)
+	var fns []*funny.Function
+	fns = append(fns, builtinFuncs...)
+	fns = append(fns, parsedFuncs...)
+
+	signatures := getFuncCalls(items.Statements)
+
+	for _, item := range fns {
+		if item.GetPosition().Line == params.Position.Line {
 			for _, sig := range signatures {
 				if sig.Name == item.Name {
-					ap := len(item.Children)
-					if ap > len(sig.Children) {
-						ap = len(sig.Children) - 1
+					ap := len(item.Parameters)
+					if ap > len(sig.Parameters) {
+						ap = len(sig.Parameters) - 1
 					}
 					var infos []lsp.ParameterInformation
-					for _, pas := range item.Children {
-						infos = append(infos, lsp.ParameterInformation{
-							Label:         pas.Name,
-							Documentation: pas.Text,
-						})
+					for _, pas := range item.Parameters {
+						pi := lsp.ParameterInformation{}
+						switch v := pas.(type) {
+						case *funny.Variable:
+							pi.Label = v.Name
+						}
+						infos = append(infos)
 					}
 					return &lsp.SignatureHelp{
 						Signatures: []lsp.SignatureInformation{
 							{
-								Label:         sig.Text,
+								Label:         sig.Name,
 								Documentation: "",
 								Parameters:    infos,
 							},
@@ -72,4 +72,22 @@ func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonr
 		ActiveSignature: 0,
 		ActiveParameter: 0,
 	}, nil
+}
+
+func getFunctions(items []funny.Statement) (results []*funny.Function) {
+	for _, item := range items {
+		if v, ok := item.(*funny.Function); ok {
+			results = append(results, v)
+		}
+	}
+	return results
+}
+
+func getFuncCalls(items []funny.Statement) (results []*funny.FunctionCall) {
+	for _, item := range items {
+		if v, ok := item.(*funny.FunctionCall); ok {
+			results = append(results, v)
+		}
+	}
+	return results
 }

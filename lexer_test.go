@@ -14,105 +14,105 @@ var cases = []Token{
 	{
 		Kind: NAME,
 		Position: Position{
-			Line: 1,
-			Col:  1,
+			Line: 0,
+			Col:  0,
 		},
 	},
 	{
 		Kind: EQ,
 		Position: Position{
-			Line: 1,
-			Col:  3,
+			Line: 0,
+			Col:  2,
 		},
 	},
 	{
 		Kind: INT,
 		Position: Position{
-			Line: 1,
+			Line: 0,
+			Col:  4,
+		},
+	},
+	{
+		Kind: NEW_LINE,
+		Position: Position{
+			Line: 0,
 			Col:  5,
 		},
 	},
 	{
-		Kind: NEW_LINE,
-		Position: Position{
-			Line: 1,
-			Col:  6,
-		},
-	},
-	{
 		Kind: NAME,
 		Position: Position{
-			Line: 2,
-			Col:  1,
+			Line: 1,
+			Col:  0,
 		},
 	},
 	{
 		Kind: EQ,
 		Position: Position{
-			Line: 2,
-			Col:  2,
+			Line: 1,
+			Col:  1,
 		},
 	},
 	{
 		Kind: INT,
 		Position: Position{
-			Line: 2,
-			Col:  3,
+			Line: 1,
+			Col:  2,
 		},
 	},
 	{
 		Kind: NEW_LINE,
 		Position: Position{
-			Line: 2,
-			Col:  4,
+			Line: 1,
+			Col:  3,
 		},
 	},
 	{
 		Kind: NAME,
 		Position: Position{
-			Line: 3,
-			Col:  1,
+			Line: 2,
+			Col:  0,
 		},
 	},
 	{
 		Kind: EQ,
 		Position: Position{
-			Line: 3,
-			Col:  2,
+			Line: 2,
+			Col:  1,
 		},
 	},
 	{
 		Kind: NAME,
 		Position: Position{
-			Line: 3,
-			Col:  4,
+			Line: 2,
+			Col:  3,
 		},
 	},
 	{
 		Kind: PLUS,
 		Position: Position{
-			Line: 3,
-			Col:  6,
+			Line: 2,
+			Col:  5,
 		},
 	},
 	{
 		Kind: NAME,
 		Position: Position{
-			Line: 3,
-			Col:  8,
+			Line: 2,
+			Col:  7,
 		},
 	},
 	{
 		Kind: EOF,
 		Position: Position{
-			Line: 3,
-			Col:  8,
+			Line: 2,
+			Col:  7,
 		},
 	},
 }
 
 func TestLexer_LA(t *testing.T) {
-	lexer := NewLexer([]byte(DATA))
+	lexer := NewLexer([]byte(DATA), "")
 	assert.Equalf(t, "a", string(lexer.LA(1)), "")
 	assert.Equalf(t, " ", string(lexer.LA(2)), "")
 	assert.Equalf(t, "=", string(lexer.LA(3)), "")
@@ -120,14 +120,14 @@ func TestLexer_LA(t *testing.T) {
 }
 
 func TestLexer_Consume(t *testing.T) {
-	lexer := NewLexer([]byte(DATA))
+	lexer := NewLexer([]byte(DATA), "")
 	assert.Equalf(t, "a", string(lexer.Consume(1)), "")
 	assert.Equalf(t, " ", string(lexer.Consume(1)), "")
 	assert.Equalf(t, " ", string(lexer.Consume(2)), "")
 }
 
 func TestLexer_Next(t *testing.T) {
-	lexer := NewLexer([]byte(DATA))
+	lexer := NewLexer([]byte(DATA), "")
 	assert.Equal(t, NAME, lexer.Next().Kind)
 	assert.Equal(t, EQ, lexer.Next().Kind)
 	assert.Equal(t, INT, lexer.Next().Kind)
@@ -137,7 +137,7 @@ func TestLexer_Next(t *testing.T) {
 }
 
 func TestLexer_Position(t *testing.T) {
-	lexer := NewLexer([]byte(DATA))
+	lexer := NewLexer([]byte(DATA), "")
 	tokens := make([]Token, 0)
 	for {
 		token := lexer.Next()

@@ -45,11 +45,10 @@ var parserCmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-			parser := funny.NewParser([]byte(data))
+			parser := funny.NewParser([]byte(data), filename)
 			parser.ContentFile = filename
 			items := parser.Parse()
-			descriptor := items.Descriptor()
-			echoJson, err := prettyjson.Marshal(descriptor)
+			echoJson, err := prettyjson.Marshal(items)
 			if err != nil {
 				panic(err)
 			}

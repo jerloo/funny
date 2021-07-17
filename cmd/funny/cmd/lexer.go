@@ -50,7 +50,7 @@ var lexerCmd = &cobra.Command{
 				data = []byte(filename)
 			}
 
-			lexer := funny.NewLexer(data)
+			lexer := funny.NewLexer(data, filename)
 			for {
 				token := lexer.Next()
 				// fmt.Printf("%v\n", token.String())

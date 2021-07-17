@@ -66,7 +66,7 @@ func (i *Interpreter) RunFile(filename string) (Value, bool) {
 	if err != nil {
 		panic(err)
 	}
-	parser := NewParser(data)
+	parser := NewParser(data, filename)
 	parser.ContentFile = filename
 	program := Program{
 		Statements: parser.Parse(),
@@ -99,7 +99,7 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 	case string:
 		return i.Run([]byte(v))
 	case []byte:
-		parser := NewParser(v)
+		parser := NewParser(v, "")
 		program := Program{
 			Statements: parser.Parse(),
 		}
@@ -110,8 +110,8 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 }
 
 // EvalBlock eval a block
-func (i *Interpreter) EvalBlock(block Block) (Value, bool) {
-	for _, item := range block {
+func (i *Interpreter) EvalBlock(block *Block) (Value, bool) {
+	for _, item := range block.Statements {
 		r, has := i.EvalStatement(item)
 		if has {
 			return r, has
@@ -145,7 +145,7 @@ func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
 			}
 		}
 	} else {
-		panic(P("if statement condition must be boolen value", item))
+		panic(P("if statement condition must be boolen value", item.Position))
 	}
 	return Value(nil), false
 }
@@ -165,7 +165,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 		case *Field:
 			i.AssignField(a, i.EvalExpression(item.Value))
 		default:
-			panic(P("invalid assignment", item))
+			panic(P("invalid assignment", item.Position))
 		}
 	case *IFStatement:
 		val, has := i.EvalIfStatement(item)
@@ -180,13 +180,13 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 	case *FunctionCall:
 		i.EvalFunctionCall(item)
 	case *ImportFunctionCall:
-		for _, d := range *item.Block {
+		for _, d := range item.Block.Statements {
 			switch d := d.(type) {
 			case *Assign:
 				if t, ok := d.Target.(*Variable); ok {
 					i.Assign(t.Name, i.EvalExpression(d.Value))
 				} else {
-					panic(P("block assignments must be variable", item))
+					panic(P("block assignments must be variable", item.Position))
 				}
 			case *NewLine:
 				break
@@ -195,7 +195,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 			case *Function:
 				i.Assign(d.Name, d)
 			default:
-				panic(P("module must only contains assignment and func", item))
+				panic(P("module must only contains assignment and func", item.Position))
 			}
 		}
 	case *Return:
@@ -209,7 +209,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 	case *Comment:
 		break
 	default:
-		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item))
+		panic(P(fmt.Sprintf("invalid statement [%s]", item.String()), item.GetPosition()))
 	}
 	return Value(nil), false
 }
@@ -304,7 +304,7 @@ func (i *Interpreter) PushScope(scope Scope) {
 }
 
 // EvalExpression eval part that is expression
-func (i *Interpreter) EvalExpression(expression Expression) Value {
+func (i *Interpreter) EvalExpression(expression Statement) Value {
 	switch item := expression.(type) {
 	case *BinaryExpression:
 		// TODO: string minus
@@ -328,7 +328,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 		case DOUBLE_EQ:
 			return i.EvalEqual(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		default:
-			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression))
+			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.GetPosition()))
 		}
 	case *List:
 		var ls []interface{}
@@ -339,13 +339,13 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 	case *Block: // dict => map[string]Value{}
 		scope := make(map[string]Value)
 
-		for _, d := range *item {
+		for _, d := range item.Statements {
 			switch d := d.(type) {
 			case *Assign:
 				if t, ok := d.Target.(*Variable); ok {
 					scope[t.Name] = i.EvalExpression(d.Value)
 				} else {
-					panic(P("block assignments must be variable", item))
+					panic(P("block assignments must be variable", item.Position))
 				}
 			case *NewLine:
 				break
@@ -354,7 +354,7 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 			case *Function:
 				scope[d.Name] = d
 			default:
-				panic(P("dict struct must only contains assignment and func", item))
+				panic(P("dict struct must only contains assignment and func", item.Position))
 			}
 		}
 		return scope
@@ -377,13 +377,13 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 	case *ImportFunctionCall:
 		scope := make(map[string]Value)
 
-		for _, d := range *item.Block {
+		for _, d := range item.Block.Statements {
 			switch d := d.(type) {
 			case *Assign:
 				if t, ok := d.Target.(*Variable); ok {
 					scope[t.Name] = i.EvalExpression(d.Value)
 				} else {
-					panic(P("block assignments must be variable", item))
+					panic(P("block assignments must be variable", item.Position))
 				}
 			case *NewLine:
 				break
@@ -392,12 +392,12 @@ func (i *Interpreter) EvalExpression(expression Expression) Value {
 			case *Function:
 				scope[d.Name] = d
 			default:
-				panic(P("module must only contains assignment and func", item))
+				panic(P("module must only contains assignment and func", item.Position))
 			}
 		}
 		return scope
 	}
-	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression))
+	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.GetPosition()))
 }
 
 // EvalField person.age
@@ -580,11 +580,11 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 		}
 	case *Scope:
 		if r, ok := right.(*Block); ok {
-			if len(*l) != len(*r) {
+			if len(*l) != len(r.Statements) {
 				return Value(false)
 			}
 			for _, itemL := range *l {
-				for _, itemR := range *r {
+				for _, itemR := range r.Statements {
 					if !i.EvalEqual(itemL, itemR).(bool) {
 						return Value(false)
 					}

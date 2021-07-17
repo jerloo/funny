@@ -32,14 +32,12 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	if !ok {
 		return cl, errors.New("document content not found")
 	}
-	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny))
+	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny), "")
 	builtinBlock := builtinParser.Parse()
-	builtinDescriptor := builtinBlock.Descriptor()
 
-	parser := funny.NewParser(contents)
-	parser.ContentFile = UriToRealPath(params.TextDocument.URI)
+	parser := funny.NewParser(contents, UriToRealPath(params.TextDocument.URI))
 	items := parser.Parse()
-	descriptor := items.Descriptor()
+
 	var currentToken *funny.Token
 	for _, token := range parser.Tokens {
 		if token.Position.Line == params.Position.Line && token.Position.Col == params.Position.Character {
@@ -53,14 +51,21 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		l = len(currentToken.Data)
 		h.log.Info("current", zap.Any("current", currentToken))
 	}
-	builtinFds := flatDescriptor(builtinDescriptor)
-	fds := flatDescriptor(descriptor)
-	fds = append(fds, builtinFds...)
-	for i, item := range fds {
-		ci := convertDescriptor(item)
-		if i > 1 && fds[i-2].Type == funny.STComment {
-			ci.Detail = fds[i-2].Text
-			ci.Documentation = fds[i-2].Text
+
+	stack := stackByPosition(params.Position.Line, items, &BlockStack{})
+
+	fds := getNamedItems(stack.Blocks)
+	fdsBuiltins := getNamedItems([]*funny.Block{builtinBlock})
+	fds = append(fds, fdsBuiltins...)
+
+	for _, item := range fds {
+		ci := lsp.CompletionItem{}
+		switch v := item.(type) {
+		case *funny.Function:
+			ci.Label = v.Name
+			ci.Detail = v.SignatureString()
+		case *funny.Variable:
+			ci.Label = v.Name
 		}
 		ci.TextEdit = &lsp.TextEdit{
 			Range: lsp.Range{
@@ -82,35 +87,38 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	return cl, nil
 }
 
-// var funnyTypeCIKMap = map[string]lsp.CompletionItemKind{
-// 	funny.STVariable: lsp.CIKVariable,
-// 	funny.STFunction: lsp.CIKFunction,
-// }
+func stackByPosition(line int, block *funny.Block, stack *BlockStack) *BlockStack {
+	for _, statement := range block.Statements {
+		if v, ok := statement.(*funny.Block); ok {
+			if line >= v.GetPosition().Line && line < v.EndPosition().Line {
+				stack.Push(v)
+			}
+		}
+	}
+	return stack
+}
 
-// func convertDescriptorToCompletionItem(descriptor *funny.AstDescriptor) lsp.CompletionItem {
-// 	return lsp.CompletionItem{
-// 		Label:            descriptor.Name,
-// 		Data:             descriptor.Text,
-// 		Kind:             funnyTypeCIKMap[descriptor.Type],
-// 		InsertTextFormat: lsp.ITFPlainText,
-// 		InsertText:       descriptor.Text,
-// 		TextEdit: &lsp.TextEdit{
-// 			Range: lsp.Range{
-// 				Start: lsp.Position{
-// 					Line:      params.Position.Line,
-// 					Character: params.Position.Character,
-// 				},
-// 				End: lsp.Position{
-// 					Line:      params.Position.Line,
-// 					Character: params.Position.Character + len(ci.Label),
-// 				},
-// 			},
-// 			NewText: ci.Label,
-// 		},
-// 	}
-// }
+type BlockStack struct {
+	Blocks []*funny.Block
+}
 
-// func GetCompletionItem(filename string, params lsp.CompletionParams) (cl *lsp.CompletionList, err error) {
+func (bs *BlockStack) Push(block *funny.Block) {
+	bs.Blocks = append(bs.Blocks, block)
+}
 
-// 	return
-// }
+func (bs *BlockStack) Pop() {
+	bs.Blocks = bs.Blocks[:len(bs.Blocks)-1]
+}
+
+func getNamedItems(block []*funny.Block) (results []funny.Statement) {
+	for _, b := range block {
+		for _, statement := range b.Statements {
+			switch v := statement.(type) {
+			case *funny.Function:
+			case *funny.Variable:
+				results = append(results, v)
+			}
+		}
+	}
+	return
+}

@@ -19,9 +19,10 @@ type Parser struct {
 }
 
 // NewParser create a new parser
-func NewParser(data []byte) *Parser {
+func NewParser(data []byte, file string) *Parser {
 	return &Parser{
-		Lexer: NewLexer(data),
+		Lexer:       NewLexer(data, file),
+		ContentFile: file,
 	}
 }
 
@@ -38,8 +39,8 @@ func (p *Parser) Consume(kind string) Token {
 }
 
 // Parse parse to statements
-func (p *Parser) Parse() Block {
-	block := Block{}
+func (p *Parser) Parse() *Block {
+	block := &Block{}
 	p.Consume("")
 	for {
 		if p.Current.Kind == EOF {
@@ -49,7 +50,7 @@ func (p *Parser) Parse() Block {
 		if element == nil {
 			break
 		}
-		block = append(block, element)
+		block.Statements = append(block.Statements, element)
 	}
 	return block
 }
@@ -63,8 +64,8 @@ func (p *Parser) ReadStatement() Statement {
 	case NAME:
 		if current.Data == "return" {
 			return &Return{
-				pos:   current.Position,
-				Value: p.ReadExpression(),
+				Position: current.Position,
+				Value:    p.ReadExpression(),
 			}
 		}
 		kind, ok := Keywords[current.Data]
@@ -76,11 +77,11 @@ func (p *Parser) ReadStatement() Statement {
 				return p.ReadFOR()
 			case BREAK:
 				return &Break{
-					pos: current.Position,
+					Position: current.Position,
 				}
 			case CONTINUE:
 				return &Continue{
-					pos: current.Position,
+					Position: current.Position,
 				}
 			}
 		}
@@ -88,10 +89,10 @@ func (p *Parser) ReadStatement() Statement {
 		switch next.Kind {
 		case EQ:
 			return &Assign{
-				pos: current.Position,
+				Position: current.Position,
 				Target: &Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Value: p.ReadExpression(),
 			}
@@ -99,19 +100,19 @@ func (p *Parser) ReadStatement() Statement {
 			return p.ReadFunction(current.Data)
 		case DOT:
 			field := &Field{
-				pos: current.Position,
+				Position: current.Position,
 				Variable: Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Value: p.ReadField(),
 			}
 			if p.Current.Kind == EQ {
 				p.Consume(EQ)
 				return &Assign{
-					pos:    current.Position,
-					Target: field,
-					Value:  p.ReadExpression(),
+					Position: current.Position,
+					Target:   field,
+					Value:    p.ReadExpression(),
 				}
 			}
 			return field
@@ -119,27 +120,27 @@ func (p *Parser) ReadStatement() Statement {
 			key := p.Consume(STRING)
 			p.Consume(RBracket)
 			field := &Field{
-				pos: current.Position,
+				Position: current.Position,
 				Variable: Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Value: &Variable{
-					pos:  current.Position,
-					Name: key.Data,
+					Position: current.Position,
+					Name:     key.Data,
 				},
 			}
 			switch p.Current.Kind {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
-					pos:    current.Position,
-					Target: field,
-					Value:  p.ReadExpression(),
+					Position: current.Position,
+					Target:   field,
+					Value:    p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
-					pos:      current.Position,
+					Position: current.Position,
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -148,28 +149,28 @@ func (p *Parser) ReadStatement() Statement {
 		}
 	case COMMENT:
 		return &Comment{
-			pos:   current.Position,
-			Value: current.Data,
+			Position: current.Position,
+			Value:    current.Data,
 		}
 	case NEW_LINE:
 		return &NewLine{
-			pos: current.Position,
+			Position: current.Position,
 		}
 	case STRING:
 		switch p.Current.Kind {
 		case EQ:
 			p.Consume(EQ)
 			return &Assign{
-				pos: current.Position,
+				Position: current.Position,
 				Target: &Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Value: p.ReadExpression(),
 			}
 		}
 	default:
-		panic(P(fmt.Sprintf("ReadStatement Unknow Token %s", current.String()), current))
+		panic(P(fmt.Sprintf("ReadStatement Unknow Token %s", current.String()), current.Position))
 	}
 	return nil
 }
@@ -188,7 +189,7 @@ func (p *Parser) ReadIF() Statement {
 			p.Consume(RBrace)
 			break
 		}
-		item.Body = append(item.Body, p.ReadStatement())
+		item.Body.Statements = append(item.Body.Statements, p.ReadStatement())
 	}
 
 	// else body
@@ -199,7 +200,7 @@ func (p *Parser) ReadIF() Statement {
 			if p.Current.Kind == RBrace {
 				break
 			}
-			item.Else = append(item.Else, p.ReadStatement())
+			item.Else.Statements = append(item.Else.Statements, p.ReadStatement())
 		}
 		p.Consume(RBrace)
 	}
@@ -212,41 +213,41 @@ func (p *Parser) ReadFOR() Statement {
 	if p.Current.Kind == NAME {
 		index := p.Consume(NAME)
 		item.CurrentIndex = Variable{
-			pos:  p.Current.Position,
-			Name: index.Data,
+			Position: p.Current.Position,
+			Name:     index.Data,
 		}
 		p.Consume(COMMA)
 		val := p.Consume(NAME)
 		item.CurrentItem = &Variable{
-			pos:  p.Current.Position,
-			Name: val.Data,
+			Position: p.Current.Position,
+			Name:     val.Data,
 		}
 		if p.Current.Data != IN {
-			panic(P("for must has in part", p.Current))
+			panic(P("for must has in part", p.Current.Position))
 		}
 		p.Consume(NAME)
 		iterable := p.Consume(NAME)
 		item.Iterable = IterableExpression{
-			pos: p.Current.Position,
+			Position: p.Current.Position,
 			Name: Variable{
-				pos:  p.Current.Position,
-				Name: iterable.Data,
+				Position: p.Current.Position,
+				Name:     iterable.Data,
 			},
 		}
 	} else {
 		item.CurrentIndex = Variable{
-			pos:  p.Current.Position,
-			Name: "index",
+			Position: p.Current.Position,
+			Name:     "index",
 		}
 		item.CurrentItem = &Variable{
-			pos:  p.Current.Position,
-			Name: "item",
+			Position: p.Current.Position,
+			Name:     "item",
 		}
 		item.Iterable = IterableExpression{
-			pos: p.Current.Position,
+			Position: p.Current.Position,
 			Name: Variable{
-				pos:  p.Current.Position,
-				Name: "items",
+				Position: p.Current.Position,
+				Name:     "items",
 			},
 		}
 	}
@@ -257,7 +258,7 @@ func (p *Parser) ReadFOR() Statement {
 			break
 		}
 		sub := p.ReadStatement()
-		item.Block = append(item.Block, sub)
+		item.Block.Statements = append(item.Block.Statements, sub)
 	}
 
 	return &item
@@ -265,7 +266,9 @@ func (p *Parser) ReadFOR() Statement {
 
 // ReadFunction read function statement
 func (p *Parser) ReadFunction(name string) Statement {
-	var fn Function
+	fn := &Function{
+		Body: &Block{},
+	}
 	fn.Name = name
 	for {
 		if p.Current.Kind == COMMA {
@@ -289,26 +292,25 @@ func (p *Parser) ReadFunction(name string) Statement {
 			if sub == nil {
 				break
 			}
-			fn.Body = append(fn.Body, sub)
+			fn.Body.Statements = append(fn.Body.Statements, sub)
 		}
-		return &fn
-
+		return fn
 	}
 	if fn.Name == "import" {
 		if len(fn.Parameters) == 0 {
-			panic(P("import module path can not be empty", &fn))
+			panic(P("import module path can not be empty", fn.Position))
 		}
 		arg := fn.Parameters[0]
 		moduleArg, ok := arg.(*Literal)
 		if !ok {
-			panic(P(fmt.Sprintf("import module path not string type %s", fn.Parameters[0].String()), p.Current))
+			panic(P(fmt.Sprintf("import module path not string type %s", fn.Parameters[0].String()), p.Current.Position))
 		}
 		moduleFileName := moduleArg.Value.(string)
 		if strings.HasPrefix(moduleFileName, ".") {
 			if p.ContentFile == "" {
 				currentDir, err := os.Getwd()
 				if err != nil {
-					panic(P(fmt.Sprintf("import module path not found %s", moduleFileName), p.Current))
+					panic(P(fmt.Sprintf("import module path not found %s", moduleFileName), p.Current.Position))
 				}
 				moduleFileName = path.Join(currentDir, moduleFileName)
 			} else {
@@ -316,30 +318,30 @@ func (p *Parser) ReadFunction(name string) Statement {
 				moduleFileName = path.Join(currentDir, moduleFileName)
 			}
 		} else {
-			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current))
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current.Position))
 		}
 		importData, err := os.ReadFile(moduleFileName)
 		if err != nil {
-			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current))
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current.Position))
 		}
-		importParser := NewParser(importData)
+		importParser := NewParser(importData, moduleFileName)
 		block := importParser.Parse()
 		return &ImportFunctionCall{
-			pos:        p.Current.Position,
+			Position:   p.Current.Position,
 			ModulePath: fn.Parameters[0].String(),
-			Block:      &block,
+			Block:      block,
 		}
 	}
 	return &FunctionCall{
-		pos:        p.Current.Position,
+		Position:   p.Current.Position,
 		Name:       fn.Name,
 		Parameters: fn.Parameters,
 	}
 }
 
 // ReadList read list expression
-func (p *Parser) ReadList() Expression {
-	l := []Expression{}
+func (p *Parser) ReadList() Statement {
+	l := []Statement{}
 	for {
 		if p.Current.Kind == NEW_LINE {
 			p.Consume(NEW_LINE)
@@ -362,33 +364,33 @@ func (p *Parser) ReadList() Expression {
 	}
 
 	return &List{
-		pos:    p.Current.Position,
-		Values: l,
+		Position: p.Current.Position,
+		Values:   l,
 	}
 }
 
 // ReadExpression read next expression
-func (p *Parser) ReadExpression() Expression {
+func (p *Parser) ReadExpression() Statement {
 	current := p.Consume("")
 	switch current.Kind {
 	case NAME:
 		switch p.Current.Kind {
 		case PLUS, MINUS, TIMES, DEVIDE:
 			return &BinaryExpression{
-				pos: current.Position,
+				Position: current.Position,
 				Left: &Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
 			}
 		case LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
-				pos: current.Position,
+				Position: current.Position,
 				Left: &Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
@@ -401,7 +403,7 @@ func (p *Parser) ReadExpression() Expression {
 				switch p.Current.Kind {
 				case MINUS, PLUS, TIMES, DEVIDE:
 					return &BinaryExpression{
-						pos:      current.Position,
+						Position: current.Position,
 						Left:     item,
 						Operator: p.Consume(p.Current.Kind),
 						Right:    p.ReadExpression(),
@@ -412,10 +414,10 @@ func (p *Parser) ReadExpression() Expression {
 		case DOT:
 			p.Consume(DOT)
 			field := &Field{
-				pos: current.Position,
+				Position: current.Position,
 				Variable: Variable{
-					pos:  current.Position,
-					Name: current.Data,
+					Position: current.Position,
+					Name:     current.Data,
 				},
 				Value: p.ReadField(),
 			}
@@ -423,13 +425,13 @@ func (p *Parser) ReadExpression() Expression {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
-					pos:    current.Position,
-					Target: field,
-					Value:  p.ReadExpression(),
+					Position: current.Position,
+					Target:   field,
+					Value:    p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
-					pos:      current.Position,
+					Position: current.Position,
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -438,16 +440,16 @@ func (p *Parser) ReadExpression() Expression {
 			return field
 		case LBracket:
 			p.Consume(LBracket)
-			var exp Expression
+			var exp Statement
 			if p.Current.Kind == STRING {
 				// Field access
 				key := p.Consume(STRING)
 				p.Consume(RBracket)
 				exp = &Field{
-					pos: current.Position,
+					Position: current.Position,
 					Variable: Variable{
-						pos:  current.Position,
-						Name: current.Data,
+						Position: current.Position,
+						Name:     current.Data,
 					},
 					Value: &Variable{
 						Name: key.Data,
@@ -460,29 +462,29 @@ func (p *Parser) ReadExpression() Expression {
 					panic("Bad list index ")
 				}
 				exp = &ListAccess{
-					pos: current.Position,
+					Position: current.Position,
 					List: Variable{
-						pos:  current.Position,
-						Name: current.Data,
+						Position: current.Position,
+						Name:     current.Data,
 					},
 					Index: index,
 				}
 				p.Consume(RBracket)
 			} else {
-				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current))
+				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current.Position))
 			}
 
 			switch p.Current.Kind {
 			case EQ:
 				p.Consume(EQ)
 				return &Assign{
-					pos:    current.Position,
-					Target: exp,
-					Value:  p.ReadExpression(),
+					Position: current.Position,
+					Target:   exp,
+					Value:    p.ReadExpression(),
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
-					pos:      current.Position,
+					Position: current.Position,
 					Left:     exp,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
@@ -494,14 +496,14 @@ func (p *Parser) ReadExpression() Expression {
 		default:
 			if current.Data == "true" {
 				return &Boolen{
-					pos:   current.Position,
-					Value: true,
+					Position: current.Position,
+					Value:    true,
 				}
 			}
 			if current.Data == "false" {
 				return &Boolen{
-					pos:   current.Position,
-					Value: false,
+					Position: current.Position,
+					Value:    false,
 				}
 			}
 			switch p.Current.Kind {
@@ -510,8 +512,8 @@ func (p *Parser) ReadExpression() Expression {
 				return p.ReadExpression()
 			}
 			return &Variable{
-				pos:  current.Position,
-				Name: current.Data,
+				Position: current.Position,
+				Name:     current.Data,
 			}
 		}
 	case PLUS:
@@ -521,35 +523,35 @@ func (p *Parser) ReadExpression() Expression {
 		switch p.Current.Kind {
 		case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
-				pos: current.Position,
+				Position: current.Position,
 				Left: &Literal{
-					pos:   current.Position,
-					Value: value,
+					Position: current.Position,
+					Value:    value,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
 			}
 		}
 		return &Literal{
-			pos:   current.Position,
-			Value: value,
+			Position: current.Position,
+			Value:    value,
 		}
 	case STRING:
 		switch p.Current.Kind {
 		case PLUS, MINUS:
 			return &BinaryExpression{
-				pos: current.Position,
+				Position: current.Position,
 				Left: &Literal{
-					pos:   current.Position,
-					Value: current.Data,
+					Position: current.Position,
+					Value:    current.Data,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
 			}
 		}
 		return &Literal{
-			pos:   current.Position,
-			Value: current.Data,
+			Position: current.Position,
+			Value:    current.Data,
 		}
 	case LParenthese:
 		return p.ReadExpression()
@@ -558,33 +560,33 @@ func (p *Parser) ReadExpression() Expression {
 	case LBracket:
 		return p.ReadList()
 	}
-	panic(P(fmt.Sprintf("Unknow Expression Data: %s", current.Data), current))
+	panic(P(fmt.Sprintf("Unknow Expression Data: %s", current.Data), current.Position))
 }
 
 // ReadDict read dict expression
-func (p *Parser) ReadDict() Expression {
-	var b Block
+func (p *Parser) ReadDict() Statement {
+	b := &Block{}
 	for {
 		if p.Current.Kind == RBrace {
 			p.Consume(RBrace)
 			break
 		}
 		sub := p.ReadStatement()
-		b = append(b, sub)
+		b.Statements = append(b.Statements, sub)
 	}
-	return &b
+	return b
 }
 
 // ReadField read field expression
-func (p *Parser) ReadField() Expression {
+func (p *Parser) ReadField() Statement {
 	name := p.Consume(NAME)
 	if p.Current.Kind == DOT {
 		p.Consume(DOT)
 		return &Field{
-			pos: p.Current.Position,
+			Position: p.Current.Position,
 			Variable: Variable{
-				pos:  p.Current.Position,
-				Name: name.Data,
+				Position: p.Current.Position,
+				Name:     name.Data,
 			},
 			Value: p.ReadField(),
 		}
@@ -594,7 +596,7 @@ func (p *Parser) ReadField() Expression {
 		return p.ReadFunction(name.Data)
 	}
 	return &Variable{
-		pos:  p.Current.Position,
-		Name: name.Data,
+		Position: p.Current.Position,
+		Name:     name.Data,
 	}
 }

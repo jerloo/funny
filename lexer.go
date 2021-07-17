@@ -7,8 +7,10 @@ import (
 
 // Position of one token
 type Position struct {
-	Line int
-	Col  int
+	File   string
+	Line   int
+	Col    int
+	Length int
 }
 
 // String of one token
@@ -40,15 +42,18 @@ type Lexer struct {
 	SavePos    Position
 	Data       []byte
 	Elements   []Token
+
+	File string
 }
 
 // NewLexer create a new lexer
-func NewLexer(data []byte) *Lexer {
+func NewLexer(data []byte, file string) *Lexer {
 	return &Lexer{
 		Data: data,
 		CurrentPos: Position{
 			Line: 0,
 			Col:  0,
+			File: file,
 		},
 	}
 }
@@ -96,8 +101,10 @@ func (l *Lexer) CreateToken(kind string) Token {
 		Kind: kind,
 		Data: string(st),
 		Position: Position{
-			Col:  l.CurrentPos.Col - 1,
-			Line: l.CurrentPos.Line,
+			Col:    l.CurrentPos.Col - 1,
+			Line:   l.CurrentPos.Line,
+			Length: len(string(st)),
+			File:   l.File,
 		},
 	}
 	//l.CurrentPos.Col += len(token.Data)
@@ -107,7 +114,7 @@ func (l *Lexer) CreateToken(kind string) Token {
 // NewLine move to next line
 func (l *Lexer) NewLine() Token {
 	token := l.CreateToken(NEW_LINE)
-	l.CurrentPos.Col = 1
+	l.CurrentPos.Col = 0
 	l.CurrentPos.Line = l.CurrentPos.Line + 1
 
 	l.Reset()

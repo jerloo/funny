@@ -50,6 +50,7 @@ var (
 		"jwtde":    JwtDecode,
 		"sqlquery": SqlQuery,
 		"sqlexec":  SqlExec,
+		"format":   FormatData,
 	}
 )
 
@@ -546,4 +547,14 @@ func SqlExec(interpreter *Interpreter, args []Value) Value {
 		})
 	}
 	panic("sqlexec type error, connection")
+}
+
+// FormatData format(data, formatStr) string
+func FormatData(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 2)
+	switch v := args[0].(type) {
+	case time.Time:
+		return Value(v.Format(args[1].(string)))
+	}
+	panic("format type error, data")
 }

@@ -1,7 +1,6 @@
 package funny
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -16,44 +15,53 @@ var statements = []struct {
 }{
 	{
 		position: Position{
-			Line: 1,
-			Col:  1,
+			Line: 0,
+			Col:  0,
+		},
+	},
+	{
+		position: Position{
+			Line: 0,
+			Col:  5,
 		},
 	},
 	{
 		position: Position{
 			Line: 1,
-			Col:  6,
+			Col:  0,
+		},
+	},
+	{
+		position: Position{
+			Line: 1,
+			Col:  3,
 		},
 	},
 	{
 		position: Position{
 			Line: 2,
-			Col:  1,
+			Col:  0,
 		},
 	},
-	{
-		position: Position{
-			Line: 2,
-			Col:  4,
-		},
-	},
-	{
-		position: Position{
-			Line: 3,
-			Col:  1,
-		},
-	},
+}
+
+func TestNewLineLength(t *testing.T) {
+	assert.Equal(t, 1, len("\n"))
 }
 
 func TestParserPosition(t *testing.T) {
 	assert.Equal(t, 1, 1)
 
-	parser := NewParser([]byte(ParserTestData))
-	blocks := parser.Parse()
-	for index, item := range blocks {
-		fmt.Printf("%d %s %s\n", index, Typing(item), item.String())
-		assert.Equal(t, statements[index].position.Line, item.Position().Line, "Line: "+item.String())
-		assert.Equal(t, statements[index].position.Col, item.Position().Col, "Col: "+item.String())
+	parser := NewParser([]byte(ParserTestData), "")
+	block := parser.Parse()
+	for index, item := range block.Statements {
+		// fmt.Printf("%d %s %s\n", index, Typing(item), item.String())
+		assert.Equal(t, statements[index].position.Line, item.GetPosition().Line, "Line: "+item.String())
+		assert.Equal(t, statements[index].position.Col, item.GetPosition().Col, "Col: "+item.String())
 	}
+}
+
+func TestParseFunctionCall(t *testing.T) {
+	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"), "")
+	parser.Parse()
 }

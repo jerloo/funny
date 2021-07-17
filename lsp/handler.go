@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/jerloo/funny"
 	"github.com/sourcegraph/go-lsp"
 	"github.com/sourcegraph/jsonrpc2"
 	"go.uber.org/zap"
@@ -226,35 +225,4 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		return h.handleTextDocumentSignatureHelp(ctx, conn, req, params)
 	}
 	return nil, &jsonrpc2.Error{Code: jsonrpc2.CodeMethodNotFound, Message: fmt.Sprintf("method not supported: %s", req.Method)}
-}
-
-func flatDescriptor(descriptor *funny.AstDescriptor) (items []*funny.AstDescriptor) {
-	if descriptor != nil {
-		items = append(items, descriptor)
-		if descriptor.Children != nil {
-			for _, child := range descriptor.Children {
-				newItems := flatDescriptor(child)
-				items = append(items, newItems...)
-			}
-		}
-	}
-	return items
-}
-
-func convertDescriptor(t *funny.AstDescriptor) lsp.CompletionItem {
-	ci := lsp.CompletionItem{}
-	ci.Label = t.Name
-	ci.Data = t.Name
-	ci.Kind = lsp.CIKVariable
-	ci.InsertTextFormat = lsp.ITFPlainText
-	ci.InsertText = t.Name
-	switch t.Type {
-	case funny.STVariable:
-		ci.Kind = lsp.CIKVariable
-	case funny.STFunction:
-		ci.Kind = lsp.CIKFunction
-	case funny.STAssign:
-		ci.Kind = lsp.CIKVariable
-	}
-	return ci
 }

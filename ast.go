@@ -5,10 +5,10 @@ import (
 	"strings"
 )
 
-func collectBlock(block Block) []string {
+func collectBlock(block *Block) []string {
 	flag := 0
 	var s []string
-	for _, item := range block {
+	for _, item := range block.Statements {
 		if item == nil {
 			break
 		}
@@ -60,53 +60,46 @@ const (
 	STComment            = "Comment"
 )
 
-type AstDescriptor struct {
-	Type     string
-	Position Position
-	Name     string
-	Text     string
-	Children []*AstDescriptor
-}
-
 // Statement abstract
 type Statement interface {
-	Position() Position
 	String() string
-	Type() string
-	Descriptor() *AstDescriptor
+	GetPosition() Position
+	// EndPosition() Position
 }
 
 // NewLine @impl Statement \n
 type NewLine struct {
-	pos Position
-}
-
-// Position of NewLine
-func (n *NewLine) Position() Position {
-	return n.pos
+	Position Position
+	Type     string
 }
 
 func (n *NewLine) String() string {
 	return "\n"
 }
 
-func (n *NewLine) Type() string {
-	return STNewLine
+func (n *NewLine) GetPosition() Position {
+	return n.Position
 }
 
-func (n *NewLine) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
+func (n *NewLine) EndPosition() Position {
+	return Position{
+		File:   n.Position.File,
+		Line:   n.Position.Line,
+		Col:    n.Position.Col + len(n.String()),
+		Length: 0,
 	}
 }
 
 // Variable means var
 type Variable struct {
-	pos  Position
+	Position Position
+	Type     string
+
 	Name string
+}
+
+func (v *Variable) GetPosition() Position {
+	return v.Position
 }
 
 func (v *Variable) String() string {
@@ -116,33 +109,16 @@ func (v *Variable) String() string {
 	return v.Name
 }
 
-// Position of Variable
-func (v *Variable) Position() Position {
-	return v.pos
-}
-
-func (n *Variable) Type() string {
-	return STVariable
-}
-
-func (n *Variable) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     n.Name,
-		Text:     n.Name,
-	}
-}
-
 // Literal like 1
 type Literal struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Value interface{}
 }
 
-// Position of Literal
-func (l *Literal) Position() Position {
-	return l.pos
+func (v *Literal) GetPosition() Position {
+	return v.Position
 }
 
 func (l *Literal) String() string {
@@ -152,71 +128,35 @@ func (l *Literal) String() string {
 	return fmt.Sprintf("%v", l.Value)
 }
 
-func (n *Literal) Type() string {
-	return STVariable
-}
-
-func (n *Literal) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
-// Expression abstract
-type Expression interface {
-	Position() Position
-	String() string
-	Type() string
-	Descriptor() *AstDescriptor
-}
-
 // BinaryExpression like a > 10
 type BinaryExpression struct {
-	pos      Position
-	Left     Expression
+	Position Position
+	Type     string
+
+	Left     Statement
 	Operator Token
-	Right    Expression
+	Right    Statement
 }
 
-// Position of BinaryExpression
-func (b *BinaryExpression) Position() Position {
-	return b.pos
+func (l *BinaryExpression) GetPosition() Position {
+	return l.Position
 }
 
 func (b *BinaryExpression) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left.String(), b.Operator.Data, b.Right.String())
 }
 
-func (n *BinaryExpression) Type() string {
-	return STBinaryExpression
-}
-
-func (n *BinaryExpression) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-		Children: []*AstDescriptor{
-			n.Left.Descriptor(),
-			n.Right.Descriptor(),
-		},
-	}
-}
-
 // Assign like a = 2
 type Assign struct {
-	pos    Position
-	Target Expression
-	Value  Expression
+	Position Position
+	Type     string
+
+	Target Statement
+	Value  Statement
 }
 
-// Position of Assign
-func (a *Assign) Position() Position {
-	return a.pos
+func (l *Assign) GetPosition() Position {
+	return l.Position
 }
 
 func (a *Assign) String() string {
@@ -229,31 +169,16 @@ func (a *Assign) String() string {
 	return fmt.Sprintf("%s = %s", a.Target.String(), a.Value.String())
 }
 
-func (a *Assign) Type() string {
-	return STAssign
-}
-
-func (n *Assign) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     n.Target.String(),
-		Text:     n.Target.String(),
-		Children: []*AstDescriptor{
-			n.Value.Descriptor(),
-		},
-	}
-}
-
 // List like [1, 2, 3]
 type List struct {
-	pos    Position
-	Values []Expression
+	Position Position
+	Type     string
+
+	Values []Statement
 }
 
-// Position of List
-func (l *List) Position() Position {
-	return l.pos
+func (l *List) GetPosition() Position {
+	return l.Position
 }
 
 func (l *List) String() string {
@@ -269,93 +194,63 @@ func (l *List) String() string {
 	return strings.Join(s, ", ")
 }
 
-func (n *List) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
-func (a *List) Type() string {
-	return STList
-}
-
 // ListAccess like a[0]
 type ListAccess struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Index int
 	List  Variable
 }
 
-// Position of ListAccess
-func (l *ListAccess) Position() Position {
-	return l.pos
+func (l *ListAccess) GetPosition() Position {
+	return l.Position
 }
 
 func (l *ListAccess) String() string {
 	return fmt.Sprintf("%s[%d]", l.List.String(), l.Index)
 }
 
-func (l *ListAccess) Type() string {
-	return STListAccess
-}
-
-func (n *ListAccess) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Block contains many statments
-type Block []Statement
+type Block struct {
+	Statements []Statement
+
+	Position Position
+	Type     string
+}
 
 // Position of Block
-func (b *Block) Position() Position {
-	return Position{}
+func (b *Block) GetPosition() Position {
+	return b.Position
+}
+
+func (b *Block) EndPosition() Position {
+	// FIXME: end of statement
+	if len(b.Statements) > 0 {
+		return b.Statements[len(b.Statements)-1].GetPosition()
+	}
+	return b.Position
 }
 
 func (b *Block) String() string {
 	var s []string
-	for _, item := range *b {
+	for _, item := range b.Statements {
 		s = append(s, item.String())
 	}
 	return strings.Join(s, "")
 }
 
-func (b *Block) Type() string {
-	return STBlock
-}
-
-func (b *Block) Descriptor() *AstDescriptor {
-	var children []*AstDescriptor
-	for _, item := range *b {
-		children = append(children, item.Descriptor())
-	}
-	return &AstDescriptor{
-		Type:     b.Type(),
-		Position: b.Position(),
-		Name:     "",
-		Text:     "",
-		Children: children,
-	}
-}
-
 func (b *Block) Format(root bool) string {
 	sb := new(strings.Builder)
 	flag := 0
-	for index, item := range *b {
+	for index, item := range b.Statements {
 		if item == nil {
 			break
 		}
 		switch v := item.(type) {
 		case *NewLine:
 			if flag < 2 {
-				if index != 0 && index != len(*b)-1 {
+				if index != 0 && index != len(b.Statements)-1 {
 					sb.WriteString(item.String())
 					flag++
 				}
@@ -378,15 +273,16 @@ func (b *Block) Format(root bool) string {
 
 // Function like test(a, b){}
 type Function struct {
-	pos        Position
+	Position Position
+	Type     string
+
 	Name       string
-	Parameters []Expression
-	Body       Block
+	Parameters []Statement
+	Body       *Block
 }
 
-// Position of Function
-func (f *Function) Position() Position {
-	return f.pos
+func (l *Function) GetPosition() Position {
+	return l.Position
 }
 
 func (f *Function) String() string {
@@ -406,36 +302,17 @@ func (f *Function) SignatureString() string {
 	return fmt.Sprintf("%s(%s)", f.Name, strings.Join(args, ", "))
 }
 
-func (a *Function) Type() string {
-	return STFunction
-}
-
-func (n *Function) Descriptor() *AstDescriptor {
-	var children []*AstDescriptor
-	for _, item := range n.Parameters {
-		children = append(children, item.Descriptor())
-	}
-	children = append(children, n.Body.Descriptor())
-
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     n.Name,
-		Text:     n.SignatureString(),
-		Children: children,
-	}
-}
-
 // FunctionCall like test(a, b)
 type FunctionCall struct {
-	pos        Position
+	Position Position
+	Type     string
+
 	Name       string
-	Parameters []Expression
+	Parameters []Statement
 }
 
-// Position of FunctionCall
-func (c *FunctionCall) Position() Position {
-	return c.pos
+func (l *FunctionCall) GetPosition() Position {
+	return l.Position
 }
 
 func (c *FunctionCall) String() string {
@@ -450,55 +327,24 @@ func (c *FunctionCall) String() string {
 	return fmt.Sprintf("%s(%s)", c.Name, strings.Join(args, ", "))
 }
 
-func (c *FunctionCall) Type() string {
-	return STFunctionCall
-}
-
-func (c *FunctionCall) Descriptor() *AstDescriptor {
-	children := make([]*AstDescriptor, len(c.Parameters))
-	for index, item := range c.Parameters {
-		children[index] = item.Descriptor()
-	}
-	return &AstDescriptor{
-		Type:     c.Type(),
-		Position: c.Position(),
-		Name:     c.Name,
-		Text:     c.Name,
-		Children: children,
-	}
-}
-
 // ImportFunctionCall like test(a, b)
 type ImportFunctionCall struct {
-	pos        Position
+	Position Position
+	Type     string
+
 	ModulePath string
 	Block      *Block
 }
 
-// Position of ImportFunctionCall
-func (c *ImportFunctionCall) Position() Position {
-	return c.pos
+func (l *ImportFunctionCall) GetPosition() Position {
+	return l.Position
 }
 
 func (c *ImportFunctionCall) String() string {
 	return fmt.Sprintf("import(%s)", c.ModulePath)
 }
 
-func (c *ImportFunctionCall) Type() string {
-	return STImportFunctionCall
-}
-
-func (c *ImportFunctionCall) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     c.Type(),
-		Position: c.Position(),
-		Name:     "import",
-		Text:     "import",
-		Children: []*AstDescriptor{c.Block.Descriptor()},
-	}
-}
-
-func block(b Block) string {
+func block(b *Block) string {
 	s := collectBlock(b)
 	var ss []string
 	for _, item := range s {
@@ -509,7 +355,7 @@ func block(b Block) string {
 
 // Program means the whole application
 type Program struct {
-	Statements Block
+	Statements *Block
 }
 
 func (p *Program) String() string {
@@ -518,51 +364,40 @@ func (p *Program) String() string {
 
 // IFStatement like if
 type IFStatement struct {
-	pos       Position
-	Condition Expression
-	Body      Block
-	Else      Block
+	Position Position
+	Type     string
+
+	Condition Statement
+	Body      *Block
+	Else      *Block
 }
 
-// Position of IFStatement
-func (i *IFStatement) Position() Position {
-	return i.pos
+func (l *IFStatement) GetPosition() Position {
+	return l.Position
 }
 
 func (i *IFStatement) String() string {
-	if i.Else != nil && len(i.Else) != 0 {
+	if i.Else != nil && len(i.Else.Statements) != 0 {
 		return fmt.Sprintf("if %s {%s} else {%s}", i.Condition.String(), block(i.Body), block(i.Else))
 	} else {
 		return fmt.Sprintf("if %s {%s}", i.Condition.String(), block(i.Body))
 	}
 }
 
-func (i *IFStatement) Type() string {
-	return STIfStatement
-}
-
-func (i *IFStatement) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     i.Type(),
-		Position: i.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // FORStatement like for
 type FORStatement struct {
-	pos      Position
+	Position Position
+	Type     string
+
 	Iterable IterableExpression
 	Block    Block
 
 	CurrentIndex Variable
-	CurrentItem  Expression
+	CurrentItem  Statement
 }
 
-// Position of FORStatement
-func (f *FORStatement) Position() Position {
-	return f.pos
+func (l *FORStatement) GetPosition() Position {
+	return l.Position
 }
 
 func (f *FORStatement) String() string {
@@ -573,51 +408,26 @@ func (f *FORStatement) String() string {
 		intent(f.Block.String()))
 }
 
-func (i *FORStatement) Type() string {
-	return STForStatement
-}
-
-func (n *FORStatement) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // IterableExpression like for in
 type IterableExpression struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Name  Variable
 	Index int
-	Items []Expression
+	Items []Statement
 }
 
-// Position of IterableExpression
-func (i *IterableExpression) Position() Position {
-	return i.pos
+func (l *IterableExpression) GetPosition() Position {
+	return l.Position
 }
 
 func (i *IterableExpression) String() string {
 	return ""
 }
 
-func (i *IterableExpression) Type() string {
-	return STIterableExpression
-}
-
-func (n *IterableExpression) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Next part of IterableExpression
-func (i *IterableExpression) Next() (int, Expression) {
+func (i *IterableExpression) Next() (int, Statement) {
 	if i.Index+1 >= len(i.Items) {
 		return -1, nil
 	}
@@ -628,67 +438,42 @@ func (i *IterableExpression) Next() (int, Expression) {
 
 // Break like break in for
 type Break struct {
-	pos Position
+	Position Position
+	Type     string
 }
 
-// Position of Break
-func (b *Break) Position() Position {
-	return b.pos
+func (l *Break) GetPosition() Position {
+	return l.Position
 }
 
 func (b *Break) String() string {
 	return "break"
 }
 
-func (i *Break) Type() string {
-	return STBreak
-}
-
-func (n *Break) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Continue like continue in for
 type Continue struct {
-	pos Position
+	Position Position
+	Type     string
 }
 
-// Position of Continue
-func (b *Continue) Position() Position {
-	return b.pos
+func (l *Continue) GetPosition() Position {
+	return l.Position
 }
 
 func (b *Continue) String() string {
 	return "continue"
 }
 
-func (i *Continue) Type() string {
-	return STContinue
-}
-
-func (n *Continue) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Return like return varA
 type Return struct {
-	pos   Position
-	Value Expression
+	Position Position
+	Type     string
+
+	Value Statement
 }
 
-// Position of Return
-func (r *Return) Position() Position {
-	return r.pos
+func (l *Return) GetPosition() Position {
+	return l.Position
 }
 
 func (r *Return) String() string {
@@ -699,32 +484,17 @@ func (r *Return) String() string {
 	return fmt.Sprintf("return %s", r.Value.String())
 }
 
-func (i *Return) Type() string {
-	return STReturn
-}
-
-func (n *Return) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-		Children: []*AstDescriptor{
-			n.Value.Descriptor(),
-		},
-	}
-}
-
 // Field like obj.age
 type Field struct {
-	pos      Position
+	Position Position
+	Type     string
+
 	Variable Variable
-	Value    Expression
+	Value    Statement
 }
 
-// Position of Field
-func (f *Field) Position() Position {
-	return f.pos
+func (l *Field) GetPosition() Position {
+	return l.Position
 }
 
 func (f *Field) String() string {
@@ -734,28 +504,16 @@ func (f *Field) String() string {
 	return fmt.Sprintf("%s.%s", f.Variable.String(), f.Value.String())
 }
 
-func (i *Field) Type() string {
-	return STField
-}
-
-func (n *Field) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Boolen like true, false
 type Boolen struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Value bool
 }
 
-// Position of Boolen
-func (b *Boolen) Position() Position {
-	return b.pos
+func (l *Boolen) GetPosition() Position {
+	return l.Position
 }
 
 func (b *Boolen) String() string {
@@ -765,76 +523,34 @@ func (b *Boolen) String() string {
 	return "false"
 }
 
-func (b *Boolen) Type() string {
-	return STBoolean
-}
-
-func (n *Boolen) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // StringExpression like 'hello world !'
 type StringExpression struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Value string
 }
 
-// Position of StringExpression
-func (s *StringExpression) Position() Position {
-	return s.pos
+func (l *StringExpression) GetPosition() Position {
+	return l.Position
 }
 
 func (s *StringExpression) String() string {
 	return s.Value
 }
 
-func (b *StringExpression) Type() string {
-	return STStringExpression
-}
-
-func (n *StringExpression) Descriptor() *AstDescriptor {
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     "",
-		Text:     "",
-	}
-}
-
 // Comment line for sth
 type Comment struct {
-	pos   Position
+	Position Position
+	Type     string
+
 	Value string
 }
 
-// Position of comment
-func (c *Comment) Position() Position {
-	return c.pos
+func (l *Comment) GetPosition() Position {
+	return l.Position
 }
 
 func (c *Comment) String() string {
 	return fmt.Sprintf("//%s", c.Value)
-}
-
-func (b *Comment) Type() string {
-	return STComment
-}
-
-func (n *Comment) Descriptor() *AstDescriptor {
-	name := ""
-	arr := strings.Split(n.Value, " ")
-	if len(arr) > 0 {
-		name = arr[0]
-	}
-	return &AstDescriptor{
-		Type:     n.Type(),
-		Position: n.Position(),
-		Name:     name,
-		Text:     n.Value,
-	}
 }
