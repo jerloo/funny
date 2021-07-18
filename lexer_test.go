@@ -1,6 +1,8 @@
 package funny
 
 import (
+	"encoding/json"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -152,4 +154,21 @@ func TestLexer_Position(t *testing.T) {
 		assert.Equal(t, expect.Position.Line, actual.Position.Line, actual.String())
 		assert.Equal(t, expect.Position.Col, actual.Position.Col, actual.String())
 	}
+}
+
+func TestLexerAdminPosition(t *testing.T) {
+	testData := `
+admin.`
+	lexer := NewLexer([]byte(testData), "")
+	tokens := make([]Token, 0)
+	for {
+		token := lexer.Next()
+		bts, _ := json.Marshal(&token)
+		fmt.Println(string(bts))
+		tokens = append(tokens, token)
+		if token.Kind == EOF {
+			break
+		}
+	}
+	assert.Equal(t, 0, tokens[1].Position.Col)
 }

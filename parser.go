@@ -40,7 +40,9 @@ func (p *Parser) Consume(kind string) Token {
 
 // Parse parse to statements
 func (p *Parser) Parse() *Block {
-	block := &Block{}
+	block := &Block{
+		Type: STBlock,
+	}
 	p.Consume("")
 	for {
 		if p.Current.Kind == EOF {
@@ -66,6 +68,7 @@ func (p *Parser) ReadStatement() Statement {
 			return &Return{
 				Position: current.Position,
 				Value:    p.ReadExpression(),
+				Type:     STReturn,
 			}
 		}
 		kind, ok := Keywords[current.Data]
@@ -78,10 +81,12 @@ func (p *Parser) ReadStatement() Statement {
 			case BREAK:
 				return &Break{
 					Position: current.Position,
+					Type:     STBreak,
 				}
 			case CONTINUE:
 				return &Continue{
 					Position: current.Position,
+					Type:     STContinue,
 				}
 			}
 		}
@@ -93,8 +98,10 @@ func (p *Parser) ReadStatement() Statement {
 				Target: &Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Value: p.ReadExpression(),
+				Type:  STAssign,
 			}
 		case LParenthese:
 			return p.ReadFunction(current.Data)
@@ -104,8 +111,10 @@ func (p *Parser) ReadStatement() Statement {
 				Variable: Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Value: p.ReadField(),
+				Type:  STField,
 			}
 			if p.Current.Kind == EQ {
 				p.Consume(EQ)
@@ -113,6 +122,7 @@ func (p *Parser) ReadStatement() Statement {
 					Position: current.Position,
 					Target:   field,
 					Value:    p.ReadExpression(),
+					Type:     STAssign,
 				}
 			}
 			return field
@@ -124,11 +134,14 @@ func (p *Parser) ReadStatement() Statement {
 				Variable: Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Value: &Variable{
 					Position: current.Position,
 					Name:     key.Data,
+					Type:     STVariable,
 				},
+				Type: STField,
 			}
 			switch p.Current.Kind {
 			case EQ:
@@ -137,6 +150,7 @@ func (p *Parser) ReadStatement() Statement {
 					Position: current.Position,
 					Target:   field,
 					Value:    p.ReadExpression(),
+					Type:     STAssign,
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
@@ -144,6 +158,7 @@ func (p *Parser) ReadStatement() Statement {
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
+					Type:     STBinaryExpression,
 				}
 			}
 		}
@@ -151,10 +166,12 @@ func (p *Parser) ReadStatement() Statement {
 		return &Comment{
 			Position: current.Position,
 			Value:    current.Data,
+			Type:     STComment,
 		}
 	case NEW_LINE:
 		return &NewLine{
 			Position: current.Position,
+			Type:     STNewLine,
 		}
 	case STRING:
 		switch p.Current.Kind {
@@ -165,8 +182,10 @@ func (p *Parser) ReadStatement() Statement {
 				Target: &Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Value: p.ReadExpression(),
+				Type:  STAssign,
 			}
 		}
 	default:
@@ -215,12 +234,14 @@ func (p *Parser) ReadFOR() Statement {
 		item.CurrentIndex = Variable{
 			Position: p.Current.Position,
 			Name:     index.Data,
+			Type:     STVariable,
 		}
 		p.Consume(COMMA)
 		val := p.Consume(NAME)
 		item.CurrentItem = &Variable{
 			Position: p.Current.Position,
 			Name:     val.Data,
+			Type:     STVariable,
 		}
 		if p.Current.Data != IN {
 			panic(P("for must has in part", p.Current.Position))
@@ -232,23 +253,29 @@ func (p *Parser) ReadFOR() Statement {
 			Name: Variable{
 				Position: p.Current.Position,
 				Name:     iterable.Data,
+				Type:     STVariable,
 			},
+			Type: STIterableExpression,
 		}
 	} else {
 		item.CurrentIndex = Variable{
 			Position: p.Current.Position,
 			Name:     "index",
+			Type:     STVariable,
 		}
 		item.CurrentItem = &Variable{
 			Position: p.Current.Position,
 			Name:     "item",
+			Type:     STVariable,
 		}
 		item.Iterable = IterableExpression{
 			Position: p.Current.Position,
 			Name: Variable{
 				Position: p.Current.Position,
 				Name:     "items",
+				Type:     STVariable,
 			},
+			Type: STIterableExpression,
 		}
 	}
 	p.Consume(LBrace)
@@ -267,7 +294,10 @@ func (p *Parser) ReadFOR() Statement {
 // ReadFunction read function statement
 func (p *Parser) ReadFunction(name string) Statement {
 	fn := &Function{
-		Body: &Block{},
+		Body: &Block{
+			Type: STBlock,
+		},
+		Type: STFunction,
 	}
 	fn.Name = name
 	for {
@@ -330,12 +360,14 @@ func (p *Parser) ReadFunction(name string) Statement {
 			Position:   p.Current.Position,
 			ModulePath: fn.Parameters[0].String(),
 			Block:      block,
+			Type:       STFunctionCall,
 		}
 	}
 	return &FunctionCall{
 		Position:   p.Current.Position,
 		Name:       fn.Name,
 		Parameters: fn.Parameters,
+		Type:       STFunctionCall,
 	}
 }
 
@@ -366,6 +398,7 @@ func (p *Parser) ReadList() Statement {
 	return &List{
 		Position: p.Current.Position,
 		Values:   l,
+		Type:     STList,
 	}
 }
 
@@ -381,9 +414,11 @@ func (p *Parser) ReadExpression() Statement {
 				Left: &Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
+				Type:     STBinaryExpression,
 			}
 		case LT, LTE, GT, GTE, DOUBLE_EQ:
 			return &BinaryExpression{
@@ -391,9 +426,11 @@ func (p *Parser) ReadExpression() Statement {
 				Left: &Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
+				Type:     STBinaryExpression,
 			}
 		case LParenthese:
 			p.Consume(LParenthese)
@@ -407,6 +444,7 @@ func (p *Parser) ReadExpression() Statement {
 						Left:     item,
 						Operator: p.Consume(p.Current.Kind),
 						Right:    p.ReadExpression(),
+						Type:     STBinaryExpression,
 					}
 				}
 			}
@@ -418,8 +456,10 @@ func (p *Parser) ReadExpression() Statement {
 				Variable: Variable{
 					Position: current.Position,
 					Name:     current.Data,
+					Type:     STVariable,
 				},
 				Value: p.ReadField(),
+				Type:  STField,
 			}
 			switch p.Current.Kind {
 			case EQ:
@@ -428,6 +468,7 @@ func (p *Parser) ReadExpression() Statement {
 					Position: current.Position,
 					Target:   field,
 					Value:    p.ReadExpression(),
+					Type:     STAssign,
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
@@ -435,6 +476,7 @@ func (p *Parser) ReadExpression() Statement {
 					Left:     field,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
+					Type:     STBinaryExpression,
 				}
 			}
 			return field
@@ -450,10 +492,13 @@ func (p *Parser) ReadExpression() Statement {
 					Variable: Variable{
 						Position: current.Position,
 						Name:     current.Data,
+						Type:     STVariable,
 					},
 					Value: &Variable{
 						Name: key.Data,
+						Type: STVariable,
 					},
+					Type: STField,
 				}
 			} else if p.Current.Kind == INT {
 				indexStr := p.Consume(INT).Data
@@ -466,8 +511,10 @@ func (p *Parser) ReadExpression() Statement {
 					List: Variable{
 						Position: current.Position,
 						Name:     current.Data,
+						Type:     STVariable,
 					},
 					Index: index,
+					Type:  STListAccess,
 				}
 				p.Consume(RBracket)
 			} else {
@@ -481,6 +528,7 @@ func (p *Parser) ReadExpression() Statement {
 					Position: current.Position,
 					Target:   exp,
 					Value:    p.ReadExpression(),
+					Type:     STAssign,
 				}
 			case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
 				return &BinaryExpression{
@@ -488,6 +536,7 @@ func (p *Parser) ReadExpression() Statement {
 					Left:     exp,
 					Operator: p.Consume(p.Current.Kind),
 					Right:    p.ReadExpression(),
+					Type:     STBinaryExpression,
 				}
 			default:
 				return exp
@@ -498,12 +547,14 @@ func (p *Parser) ReadExpression() Statement {
 				return &Boolen{
 					Position: current.Position,
 					Value:    true,
+					Type:     STBoolean,
 				}
 			}
 			if current.Data == "false" {
 				return &Boolen{
 					Position: current.Position,
 					Value:    false,
+					Type:     STBoolean,
 				}
 			}
 			switch p.Current.Kind {
@@ -514,6 +565,7 @@ func (p *Parser) ReadExpression() Statement {
 			return &Variable{
 				Position: current.Position,
 				Name:     current.Data,
+				Type:     STVariable,
 			}
 		}
 	case PLUS:
@@ -527,14 +579,17 @@ func (p *Parser) ReadExpression() Statement {
 				Left: &Literal{
 					Position: current.Position,
 					Value:    value,
+					Type:     STLiteral,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
+				Type:     STBinaryExpression,
 			}
 		}
 		return &Literal{
 			Position: current.Position,
 			Value:    value,
+			Type:     STLiteral,
 		}
 	case STRING:
 		switch p.Current.Kind {
@@ -544,14 +599,17 @@ func (p *Parser) ReadExpression() Statement {
 				Left: &Literal{
 					Position: current.Position,
 					Value:    current.Data,
+					Type:     STLiteral,
 				},
 				Operator: p.Consume(p.Current.Kind),
 				Right:    p.ReadExpression(),
+				Type:     STBinaryExpression,
 			}
 		}
 		return &Literal{
 			Position: current.Position,
 			Value:    current.Data,
+			Type:     STLiteral,
 		}
 	case LParenthese:
 		return p.ReadExpression()
@@ -565,7 +623,9 @@ func (p *Parser) ReadExpression() Statement {
 
 // ReadDict read dict expression
 func (p *Parser) ReadDict() Statement {
-	b := &Block{}
+	b := &Block{
+		Type: STBlock,
+	}
 	for {
 		if p.Current.Kind == RBrace {
 			p.Consume(RBrace)
@@ -587,8 +647,10 @@ func (p *Parser) ReadField() Statement {
 			Variable: Variable{
 				Position: p.Current.Position,
 				Name:     name.Data,
+				Type:     STVariable,
 			},
 			Value: p.ReadField(),
+			Type:  STField,
 		}
 	}
 	if p.Current.Kind == LParenthese {
@@ -598,5 +660,6 @@ func (p *Parser) ReadField() Statement {
 	return &Variable{
 		Position: p.Current.Position,
 		Name:     name.Data,
+		Type:     STVariable,
 	}
 }

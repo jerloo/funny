@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path"
 
 	"github.com/jerloo/funny"
 	"github.com/spf13/cobra"
@@ -41,7 +42,7 @@ var lexerCmd = &cobra.Command{
 				if err != nil {
 					panic(err)
 				}
-				ds, err := funny.CombinedCode(cdw, filename)
+				ds, err := os.ReadFile(path.Join(cdw, filename))
 				if err != nil {
 					panic(err)
 				}

@@ -55,6 +55,7 @@ func NewLexer(data []byte, file string) *Lexer {
 			Col:  0,
 			File: file,
 		},
+		File: file,
 	}
 }
 
@@ -101,8 +102,8 @@ func (l *Lexer) CreateToken(kind string) Token {
 		Kind: kind,
 		Data: string(st),
 		Position: Position{
-			Col:    l.CurrentPos.Col - 1,
-			Line:   l.CurrentPos.Line,
+			Col:    l.SavePos.Col,
+			Line:   l.SavePos.Line,
 			Length: len(string(st)),
 			File:   l.File,
 		},
@@ -151,7 +152,8 @@ func (l *Lexer) Next() Token {
 	for {
 		l.Reset()
 		ch := l.LA(1)
-		// chString := string(ch)
+		chString := string(ch)
+		fmt.Sprintf(chString)
 		switch ch {
 		case -1:
 			l.Consume(1)
