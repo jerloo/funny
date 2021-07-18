@@ -84,6 +84,25 @@ func TestInterpreter_EvalFunctionCall2(t *testing.T) {
 	})
 }
 
+func TestInterpreter_EvalFieldFunctionCall(t *testing.T) {
+	i := NewInterpreterWithScope(make(map[string]Value))
+	parser := NewParser([]byte(`
+		ddd = 4
+		f() {
+			return httpreq('GET', baseUrl + 'api/appraisal/admin/terms', {
+		  
+			}, {
+			  Authorization = 'Bearer ' + token
+			}, debug)
+		  }
+		r = f()
+		echoln(r)
+	`), "")
+	i.Run(Program{
+		parser.Parse(),
+	})
+}
+
 func TestInterpreter_EvalPlus(t *testing.T) {
 	i := NewInterpreterWithScope(make(map[string]Value))
 	parser := NewParser([]byte("  a = 1 + 1"), "")

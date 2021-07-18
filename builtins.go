@@ -28,29 +28,30 @@ type BuiltinFunction func(interpreter *Interpreter, args []Value) Value
 var (
 	// FUNCTIONS all builtin functions
 	FUNCTIONS = map[string]BuiltinFunction{
-		"echo":     Echo,
-		"echoln":   Echoln,
-		"now":      Now,
-		"b64en":    Base64Encode,
-		"b64de":    Base64Decode,
-		"assert":   Assert,
-		"len":      Len,
-		"md5":      Md5,
-		"max":      Max,
-		"min":      Min,
-		"typeof":   Typeof,
-		"uuid":     UUID,
-		"httpreq":  HttpRequest,
-		"env":      Env,
-		"strjoin":  StrJoin,
-		"strsplit": StrSplit,
-		"str":      Str,
-		"int":      Int,
-		"jwten":    JwtEncode,
-		"jwtde":    JwtDecode,
-		"sqlquery": SqlQuery,
-		"sqlexec":  SqlExec,
-		"format":   FormatData,
+		"echo":         Echo,
+		"echoln":       Echoln,
+		"now":          Now,
+		"b64en":        Base64Encode,
+		"b64de":        Base64Decode,
+		"assert":       Assert,
+		"len":          Len,
+		"md5":          Md5,
+		"max":          Max,
+		"min":          Min,
+		"typeof":       Typeof,
+		"uuid":         UUID,
+		"httpreq":      HttpRequest,
+		"env":          Env,
+		"strjoin":      StrJoin,
+		"strsplit":     StrSplit,
+		"str":          Str,
+		"int":          Int,
+		"jwten":        JwtEncode,
+		"jwtde":        JwtDecode,
+		"sqlquery":     SqlQuery,
+		"sqlexec":      SqlExec,
+		"format":       FormatData,
+		"dumpruntimes": DumpRuntimes,
 	}
 )
 
@@ -557,4 +558,15 @@ func FormatData(interpreter *Interpreter, args []Value) Value {
 		return Value(v.Format(args[1].(string)))
 	}
 	panic("format type error, data")
+}
+
+// DumpRuntimes dumpruntimes()
+func DumpRuntimes(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 0)
+	bts, err := json.MarshalIndent(&interpreter.Vars, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(bts))
+	return Value(string(bts))
 }

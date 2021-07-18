@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/jerloo/funny"
 	"github.com/sourcegraph/go-lsp"
@@ -45,21 +46,25 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 			break
 		}
 	}
-	// h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
-	l := 0
-	if currentToken != nil {
-		l = len(currentToken.Data)
-		h.log.Info("current", zap.Any("current", currentToken))
+	if params.Context.TriggerCharacter == "." {
+
+	} else {
+		// h.log.Info("tokens", zap.Any("tokens", parser.Tokens))
+		l := 0
+		if currentToken != nil {
+			l = len(currentToken.Data)
+			h.log.Info("current", zap.Any("current", currentToken))
+		}
+
+		blocks := collectBlocks(h.log, params.Position.Line, items)
+		h.log.Info("funny:completion", zap.Any("blocks", blocks))
+
+		fds := collectCompletionItems(params, blocks, l)
+		fdsBuiltins := collectCompletionItems(params, []*funny.Block{builtinBlock}, l)
+		fds = append(fds, fdsBuiltins...)
+		h.log.Info("funny:completion", zap.Any("fds", fds))
+		cl.Items = fds
 	}
-
-	blocks := collectBlocks(h.log, params.Position.Line, items)
-	h.log.Info("funny:completion", zap.Any("blocks", blocks))
-
-	fds := collectCompletionItems(params, blocks, l)
-	fdsBuiltins := collectCompletionItems(params, []*funny.Block{builtinBlock}, l)
-	fds = append(fds, fdsBuiltins...)
-	h.log.Info("funny:completion", zap.Any("fds", fds))
-	cl.Items = fds
 	return cl, nil
 }
 
@@ -79,6 +84,8 @@ func collectBlocks(logger *zap.Logger, line int, block *funny.Block) (results []
 
 func collectCompletionItems(params lsp.CompletionParams, block []*funny.Block, l int) (results []lsp.CompletionItem) {
 	for _, b := range block {
+		var comments []*funny.Comment
+		newLineCount := 0
 		for _, statement := range b.Statements {
 			ci := lsp.CompletionItem{}
 			switch v := statement.(type) {
@@ -94,7 +101,17 @@ func collectCompletionItems(params lsp.CompletionParams, block []*funny.Block, l
 			case *funny.Block:
 				brs := collectCompletionItems(params, []*funny.Block{v}, l)
 				results = append(results, brs...)
+				newLineCount = 0
+			case *funny.NewLine:
+				newLineCount++
+				if newLineCount > 1 {
+					comments = make([]*funny.Comment, 0)
+				}
+			case *funny.Comment:
+				comments = append(comments, v)
+				newLineCount = 0
 			}
+			ci.Documentation = joinComments(comments)
 			ci.TextEdit = &lsp.TextEdit{
 				Range: lsp.Range{
 					Start: lsp.Position{
@@ -114,4 +131,13 @@ func collectCompletionItems(params lsp.CompletionParams, block []*funny.Block, l
 		}
 	}
 	return
+}
+
+func joinComments(comments []*funny.Comment) string {
+	sb := new(strings.Builder)
+	for _, item := range comments {
+		sb.WriteString(item.Value)
+		sb.WriteString("\n")
+	}
+	return sb.String()
 }

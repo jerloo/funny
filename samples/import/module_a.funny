@@ -1,4 +1,10 @@
-
 // echoln('i am imported')
+baseUrl = 'baseUrl'
 
-b = 1
+f() {
+  return httpreq('GET', baseUrl + '22', {
+
+  }, {
+
+  }, false)
+}

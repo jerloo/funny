@@ -1,0 +1,9 @@
+admin = import('./apis.funny')
+
+admin.debug = true
+// admin.baseUrl = 'https://localhost:8080'
+// dumpruntimes()
+echoln(admin.debug)
+echoln(admin.baseUrl)
+
+admin.getPosts()

@@ -286,11 +286,15 @@ func (i *Interpreter) LookupDefault(name string, defaultVal Value) Value {
 
 // Lookup find one variable named name and get value
 func (i *Interpreter) Lookup(name string) Value {
-	r := i.LookupDefault(name, Value(nil))
-	if r != nil {
-		return r
+	for index := len(i.Vars) - 1; index >= 0; index-- {
+		item := i.Vars[index]
+		for k, v := range item {
+			if k == name {
+				return v
+			}
+		}
 	}
-	panic(fmt.Sprintf("variable [%s] not found", name))
+	return Value(nil)
 }
 
 // PopScope pop current scope
@@ -408,6 +412,9 @@ func (i *Interpreter) EvalField(item *Field) Value {
 		this := root.(map[string]Value)
 		scope := Scope{
 			"this": this,
+		}
+		for key, val := range this {
+			scope[key] = val
 		}
 		i.PushScope(scope)
 		r, _ := i.EvalFunctionCall(v)

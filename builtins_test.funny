@@ -40,3 +40,9 @@ httpreq('GET', 'https://baidu.com', {
 }, {
 
 }, true)
+
+// test func
+// new line
+testFunc() {
+
+}

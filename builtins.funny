@@ -104,3 +104,8 @@ sqlexec(connection, sqlRaw) {
 format(data, formatStr) {
 
 }
+
+// dump runtime infos
+dumpruntimes() {
+
+}
