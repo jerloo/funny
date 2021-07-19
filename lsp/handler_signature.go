@@ -57,11 +57,12 @@ func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonr
 						}
 						infos = append(infos, pi)
 					}
+					comments := findComments([]*funny.Block{builtinBlock, items}, fnDefine.Position)
 					return &lsp.SignatureHelp{
 						Signatures: []lsp.SignatureInformation{
 							{
 								Label:         strings.Join(argNames, ","),
-								Documentation: "",
+								Documentation: joinComments(comments),
 								Parameters:    infos,
 							},
 						},
@@ -77,6 +78,29 @@ func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonr
 		ActiveSignature: 0,
 		ActiveParameter: 0,
 	}, nil
+}
+
+func findComments(blocks []*funny.Block, pos funny.Position) (comments []*funny.Comment) {
+	for _, block := range blocks {
+		newLineCount := 0
+		for _, statement := range block.Statements {
+			switch v := statement.(type) {
+			case *funny.Function:
+				if v.Position.Line == pos.Line && v.Position.Col == pos.Col {
+					return
+				}
+			case *funny.Comment:
+				comments = append(comments, v)
+				newLineCount = 0
+			case *funny.NewLine:
+				newLineCount++
+				if newLineCount > 1 {
+					comments = make([]*funny.Comment, 0)
+				}
+			}
+		}
+	}
+	return
 }
 
 func getFunctions(items []funny.Statement) (results []*funny.Function) {
