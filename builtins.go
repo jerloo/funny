@@ -628,7 +628,7 @@ func SqlExecFile(interpreter *Interpreter, args []Value) Value {
 		if !connOk {
 			panic(xerrors.Errorf("connection must dict"))
 		}
-		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local&multiStatements=true",
 			v["user"],
 			v["password"],
 			v["host"],
@@ -652,7 +652,11 @@ func SqlExecFile(interpreter *Interpreter, args []Value) Value {
 		// 		panic(err)
 		// 	}
 		// }
-		tx.Exec(string(bts))
+		_, err = tx.Exec(string(bts))
+		if err != nil {
+			tx.Rollback()
+			panic(err)
+		}
 		tx.Commit()
 		if err != nil {
 			panic(err)
