@@ -42,19 +42,6 @@ func (i *Interpreter) Debug() bool {
 }
 
 func (i *Interpreter) RunFile(filename string) (Value, bool) {
-	defer func() {
-		if err := recover(); err != nil {
-			if i.Debug() {
-				fmt.Print(err)
-			} else {
-				if e, ok := err.(error); ok {
-					fmt.Printf("\nfunny runtime error: %s\n", e.Error())
-				} else {
-					fmt.Printf("\nfunny runtime error: %s\n", err)
-				}
-			}
-		}
-	}()
 	if !path.IsAbs(filename) {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -78,13 +65,14 @@ func (i *Interpreter) RunFile(filename string) (Value, bool) {
 func (i *Interpreter) Run(v interface{}) (Value, bool) {
 	defer func() {
 		if err := recover(); err != nil {
+			panic(err)
 			if i.Debug() {
 				fmt.Print(err)
 			} else {
 				if e, ok := err.(error); ok {
-					fmt.Printf("\nfunny runtime error: %s\n", e.Error())
+					fmt.Printf("\n%s\n", e.Error())
 				} else {
-					fmt.Printf("\nfunny runtime error: %s\n", err)
+					fmt.Printf("\nuncatched %s\n", err)
 				}
 			}
 		}
@@ -244,6 +232,9 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 
 // EvalFunction eval function
 func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) {
+	if len(params) < len(item.Parameters) {
+		panic(P(fmt.Sprintf("function %s required %d args but %d given", item.Name, len(item.Parameters), len(params)), item.Position))
+	}
 	scope := Scope{}
 	i.PushScope(scope)
 	for index, p := range item.Parameters {

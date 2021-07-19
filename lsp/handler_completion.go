@@ -43,7 +43,7 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 	var lastToken funny.Token
 	var fields []string
 	for index, token := range parser.Tokens {
-		if token.Position.Line == params.Position.Line && token.Position.Col+token.Position.Length >= params.Position.Character {
+		if token.Position.Line == params.Position.Line && token.Position.Col+token.Position.Length == params.Position.Character {
 			currentToken = &token
 			if index < len(parser.Tokens)-1 {
 				if parser.Tokens[index+1].Kind == funny.DOT {
@@ -116,43 +116,45 @@ func getFieldBlock(logger *zap.Logger, blocks []*funny.Block, fieldAccess []stri
 						case *funny.FunctionCall:
 							panic(fmt.Errorf("not support %s", funny.Typing(a.Value)))
 						}
-						panic(fmt.Errorf("if v, o := a.Target.(*funny.Variable); o not support %s %s %v", funny.Typing(a.Value), v.Name, a.Value))
+						// panic(fmt.Errorf("if v, o := a.Target.(*funny.Variable); o not support %s %s %v", funny.Typing(a.Value), v.Name, a.Value))
 					}
-					if v.Name == fieldAccess[0] {
-						switch fb := a.Value.(type) {
-						case *funny.Block:
-							sub := fieldAccess[1:]
-							if len(sub) > 0 {
-								return getFieldBlock(logger, []*funny.Block{fb}, sub)
-							} else {
-								return fb
-							}
-						case *funny.Field:
-							sub := fieldAccess[1:]
-							if len(sub) > 0 {
-								return getFieldBlock(logger, []*funny.Block{
-									{
+					if len(fieldAccess) > 0 {
+						if v.Name == fieldAccess[0] {
+							switch fb := a.Value.(type) {
+							case *funny.Block:
+								sub := fieldAccess[1:]
+								if len(sub) > 0 {
+									return getFieldBlock(logger, []*funny.Block{fb}, sub)
+								} else {
+									return fb
+								}
+							case *funny.Field:
+								sub := fieldAccess[1:]
+								if len(sub) > 0 {
+									return getFieldBlock(logger, []*funny.Block{
+										{
+											Statements: []funny.Statement{
+												fb,
+											},
+										},
+									}, fieldAccess[1:])
+								} else {
+									return &funny.Block{
 										Statements: []funny.Statement{
 											fb,
 										},
-									},
-								}, fieldAccess[1:])
-							} else {
-								return &funny.Block{
-									Statements: []funny.Statement{
-										fb,
-									},
+									}
+								}
+							case *funny.ImportFunctionCall:
+								sub := fieldAccess[1:]
+								if len(sub) > 0 {
+									return getFieldBlock(logger, []*funny.Block{fb.Block}, fieldAccess[1:])
+								} else {
+									return fb.Block
 								}
 							}
-						case *funny.ImportFunctionCall:
-							sub := fieldAccess[1:]
-							if len(sub) > 0 {
-								return getFieldBlock(logger, []*funny.Block{fb.Block}, fieldAccess[1:])
-							} else {
-								return fb.Block
-							}
+							panic(fmt.Errorf("v.Name == fieldAccess[0] not support %s %v %s", funny.Typing(a.Value), a.Value, v.Name))
 						}
-						panic(fmt.Errorf("v.Name == fieldAccess[0] not support %s %v %s", funny.Typing(a.Value), a.Value, v.Name))
 					}
 				}
 			}

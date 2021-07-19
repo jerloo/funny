@@ -270,7 +270,7 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	ackEq(args, 5)
 	method := ""
 	url := ""
-	data := make(map[string]interface{})
+	data := make(map[string]Value)
 	headers := map[string]interface{}{
 		"User-Agent": "Funny HttpRequest",
 		"Accept":     "*/*",
@@ -282,7 +282,7 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	if u, ok := args[1].(string); ok {
 		url = u
 	}
-	if d, ok := args[2].(map[string]interface{}); ok {
+	if d, ok := args[2].(map[string]Value); ok {
 		data = d
 	}
 	if h, ok := args[3].(map[string]Value); ok {
