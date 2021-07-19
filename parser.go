@@ -293,6 +293,7 @@ func (p *Parser) ReadFOR() Statement {
 
 // ReadFunction read function statement
 func (p *Parser) ReadFunction(name string) Statement {
+	pos := p.Current.Position
 	fn := &Function{
 		Body: &Block{
 			Type: STBlock,
@@ -364,7 +365,7 @@ func (p *Parser) ReadFunction(name string) Statement {
 		}
 	}
 	return &FunctionCall{
-		Position:   p.Current.Position,
+		Position:   pos,
 		Name:       fn.Name,
 		Parameters: fn.Parameters,
 		Type:       STFunctionCall,

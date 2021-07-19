@@ -9,6 +9,7 @@ import (
 	"github.com/jerloo/funny"
 	"github.com/sourcegraph/go-lsp"
 	"github.com/sourcegraph/jsonrpc2"
+	"go.uber.org/zap"
 )
 
 func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonrpc2.JSONRPC2, req *jsonrpc2.Request, params lsp.TextDocumentPositionParams) (result *lsp.SignatureHelp, err error) {
@@ -29,39 +30,43 @@ func (h Handler) handleTextDocumentSignatureHelp(ctx context.Context, conn jsonr
 
 	builtinFuncs := getFunctions(builtinBlock.Statements)
 	parsedFuncs := getFunctions(items.Statements)
-	var fns []*funny.Function
-	fns = append(fns, builtinFuncs...)
-	fns = append(fns, parsedFuncs...)
+	var funcDefines []*funny.Function
+	funcDefines = append(funcDefines, builtinFuncs...)
+	funcDefines = append(funcDefines, parsedFuncs...)
+	h.log.Info("signatures", zap.Any("fns", funcDefines))
 
-	signatures := getFuncCalls(items.Statements)
+	calls := getFuncCalls(items.Statements)
+	h.log.Info("signatures", zap.Any("signatures", calls))
 
-	for _, item := range fns {
-		if item.GetPosition().Line == params.Position.Line {
-			for _, sig := range signatures {
-				if sig.Name == item.Name {
-					ap := len(item.Parameters)
-					if ap > len(sig.Parameters) {
-						ap = len(sig.Parameters) - 1
+	for _, call := range calls {
+		if call.GetPosition().Line == params.Position.Line {
+			for _, fnDefine := range funcDefines {
+				if fnDefine.Name == call.Name {
+					activeParam := len(call.Parameters)
+					if activeParam > len(fnDefine.Parameters) {
+						activeParam = len(fnDefine.Parameters) - 1
 					}
 					var infos []lsp.ParameterInformation
-					for _, pas := range item.Parameters {
+					var argNames []string
+					for _, pas := range fnDefine.Parameters {
 						pi := lsp.ParameterInformation{}
 						switch v := pas.(type) {
 						case *funny.Variable:
 							pi.Label = v.Name
+							argNames = append(argNames, v.Name)
 						}
-						infos = append(infos)
+						infos = append(infos, pi)
 					}
 					return &lsp.SignatureHelp{
 						Signatures: []lsp.SignatureInformation{
 							{
-								Label:         sig.Name,
+								Label:         strings.Join(argNames, ","),
 								Documentation: "",
 								Parameters:    infos,
 							},
 						},
 						ActiveSignature: 0,
-						ActiveParameter: ap,
+						ActiveParameter: activeParam,
 					}, nil
 				}
 			}

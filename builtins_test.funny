@@ -46,3 +46,9 @@ httpreq('GET', 'https://baidu.com', {
 testFunc() {
 
 }
+
+httpreq('GET', 'https://baidu.com', {
+
+}, {
+
+}, true)
