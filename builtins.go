@@ -1,6 +1,7 @@
 package funny
 
 import (
+	"context"
 	"crypto/md5"
 	"database/sql"
 	_ "embed"
@@ -8,7 +9,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
+	"path"
 	"strings"
 	"time"
 
@@ -50,8 +53,11 @@ var (
 		"jwtde":        JwtDecode,
 		"sqlquery":     SqlQuery,
 		"sqlexec":      SqlExec,
+		"sqlexecfile":  SqlExecFile,
 		"format":       FormatData,
 		"dumpruntimes": DumpRuntimes,
+		"readtext":     ReadText,
+		"writetext":    WriteText,
 	}
 )
 
@@ -569,4 +575,89 @@ func DumpRuntimes(interpreter *Interpreter, args []Value) Value {
 	}
 	fmt.Println(string(bts))
 	return Value(string(bts))
+}
+
+// ReadText readtext()
+func ReadText(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	if filename, fileOk := args[0].(string); fileOk {
+		if !path.IsAbs(filename) {
+			d := path.Dir(interpreter.Current.File)
+			filename = path.Join(d, filename)
+		}
+		bts, err := os.ReadFile(filename)
+		if err != nil {
+			panic(xerrors.Errorf("read file error: %w", err))
+		}
+		return Value(string(bts))
+	}
+	panic("args type error")
+}
+
+// WriteText writetext(text)
+func WriteText(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 2)
+	if filename, fileOk := args[0].(string); fileOk {
+		if text, textOk := args[1].(string); textOk {
+			if !path.IsAbs(filename) {
+				d := path.Dir(interpreter.Current.File)
+				filename = path.Join(d, filename)
+			}
+			err := os.WriteFile(filename, []byte(text), fs.ModeAppend)
+			if err != nil {
+				panic(xerrors.Errorf("write error: %w", err))
+			}
+		}
+	}
+	panic("args type error")
+}
+
+// SqlExecFile sqlexecfile(connection, file)
+func SqlExecFile(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 2)
+	if filename, fileOk := args[1].(string); fileOk {
+		if !path.IsAbs(filename) {
+			d := path.Dir(interpreter.Current.File)
+			filename = path.Join(d, filename)
+		}
+		bts, err := os.ReadFile(filename)
+		if err != nil {
+			panic(xerrors.Errorf("read file error: %w", err))
+		}
+		v, connOk := args[0].(map[string]Value)
+		if !connOk {
+			panic(xerrors.Errorf("connection must dict"))
+		}
+		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
+			v["user"],
+			v["password"],
+			v["host"],
+			v["port"],
+			v["database"])
+
+		db, err := sql.Open("mysql", dsn)
+		if err != nil {
+			panic(err)
+		}
+		defer db.Close()
+		tx, err := db.BeginTx(context.Background(), &sql.TxOptions{})
+		if err != nil {
+			panic(err)
+		}
+		// sqls := strings.Split(string(bts), "\n")
+		// for _, sql := range sqls {
+		// 	_, err = tx.Exec(sql)
+		// 	if err != nil {
+		// 		tx.Rollback()
+		// 		panic(err)
+		// 	}
+		// }
+		tx.Exec(string(bts))
+		tx.Commit()
+		if err != nil {
+			panic(err)
+		}
+		return Value(nil)
+	}
+	panic("args type error")
 }

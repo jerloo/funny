@@ -17,6 +17,8 @@ type Scope map[string]Value
 type Interpreter struct {
 	Vars      []Scope
 	Functions map[string]BuiltinFunction
+
+	Current Position
 }
 
 // NewInterpreterWithScope create a new interpreter
@@ -99,6 +101,7 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 
 // EvalBlock eval a block
 func (i *Interpreter) EvalBlock(block *Block) (Value, bool) {
+	i.Current = block.GetPosition()
 	for _, item := range block.Statements {
 		r, has := i.EvalStatement(item)
 		if has {
@@ -119,6 +122,7 @@ func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
 
 // EvalIfStatement eval if statement
 func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
+	i.Current = item.GetPosition()
 	exp := i.EvalExpression(item.Condition)
 	if exp, ok := exp.(bool); ok {
 		if exp {
@@ -140,11 +144,13 @@ func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
 
 // EvalForStatement eval for statement
 func (i *Interpreter) EvalForStatement(item *FORStatement) (Value, bool) {
+	i.Current = item.GetPosition()
 	panic("NOT IMPLEMENT")
 }
 
 // EvalStatement eval statement
 func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
+	i.Current = item.GetPosition()
 	switch item := item.(type) {
 	case *Assign:
 		switch a := item.Target.(type) {
@@ -204,6 +210,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 
 // EvalFunctionCall eval function call like test(a, b)
 func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
+	i.Current = item.GetPosition()
 	var params []Value
 	for _, p := range item.Parameters {
 		params = append(params, i.EvalExpression(p))
@@ -232,6 +239,7 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 
 // EvalFunction eval function
 func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) {
+	i.Current = item.GetPosition()
 	if len(params) < len(item.Parameters) {
 		panic(P(fmt.Sprintf("function %s required %d args but %d given", item.Name, len(item.Parameters), len(params)), item.Position))
 	}
@@ -247,6 +255,7 @@ func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) 
 
 // AssignField assign one field value
 func (i *Interpreter) AssignField(field *Field, val Value) {
+	i.Current = field.GetPosition()
 	scope := make(map[string]Value)
 
 	find := i.Lookup(field.Variable.Name)
@@ -300,6 +309,7 @@ func (i *Interpreter) PushScope(scope Scope) {
 
 // EvalExpression eval part that is expression
 func (i *Interpreter) EvalExpression(expression Statement) Value {
+	i.Current = expression.GetPosition()
 	switch item := expression.(type) {
 	case *BinaryExpression:
 		// TODO: string minus
@@ -397,6 +407,7 @@ func (i *Interpreter) EvalExpression(expression Statement) Value {
 
 // EvalField person.age
 func (i *Interpreter) EvalField(item *Field) Value {
+	i.Current = item.GetPosition()
 	root := i.Lookup(item.Variable.Name)
 	switch v := item.Value.(type) {
 	case *FunctionCall:

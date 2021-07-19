@@ -109,3 +109,18 @@ format(data, formatStr) {
 dumpruntimes() {
 
 }
+
+// read text from file
+readtext(filename) {
+
+}
+
+// write text into file
+writetext(filename, text) {
+
+}
+
+// exec a sql file
+sqlexecfile(connection, filename) {
+
+}
