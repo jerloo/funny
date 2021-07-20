@@ -63,7 +63,7 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 				DefinitionProvider:         true,
 				TypeDefinitionProvider:     true,
 				DocumentSymbolProvider:     true,
-				HoverProvider:              true,
+				HoverProvider:              false,
 				ReferencesProvider:         true,
 				ImplementationProvider:     true,
 				DocumentFormattingProvider: true,
@@ -158,8 +158,7 @@ func (h Handler) internal(ctx context.Context, conn *jsonrpc2.Conn, req *jsonrpc
 		if err := json.Unmarshal(*req.Params, &params); err != nil {
 			return nil, err
 		}
-		//return h.handleHover(ctx, conn, req, params)
-		return nil, nil
+		return h.handleTextDocumentHover(ctx, conn, req, params)
 
 	case "textDocument/definition":
 		if req.Params == nil {

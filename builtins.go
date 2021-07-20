@@ -174,8 +174,10 @@ func Len(interpreter *Interpreter, args []Value) Value {
 		return Value(len(v.Values))
 	case string:
 		return Value(len(v))
+	case []interface{}:
+		return Value(len(v))
 	}
-	panic("len type error, only support [list, string]")
+	panic(P(fmt.Sprintf("len type error, only support [list, string] %s", Typing(args[0])), interpreter.Current))
 }
 
 // Md5 return then length of the given list
