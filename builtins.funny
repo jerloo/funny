@@ -120,6 +120,11 @@ writetext(filename, text) {
 
 }
 
+// write json text into file
+writejson(filename, text) {
+
+}
+
 // exec a sql file
 sqlexecfile(connection, filename) {
 

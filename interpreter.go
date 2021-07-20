@@ -431,13 +431,24 @@ func (i *Interpreter) EvalField(item *Field) Value {
 		}
 	case *Field:
 		scope := Scope{}
-		for key, val := range root.(map[string]Value) {
-			scope[key] = val
+		if vm, ok := root.(map[string]Value); ok {
+			for key, val := range vm {
+				scope[key] = val
+			}
+			i.PushScope(scope)
+			r := i.EvalField(v)
+			i.PopScope()
+			return r
+		} else if vm, ok := root.(map[string]interface{}); ok {
+			for key, val := range vm {
+				scope[key] = val
+			}
+			i.PushScope(scope)
+			r := i.EvalField(v)
+			i.PopScope()
+			return r
 		}
-		i.PushScope(scope)
-		r := i.EvalField(v)
-		i.PopScope()
-		return r
+		panic(fmt.Sprintf("unknow type %v", v))
 	default:
 		panic(fmt.Sprintf("unknow type %v", v))
 	}

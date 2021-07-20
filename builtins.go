@@ -58,6 +58,7 @@ var (
 		"dumpruntimes": DumpRuntimes,
 		"readtext":     ReadText,
 		"writetext":    WriteText,
+		"writejson":    WriteJson,
 	}
 )
 
@@ -612,6 +613,27 @@ func WriteText(interpreter *Interpreter, args []Value) Value {
 		}
 	}
 	panic("args type error")
+}
+
+// WriteJson writejson(obj)
+func WriteJson(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 2)
+	if filename, fileOk := args[0].(string); fileOk {
+		bts, err := json.Marshal(args[1])
+		if err != nil {
+			panic(err)
+		}
+		if !path.IsAbs(filename) {
+			d := path.Dir(interpreter.Current.File)
+			filename = path.Join(d, filename)
+		}
+		err = os.WriteFile(filename, []byte(bts), 0644)
+		if err != nil {
+			panic(xerrors.Errorf("write error: %w", err))
+		}
+		return Value(nil)
+	}
+	panic(P(fmt.Sprintf("args type error %s", Typing(args[0])), interpreter.Current))
 }
 
 // SqlExecFile sqlexecfile(connection, file)
