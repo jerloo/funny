@@ -108,7 +108,7 @@ var cases = []Token{
 		Kind: EOF,
 		Position: Position{
 			Line: 2,
-			Col:  7,
+			Col:  8,
 		},
 	},
 }

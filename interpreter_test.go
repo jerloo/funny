@@ -140,7 +140,7 @@ return d - 1`
 func TestInterpreter_Return(t *testing.T) {
 	data := `
 testReturn(t){
-    if t<1{
+    if t < 1 {
         return t
     }
     return testReturn(t-1)

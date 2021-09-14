@@ -58,6 +58,7 @@ var (
 		"dumpruntimes": DumpRuntimes,
 		"readtext":     ReadText,
 		"writetext":    WriteText,
+		"readjson":     ReadJson,
 		"writejson":    WriteJson,
 	}
 )
@@ -611,6 +612,28 @@ func WriteText(interpreter *Interpreter, args []Value) Value {
 				panic(xerrors.Errorf("write error: %w", err))
 			}
 		}
+	}
+	panic("args type error")
+}
+
+// ReadJson readjson()
+func ReadJson(interpreter *Interpreter, args []Value) Value {
+	ackEq(args, 1)
+	if filename, fileOk := args[0].(string); fileOk {
+		if !path.IsAbs(filename) {
+			d := path.Dir(interpreter.Current.File)
+			filename = path.Join(d, filename)
+		}
+		bts, err := os.ReadFile(filename)
+		if err != nil {
+			panic(xerrors.Errorf("read file error: %w", err))
+		}
+		var m map[string]Value
+		err = json.Unmarshal(bts, &m)
+		if err != nil {
+			panic(xerrors.Errorf("read file error: %w", err))
+		}
+		return Value(m)
 	}
 	panic("args type error")
 }

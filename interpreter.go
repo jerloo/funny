@@ -101,6 +101,9 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 
 // EvalBlock eval a block
 func (i *Interpreter) EvalBlock(block *Block) (Value, bool) {
+	if block == nil {
+		return Value(nil), false
+	}
 	i.Current = block.GetPosition()
 	for _, item := range block.Statements {
 		r, has := i.EvalStatement(item)

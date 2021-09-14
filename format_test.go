@@ -32,7 +32,6 @@ a() {
 b() {
 
 }
-
 `
 
 func TestFormat(t *testing.T) {

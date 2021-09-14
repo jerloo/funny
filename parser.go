@@ -196,7 +196,10 @@ func (p *Parser) ReadStatement() Statement {
 
 // ReadIF get next if statement
 func (p *Parser) ReadIF() Statement {
-	var item IFStatement
+	item := &IFStatement{
+		Position: p.Current.Position,
+		Type:     STIfStatement,
+	}
 
 	item.Condition = p.ReadExpression()
 
@@ -207,6 +210,11 @@ func (p *Parser) ReadIF() Statement {
 		if p.Current.Kind == RBrace {
 			p.Consume(RBrace)
 			break
+		}
+		if item.Body == nil {
+			item.Body = &Block{
+				Position: p.Current.Position,
+			}
 		}
 		item.Body.Statements = append(item.Body.Statements, p.ReadStatement())
 	}
@@ -219,11 +227,16 @@ func (p *Parser) ReadIF() Statement {
 			if p.Current.Kind == RBrace {
 				break
 			}
+			if item.Else == nil {
+				item.Else = &Block{
+					Position: p.Current.Position,
+				}
+			}
 			item.Else.Statements = append(item.Else.Statements, p.ReadStatement())
 		}
 		p.Consume(RBrace)
 	}
-	return &item
+	return item
 }
 
 // ReadFOR read for statement

@@ -120,6 +120,11 @@ writetext(filename, text) {
 
 }
 
+// read json from file
+readjson(filename) {
+
+}
+
 // write json text into file
 writejson(filename, text) {
 

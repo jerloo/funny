@@ -1,5 +1,3 @@
-
-
 testFn() {
   return echoln('test')
 }
