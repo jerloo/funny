@@ -67,8 +67,8 @@ func (l *Lexer) LA(n int) rune {
 		if offset+size > len(l.Data) {
 			return -1
 		}
-		chString := string(ch)
-		fmt.Sprintf(chString)
+		// chString := string(ch)
+		// fmt.Sprintf(chString)
 		offset += size
 		n--
 		if n == 0 {
@@ -84,8 +84,8 @@ func (l *Lexer) Consume(n int) rune {
 		if l.Offset+size > len(l.Data) {
 			return -1
 		}
-		chString := string(ch)
-		fmt.Sprintf(chString)
+		// chString := string(ch)
+		// fmt.Sprintf(chString)
 		l.Offset += size
 		l.CurrentPos.Col += size
 		n--
@@ -123,8 +123,8 @@ func (l *Lexer) NewLine() Token {
 }
 
 func isNameStart(ch rune) bool {
-	chString := string(ch)
-	fmt.Sprintf(chString)
+	// chString := string(ch)
+	// fmt.Sprintf(chString)
 	return ch == '_' || (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z')
 }
 
@@ -152,8 +152,8 @@ func (l *Lexer) Next() Token {
 	for {
 		l.Reset()
 		ch := l.LA(1)
-		chString := string(ch)
-		fmt.Sprintf(chString)
+		// chString := string(ch)
+		// fmt.Sprintf(chString)
 		switch ch {
 		case -1:
 			l.Consume(1)
@@ -163,7 +163,6 @@ func (l *Lexer) Next() Token {
 			return l.NewLine()
 		case ' ':
 			l.Consume(1)
-			break
 		case '/':
 			if chNext := l.LA(2); chNext == '/' {
 				l.Consume(2)
@@ -242,8 +241,8 @@ func (l *Lexer) Next() Token {
 				l.Consume(1)
 				for {
 					chNext := l.LA(1)
-					chNS := string(chNext)
-					fmt.Sprintf("%s", chNS)
+					// chNS := string(chNext)
+					// fmt.Sprintf("%s", chNS)
 					if !(isNameStart(chNext) || (chNext >= '0' && chNext <= '9')) {
 						return l.CreateToken(NAME)
 					}

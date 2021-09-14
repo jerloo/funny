@@ -68,15 +68,6 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			panic(err)
-			if i.Debug() {
-				fmt.Print(err)
-			} else {
-				if e, ok := err.(error); ok {
-					fmt.Printf("\n%s\n", e.Error())
-				} else {
-					fmt.Printf("\nuncatched %s\n", err)
-				}
-			}
 		}
 	}()
 	switch v := v.(type) {

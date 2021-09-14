@@ -701,10 +701,13 @@ func SqlExecFile(interpreter *Interpreter, args []Value) Value {
 		// }
 		_, err = tx.Exec(string(bts))
 		if err != nil {
-			tx.Rollback()
+			err = tx.Rollback()
+			if err != nil {
+				panic(err)
+			}
 			panic(err)
 		}
-		tx.Commit()
+		err = tx.Commit()
 		if err != nil {
 			panic(err)
 		}

@@ -35,10 +35,12 @@ e = minus(a, b)
 echoln('minus(a, b) === ', e)
 assert(e == 1)
 
+// if statement
 if a > 0 {
   echoln('if a > 0')
 }
 
+// function
 fib(n) {
   if n < 2 {
     return n

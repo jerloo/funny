@@ -47,6 +47,7 @@ func (h Handler) handleTextDocumentHover(ctx context.Context, conn jsonrpc2.JSON
 		}
 	}
 	fmt.Println(lastToken)
+	fmt.Println(fields)
 	bbs := collectBlocks(h.log, params.Position.Line, builtinBlock)
 	pbs := collectBlocks(h.log, params.Position.Line, items)
 	findedBlocks := append(bbs, pbs...)

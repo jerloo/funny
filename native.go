@@ -1,7 +1,6 @@
 package funny
 
 import (
-	"fmt"
 	"reflect"
 )
 
@@ -11,5 +10,5 @@ func Typing(data interface{}) string {
 	if t == nil {
 		return "nil"
 	}
-	return fmt.Sprintf("%s", t.String())
+	return t.String()
 }
