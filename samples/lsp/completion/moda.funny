@@ -1,6 +1,0 @@
-
-obj(){
-    return {
-        test = 1
-    }
-}

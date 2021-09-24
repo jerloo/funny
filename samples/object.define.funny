@@ -1,6 +1,0 @@
-deepObj = {
-  a = 1
-  b = 2
-}
-
-echoln(deepObj.a)

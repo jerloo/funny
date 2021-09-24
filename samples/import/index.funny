@@ -1,6 +1,0 @@
-// import('./module_a.funny')
-
-a = import('./module_a.funny')
-ffff = a.f()
-echoln(ffff)
-echoln(a.test)

@@ -1,7 +1,0 @@
-token = jwten('HS256', 'secret', {
-  a = 1
-})
-echoln(token)
-
-claims = jwtde('HS256', 'secret', token)
-echoln(claims)

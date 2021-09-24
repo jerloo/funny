@@ -1,7 +1,0 @@
-a = 1
-
-createPosts(data) {
-  return httpreq('POST', baseUrl + 'api/posts', data,{
-  Authorization = 'Bearer ' + token
-  }, debug)
-}
