@@ -1,6 +1,7 @@
 package funny
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -64,4 +65,68 @@ func TestParserPosition(t *testing.T) {
 func TestParseFunctionCall(t *testing.T) {
 	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"), "")
 	parser.Parse()
+}
+
+func TestParseIfStatement(t *testing.T) {
+	parser := NewParser([]byte(`
+	a = 1
+	if a > 0 {
+		echoln(true)
+	}
+	`), "")
+	parser.Parse()
+}
+
+func TestParseIfStatementWithElse(t *testing.T) {
+	parser := NewParser([]byte(`
+	a = 1
+	if a > 0 {
+		echoln(true)
+	} else {
+		echoln('else')
+	}
+	`), "")
+	parser.Parse()
+}
+
+func TestParseIfStatementWithElseIf(t *testing.T) {
+	parser := NewParser([]byte(`
+	a = 1
+	if a > 0 {
+		echoln(true)
+	} else if a == 1 {
+		echoln('else')
+	} else {
+		echoln('else')
+	}
+	`), "")
+	parser.Parse()
+}
+
+func TestParseIfStatementWithField(t *testing.T) {
+	parser := NewParser([]byte(`
+	a = {
+		t = 1
+	}
+	if a.t > 0 {
+		echoln(true)
+	} else if a.t == 1 {
+		echoln('else if')
+	} else {
+		echoln('else')
+	}
+	`), "")
+	parser.Parse()
+}
+
+func TestParseIfStatement2(t *testing.T) {
+	parser := NewParser([]byte(`
+	main(row){
+		if a == 1 {
+		} else a == 1 {
+		}
+	}
+	`), "")
+	blocks := parser.Parse()
+	fmt.Println(blocks.Statements[0].String())
 }
