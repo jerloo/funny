@@ -3,6 +3,8 @@ package funny
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func RunSingle(data interface{}) (*Funny, Value) {
@@ -186,4 +188,38 @@ return b
 	if r != 2 {
 		t.Error(fmt.Sprintf("RunSingle funny.fun must return 2 but got %s", r))
 	}
+}
+
+func TestFuny_EvalInTrue(t *testing.T) {
+	data := `a = 2 in [2]`
+	i := NewFunnyWithScope(make(map[string]Value))
+	parser := NewParser([]byte(data), "")
+	i.Run(Program{
+		parser.Parse(),
+	})
+	aInArray := i.Lookup("a")
+	assert.True(t, aInArray.(bool))
+}
+
+func TestFuny_EvalInFalse(t *testing.T) {
+	data := `a = 2 in [1]`
+	i := NewFunnyWithScope(make(map[string]Value))
+	parser := NewParser([]byte(data), "")
+	i.Run(Program{
+		parser.Parse(),
+	})
+	aInArray := i.Lookup("a")
+	assert.True(t, !aInArray.(bool))
+}
+
+func TestFuny_EvalNotIn(t *testing.T) {
+	data := `a = 2 not in [2]`
+	i := NewFunnyWithScope(make(map[string]Value))
+	parser := NewParser([]byte(data), "")
+	i.Run(Program{
+		parser.Parse(),
+	})
+	aInArray := i.Lookup("a")
+	fmt.Println(aInArray)
+	assert.True(t, !aInArray.(bool))
 }

@@ -341,8 +341,23 @@ func (i *Funny) EvalExpression(expression Statement) Value {
 			return i.EvalLte(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
 		case DOUBLE_EQ:
 			return i.EvalEqual(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
+		case NOTEQ:
+			return Value((!i.EvalEqual(i.EvalExpression(item.Left), i.EvalExpression(item.Right)).(bool)))
+		case NAME:
+			switch item.Operator.Data {
+			case NOT:
+				switch v := item.Right.(type) {
+				case *BinaryExpression:
+					if v.Operator.Data == IN {
+						return Value(!i.EvalIn(i.EvalExpression(item.Left), v.Right).(bool))
+					}
+				}
+				return Value(!i.EvalExpression(item.Right).(bool))
+			case IN:
+				return i.EvalIn(i.EvalExpression(item.Left), item.Right)
+			}
 		default:
-			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.GetPosition()))
+			panic(P(fmt.Sprintf("only support [+] [-] [*] [/] [>] [>=] [==] [<=] [<] [in] [not] given [%s]", expression.(*BinaryExpression).Operator.Data), expression.GetPosition()))
 		}
 	case *List:
 		var ls []interface{}
@@ -412,6 +427,19 @@ func (i *Funny) EvalExpression(expression Statement) Value {
 		return scope
 	}
 	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.GetPosition()))
+}
+
+func (i *Funny) EvalIn(leftValue Value, right Statement) Value {
+	switch rightValue := right.(type) {
+	case *List:
+		for _, item := range rightValue.Values {
+			v := i.EvalExpression(item)
+			if leftValue == v {
+				return Value(true)
+			}
+		}
+	}
+	return Value(false)
 }
 
 // EvalField person.age
