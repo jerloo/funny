@@ -13,17 +13,17 @@ type Value interface {
 // Scope stores variables
 type Scope map[string]Value
 
-// Interpreter the virtual machine of funny code
-type Interpreter struct {
+// Funny the virtual machine of funny code
+type Funny struct {
 	Vars      []Scope
 	Functions map[string]BuiltinFunction
 
 	Current Position
 }
 
-// NewInterpreterWithScope create a new interpreter
-func NewInterpreterWithScope(vars Scope) *Interpreter {
-	return &Interpreter{
+// NewFunnyWithScope create a new funny
+func NewFunnyWithScope(vars Scope) *Funny {
+	return &Funny{
 		Vars: []Scope{
 			vars,
 		},
@@ -31,8 +31,18 @@ func NewInterpreterWithScope(vars Scope) *Interpreter {
 	}
 }
 
+// Create a new funny with default settings
+func NewFunny() *Funny {
+	return &Funny{
+		Vars: []Scope{
+			make(map[string]Value),
+		},
+		Functions: FUNCTIONS,
+	}
+}
+
 // Debug get debug value
-func (i *Interpreter) Debug() bool {
+func (i *Funny) Debug() bool {
 	v := i.LookupDefault("debug", Value(false))
 	if v == nil {
 		return false
@@ -43,7 +53,7 @@ func (i *Interpreter) Debug() bool {
 	return false
 }
 
-func (i *Interpreter) RunFile(filename string) (Value, bool) {
+func (i *Funny) RunFile(filename string) (Value, bool) {
 	if !path.IsAbs(filename) {
 		currentDir, err := os.Getwd()
 		if err != nil {
@@ -64,7 +74,7 @@ func (i *Interpreter) RunFile(filename string) (Value, bool) {
 }
 
 // Run the part of the code
-func (i *Interpreter) Run(v interface{}) (Value, bool) {
+func (i *Funny) Run(v interface{}) (Value, bool) {
 	defer func() {
 		if err := recover(); err != nil {
 			panic(err)
@@ -91,7 +101,7 @@ func (i *Interpreter) Run(v interface{}) (Value, bool) {
 }
 
 // EvalBlock eval a block
-func (i *Interpreter) EvalBlock(block *Block) (Value, bool) {
+func (i *Funny) EvalBlock(block *Block) (Value, bool) {
 	if block == nil {
 		return Value(nil), false
 	}
@@ -106,7 +116,7 @@ func (i *Interpreter) EvalBlock(block *Block) (Value, bool) {
 }
 
 // RegisterFunction register a builtin or customer function
-func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
+func (i *Funny) RegisterFunction(name string, fn BuiltinFunction) error {
 	if _, exists := i.Functions[name]; exists {
 		return fmt.Errorf("function [%s] already exists", name)
 	}
@@ -115,7 +125,7 @@ func (i *Interpreter) RegisterFunction(name string, fn BuiltinFunction) error {
 }
 
 // EvalIfStatement eval if statement
-func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
+func (i *Funny) EvalIfStatement(item *IFStatement) (Value, bool) {
 	i.Current = item.GetPosition()
 	exp := i.EvalExpression(item.Condition)
 	if exp, ok := exp.(bool); ok {
@@ -137,13 +147,13 @@ func (i *Interpreter) EvalIfStatement(item *IFStatement) (Value, bool) {
 }
 
 // EvalForStatement eval for statement
-func (i *Interpreter) EvalForStatement(item *FORStatement) (Value, bool) {
+func (i *Funny) EvalForStatement(item *FORStatement) (Value, bool) {
 	i.Current = item.GetPosition()
 	panic("NOT IMPLEMENT")
 }
 
 // EvalStatement eval statement
-func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
+func (i *Funny) EvalStatement(item Statement) (Value, bool) {
 	i.Current = item.GetPosition()
 	switch item := item.(type) {
 	case *Assign:
@@ -203,7 +213,7 @@ func (i *Interpreter) EvalStatement(item Statement) (Value, bool) {
 }
 
 // EvalFunctionCall eval function call like test(a, b)
-func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
+func (i *Funny) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 	i.Current = item.GetPosition()
 	var params []Value
 	for _, p := range item.Parameters {
@@ -232,7 +242,7 @@ func (i *Interpreter) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 }
 
 // EvalFunction eval function
-func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) {
+func (i *Funny) EvalFunction(item Function, params []Value) (Value, bool) {
 	i.Current = item.GetPosition()
 	if len(params) < len(item.Parameters) {
 		panic(P(fmt.Sprintf("function %s required %d args but %d given", item.Name, len(item.Parameters), len(params)), item.Position))
@@ -248,7 +258,7 @@ func (i *Interpreter) EvalFunction(item Function, params []Value) (Value, bool) 
 }
 
 // AssignField assign one field value
-func (i *Interpreter) AssignField(field *Field, val Value) {
+func (i *Funny) AssignField(field *Field, val Value) {
 	i.Current = field.GetPosition()
 	scope := make(map[string]Value)
 
@@ -261,12 +271,12 @@ func (i *Interpreter) AssignField(field *Field, val Value) {
 }
 
 // Assign assign one variable
-func (i *Interpreter) Assign(name string, val Value) {
+func (i *Funny) Assign(name string, val Value) {
 	i.Vars[len(i.Vars)-1][name] = val
 }
 
 // LookupDefault find one variable named name and get value, if not found, return default
-func (i *Interpreter) LookupDefault(name string, defaultVal Value) Value {
+func (i *Funny) LookupDefault(name string, defaultVal Value) Value {
 	for index := len(i.Vars) - 1; index >= 0; index-- {
 		item := i.Vars[index]
 		for k, v := range item {
@@ -279,7 +289,7 @@ func (i *Interpreter) LookupDefault(name string, defaultVal Value) Value {
 }
 
 // Lookup find one variable named name and get value
-func (i *Interpreter) Lookup(name string) Value {
+func (i *Funny) Lookup(name string) Value {
 	for index := len(i.Vars) - 1; index >= 0; index-- {
 		item := i.Vars[index]
 		for k, v := range item {
@@ -292,21 +302,26 @@ func (i *Interpreter) Lookup(name string) Value {
 }
 
 // PopScope pop current scope
-func (i *Interpreter) PopScope() {
+func (i *Funny) PopScope() {
 	i.Vars = i.Vars[:len(i.Vars)-1]
 }
 
 // PushScope push scope into current
-func (i *Interpreter) PushScope(scope Scope) {
+func (i *Funny) PushScope(scope Scope) {
 	i.Vars = append(i.Vars, scope)
 }
 
 // EvalExpression eval part that is expression
-func (i *Interpreter) EvalExpression(expression Statement) Value {
+func (i *Funny) EvalExpression(expression Statement) Value {
 	i.Current = expression.GetPosition()
 	switch item := expression.(type) {
 	case *BinaryExpression:
-		// TODO: string minus
+		// TODO:
+		// a is int
+		// a is nil
+		// a is not int
+		// a in [1,2]
+		// a not in [1,2]
 		switch item.Operator.Kind {
 		case PLUS:
 			return i.EvalPlus(i.EvalExpression(item.Left), i.EvalExpression(item.Right))
@@ -400,7 +415,7 @@ func (i *Interpreter) EvalExpression(expression Statement) Value {
 }
 
 // EvalField person.age
-func (i *Interpreter) EvalField(item *Field) Value {
+func (i *Funny) EvalField(item *Field) Value {
 	i.Current = item.GetPosition()
 	root := i.Lookup(item.Variable.Name)
 	switch v := item.Value.(type) {
@@ -450,7 +465,7 @@ func (i *Interpreter) EvalField(item *Field) Value {
 }
 
 // EvalPlus +
-func (i *Interpreter) EvalPlus(left, right Value) Value {
+func (i *Funny) EvalPlus(left, right Value) Value {
 	switch left := left.(type) {
 	case string:
 		if right, ok := right.(string); ok {
@@ -505,7 +520,7 @@ func (i *Interpreter) EvalPlus(left, right Value) Value {
 }
 
 // EvalMinus -
-func (i *Interpreter) EvalMinus(left, right Value) Value {
+func (i *Funny) EvalMinus(left, right Value) Value {
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
@@ -540,7 +555,7 @@ func (i *Interpreter) EvalMinus(left, right Value) Value {
 }
 
 // EvalTimes *
-func (i *Interpreter) EvalTimes(left, right Value) Value {
+func (i *Funny) EvalTimes(left, right Value) Value {
 	if l, ok := left.(int); ok {
 		if r, o := right.(int); o {
 			return Value(l * r)
@@ -550,7 +565,7 @@ func (i *Interpreter) EvalTimes(left, right Value) Value {
 }
 
 // EvalDevide /
-func (i *Interpreter) EvalDevide(left, right Value) Value {
+func (i *Funny) EvalDevide(left, right Value) Value {
 	if l, o := left.(int); o {
 		if r, k := right.(int); k {
 			return Value(l / r)
@@ -560,7 +575,7 @@ func (i *Interpreter) EvalDevide(left, right Value) Value {
 }
 
 // EvalEqual ==
-func (i *Interpreter) EvalEqual(left, right Value) Value {
+func (i *Funny) EvalEqual(left, right Value) Value {
 	switch l := left.(type) {
 	case nil:
 		return Value(right == nil)
@@ -618,7 +633,7 @@ func (i *Interpreter) EvalEqual(left, right Value) Value {
 }
 
 // EvalGt >
-func (i *Interpreter) EvalGt(left, right Value) Value {
+func (i *Funny) EvalGt(left, right Value) Value {
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
@@ -629,7 +644,7 @@ func (i *Interpreter) EvalGt(left, right Value) Value {
 }
 
 // EvalGte >=
-func (i *Interpreter) EvalGte(left, right Value) Value {
+func (i *Funny) EvalGte(left, right Value) Value {
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
@@ -640,7 +655,7 @@ func (i *Interpreter) EvalGte(left, right Value) Value {
 }
 
 // EvalLt <
-func (i *Interpreter) EvalLt(left, right Value) Value {
+func (i *Funny) EvalLt(left, right Value) Value {
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
@@ -651,7 +666,7 @@ func (i *Interpreter) EvalLt(left, right Value) Value {
 }
 
 // EvalLte <=
-func (i *Interpreter) EvalLte(left, right Value) Value {
+func (i *Funny) EvalLte(left, right Value) Value {
 	switch left := left.(type) {
 	case int:
 		if right, ok := right.(int); ok {
@@ -662,7 +677,7 @@ func (i *Interpreter) EvalLte(left, right Value) Value {
 }
 
 // EvalDoubleEq ==
-func (i *Interpreter) EvalDoubleEq(left, right Value) Value {
+func (i *Funny) EvalDoubleEq(left, right Value) Value {
 	return left == right
 	// switch left := left.(type) {
 	// case int:

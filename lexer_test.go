@@ -172,3 +172,35 @@ admin.`
 	}
 	assert.Equal(t, 0, tokens[1].Position.Col)
 }
+
+func TestLexerIn(t *testing.T) {
+	lexer := NewLexer([]byte(`a = 2 in [2]`), "")
+	tokens := make([]Token, 0)
+	for {
+		token := lexer.Next()
+		bts, _ := json.Marshal(&token)
+		fmt.Println(string(bts))
+		tokens = append(tokens, token)
+		if token.Kind == EOF {
+			break
+		}
+	}
+}
+
+func TestLexerNotIn(t *testing.T) {
+	lexer := NewLexer([]byte(`
+if a == 2 {
+n = 1
+}
+	a = 2 not in [2]`), "")
+	tokens := make([]Token, 0)
+	for {
+		token := lexer.Next()
+		bts, _ := json.Marshal(&token)
+		fmt.Println(string(bts))
+		tokens = append(tokens, token)
+		if token.Kind == EOF {
+			break
+		}
+	}
+}

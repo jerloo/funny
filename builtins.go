@@ -26,7 +26,7 @@ import (
 var BuiltinsDotFunny string
 
 // BuiltinFunction function handler
-type BuiltinFunction func(interpreter *Interpreter, args []Value) Value
+type BuiltinFunction func(fn *Funny, args []Value) Value
 
 var (
 	// FUNCTIONS all builtin functions
@@ -78,7 +78,7 @@ func ackGt(args []Value, count int) {
 }
 
 // Echo builtin function echos one or every item in a array
-func Echo(interpreter *Interpreter, args []Value) Value {
+func Echo(fn *Funny, args []Value) Value {
 	for _, item := range args {
 		switch v := item.(type) {
 		case map[string]Value:
@@ -96,7 +96,7 @@ func Echo(interpreter *Interpreter, args []Value) Value {
 }
 
 // Echoln builtin function echos one or every item in a array
-func Echoln(interpreter *Interpreter, args []Value) Value {
+func Echoln(fn *Funny, args []Value) Value {
 	for index, item := range args {
 		switch v := item.(type) {
 		case map[string]Value:
@@ -118,12 +118,12 @@ func Echoln(interpreter *Interpreter, args []Value) Value {
 }
 
 // Now builtin function return now time
-func Now(interpreter *Interpreter, args []Value) Value {
+func Now(fn *Funny, args []Value) Value {
 	return Value(time.Now())
 }
 
 // Base64Encode return base64 encoded string
-func Base64Encode(interpreter *Interpreter, args []Value) Value {
+func Base64Encode(fn *Funny, args []Value) Value {
 	base64encode := func(val string) string {
 		return base64.StdEncoding.EncodeToString([]byte(val))
 	}
@@ -138,7 +138,7 @@ func Base64Encode(interpreter *Interpreter, args []Value) Value {
 }
 
 // Base64Decode return base64 decoded string
-func Base64Decode(interpreter *Interpreter, args []Value) Value {
+func Base64Decode(fn *Funny, args []Value) Value {
 	base64decode := func(val string) string {
 		sb, err := base64.StdEncoding.DecodeString(val)
 		if err != nil {
@@ -157,7 +157,7 @@ func Base64Decode(interpreter *Interpreter, args []Value) Value {
 }
 
 // Assert return the value that has been given
-func Assert(interpreter *Interpreter, args []Value) Value {
+func Assert(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	if val, ok := args[0].(bool); ok {
 		if val {
@@ -169,7 +169,7 @@ func Assert(interpreter *Interpreter, args []Value) Value {
 }
 
 // Len return then length of the given list
-func Len(interpreter *Interpreter, args []Value) Value {
+func Len(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	switch v := args[0].(type) {
 	case *List:
@@ -179,11 +179,11 @@ func Len(interpreter *Interpreter, args []Value) Value {
 	case []interface{}:
 		return Value(len(v))
 	}
-	panic(P(fmt.Sprintf("len type error, only support [list, string] %s", Typing(args[0])), interpreter.Current))
+	panic(P(fmt.Sprintf("len type error, only support [list, string] %s", Typing(args[0])), fn.Current))
 }
 
 // Md5 return then length of the given list
-func Md5(interpreter *Interpreter, args []Value) Value {
+func Md5(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	switch v := args[0].(type) {
 	case string:
@@ -197,7 +197,7 @@ func Md5(interpreter *Interpreter, args []Value) Value {
 }
 
 // Max return then length of the given list
-func Max(interpreter *Interpreter, args []Value) Value {
+func Max(fn *Funny, args []Value) Value {
 	ackGt(args, 1)
 	switch v := args[0].(type) {
 	case int:
@@ -211,10 +211,10 @@ func Max(interpreter *Interpreter, args []Value) Value {
 		}
 		return Value(flag)
 	case *List:
-		flag := interpreter.EvalExpression(v.Values[0])
+		flag := fn.EvalExpression(v.Values[0])
 		if flagA, ok := flag.(int); ok {
 			for _, item := range v.Values {
-				val := interpreter.EvalExpression(item)
+				val := fn.EvalExpression(item)
 				if val, ok := val.(int); ok {
 					if val > flagA {
 						flagA = val
@@ -230,7 +230,7 @@ func Max(interpreter *Interpreter, args []Value) Value {
 }
 
 // Min return then length of the given list
-func Min(interpreter *Interpreter, args []Value) Value {
+func Min(fn *Funny, args []Value) Value {
 	ackGt(args, 1)
 	switch v := args[0].(type) {
 	case int:
@@ -244,10 +244,10 @@ func Min(interpreter *Interpreter, args []Value) Value {
 		}
 		return Value(flag)
 	case *List:
-		flag := interpreter.EvalExpression(v.Values[0])
+		flag := fn.EvalExpression(v.Values[0])
 		if flagA, ok := flag.(int); ok {
 			for _, item := range v.Values {
-				val := interpreter.EvalExpression(item)
+				val := fn.EvalExpression(item)
 				if val, ok := val.(int); ok {
 					if val < flagA {
 						flagA = val
@@ -263,20 +263,20 @@ func Min(interpreter *Interpreter, args []Value) Value {
 }
 
 // Typeof builtin function echos one or every item in a array
-func Typeof(interpreter *Interpreter, args []Value) Value {
+func Typeof(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	return Typing(args[0])
 }
 
 // UUID builtin function return a uuid string value
-func UUID(interpreter *Interpreter, args []Value) Value {
+func UUID(fn *Funny, args []Value) Value {
 	ackEq(args, 0)
 	u1 := uuid.NewV4()
 	return Value(u1)
 }
 
 // HttpRequest builtin function for http request
-func HttpRequest(interpreter *Interpreter, args []Value) Value {
+func HttpRequest(fn *Funny, args []Value) Value {
 	ackEq(args, 5)
 	method := ""
 	url := ""
@@ -303,7 +303,7 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 	if de, ok := args[4].(bool); ok {
 		debug = de
 		if !debug {
-			debug = interpreter.Debug()
+			debug = fn.Debug()
 		}
 	}
 	switch method {
@@ -340,7 +340,7 @@ func HttpRequest(interpreter *Interpreter, args []Value) Value {
 }
 
 // Env return the value of env key
-func Env(interpreter *Interpreter, args []Value) Value {
+func Env(fn *Funny, args []Value) Value {
 	ackGt(args, 0)
 	if key, ok := args[0].(string); ok {
 		val := os.Getenv(key)
@@ -353,12 +353,12 @@ func Env(interpreter *Interpreter, args []Value) Value {
 }
 
 // StrJoin equal strings.Join
-func StrJoin(interpreter *Interpreter, args []Value) Value {
+func StrJoin(fn *Funny, args []Value) Value {
 	ackEq(args, 2)
 	if arr, ok := args[0].(*List); ok {
 		var strArr []string
 		for _, item := range arr.Values {
-			val := interpreter.EvalExpression(item)
+			val := fn.EvalExpression(item)
 			strArr = append(strArr, fmt.Sprintf("%v", val))
 		}
 		if sp, o := args[1].(string); o {
@@ -370,7 +370,7 @@ func StrJoin(interpreter *Interpreter, args []Value) Value {
 }
 
 // StrSplit equal strings.Split
-func StrSplit(interpreter *Interpreter, args []Value) Value {
+func StrSplit(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	if key, ok := args[0].(string); ok {
 		val := os.Getenv(key)
@@ -383,14 +383,14 @@ func StrSplit(interpreter *Interpreter, args []Value) Value {
 }
 
 // Str like string(1)
-func Str(interpreter *Interpreter, args []Value) Value {
+func Str(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	return fmt.Sprint(args[0])
 	// panic("str type error, str data only support [string]")
 }
 
 // Int like int('1')
-func Int(interpreter *Interpreter, args []Value) Value {
+func Int(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	if v, ok := args[0].(time.Time); ok {
 		return Value(int(v.Unix()))
@@ -405,7 +405,7 @@ func Int(interpreter *Interpreter, args []Value) Value {
 }
 
 // JwtEncode jwten(method, secret, claims) string
-func JwtEncode(interpreter *Interpreter, args []Value) Value {
+func JwtEncode(fn *Funny, args []Value) Value {
 	ackEq(args, 3)
 	method := fmt.Sprint(args[0])
 	secret := fmt.Sprint(args[1])
@@ -435,7 +435,7 @@ func JwtEncode(interpreter *Interpreter, args []Value) Value {
 }
 
 // JwtDecode jwtde(method, secret, token) string
-func JwtDecode(interpreter *Interpreter, args []Value) Value {
+func JwtDecode(fn *Funny, args []Value) Value {
 	ackEq(args, 3)
 	// method := fmt.Sprint(args[0])
 	secret := fmt.Sprint(args[1])
@@ -465,7 +465,7 @@ func JwtDecode(interpreter *Interpreter, args []Value) Value {
 }
 
 // SqlQuery sqlquery(connection, sqlRaw, args) string
-func SqlQuery(interpreter *Interpreter, args []Value) Value {
+func SqlQuery(fn *Funny, args []Value) Value {
 	ackGt(args, 1)
 	switch v := args[0].(type) {
 	case map[string]Value:
@@ -520,7 +520,7 @@ func SqlQuery(interpreter *Interpreter, args []Value) Value {
 }
 
 // SqlExec sqlexec(connection, sqlRaw, args) string
-func SqlExec(interpreter *Interpreter, args []Value) Value {
+func SqlExec(fn *Funny, args []Value) Value {
 	ackGt(args, 1)
 	switch v := args[0].(type) {
 	case map[string]Value:
@@ -561,7 +561,7 @@ func SqlExec(interpreter *Interpreter, args []Value) Value {
 }
 
 // FormatData format(data, formatStr) string
-func FormatData(interpreter *Interpreter, args []Value) Value {
+func FormatData(fn *Funny, args []Value) Value {
 	ackEq(args, 2)
 	switch v := args[0].(type) {
 	case time.Time:
@@ -571,9 +571,9 @@ func FormatData(interpreter *Interpreter, args []Value) Value {
 }
 
 // DumpRuntimes dumpruntimes()
-func DumpRuntimes(interpreter *Interpreter, args []Value) Value {
+func DumpRuntimes(fn *Funny, args []Value) Value {
 	ackEq(args, 0)
-	bts, err := json.MarshalIndent(&interpreter.Vars, "", "  ")
+	bts, err := json.MarshalIndent(&fn.Vars, "", "  ")
 	if err != nil {
 		panic(err)
 	}
@@ -582,11 +582,11 @@ func DumpRuntimes(interpreter *Interpreter, args []Value) Value {
 }
 
 // ReadText readtext()
-func ReadText(interpreter *Interpreter, args []Value) Value {
+func ReadText(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	if filename, fileOk := args[0].(string); fileOk {
 		if !path.IsAbs(filename) {
-			d := path.Dir(interpreter.Current.File)
+			d := path.Dir(fn.Current.File)
 			filename = path.Join(d, filename)
 		}
 		bts, err := os.ReadFile(filename)
@@ -599,12 +599,12 @@ func ReadText(interpreter *Interpreter, args []Value) Value {
 }
 
 // WriteText writetext(text)
-func WriteText(interpreter *Interpreter, args []Value) Value {
+func WriteText(fn *Funny, args []Value) Value {
 	ackEq(args, 2)
 	if filename, fileOk := args[0].(string); fileOk {
 		if text, textOk := args[1].(string); textOk {
 			if !path.IsAbs(filename) {
-				d := path.Dir(interpreter.Current.File)
+				d := path.Dir(fn.Current.File)
 				filename = path.Join(d, filename)
 			}
 			err := os.WriteFile(filename, []byte(text), fs.ModeAppend)
@@ -617,11 +617,11 @@ func WriteText(interpreter *Interpreter, args []Value) Value {
 }
 
 // ReadJson readjson()
-func ReadJson(interpreter *Interpreter, args []Value) Value {
+func ReadJson(fn *Funny, args []Value) Value {
 	ackEq(args, 1)
 	if filename, fileOk := args[0].(string); fileOk {
 		if !path.IsAbs(filename) {
-			d := path.Dir(interpreter.Current.File)
+			d := path.Dir(fn.Current.File)
 			filename = path.Join(d, filename)
 		}
 		bts, err := os.ReadFile(filename)
@@ -639,7 +639,7 @@ func ReadJson(interpreter *Interpreter, args []Value) Value {
 }
 
 // WriteJson writejson(obj)
-func WriteJson(interpreter *Interpreter, args []Value) Value {
+func WriteJson(fn *Funny, args []Value) Value {
 	ackEq(args, 2)
 	if filename, fileOk := args[0].(string); fileOk {
 		bts, err := json.Marshal(args[1])
@@ -647,7 +647,7 @@ func WriteJson(interpreter *Interpreter, args []Value) Value {
 			panic(err)
 		}
 		if !path.IsAbs(filename) {
-			d := path.Dir(interpreter.Current.File)
+			d := path.Dir(fn.Current.File)
 			filename = path.Join(d, filename)
 		}
 		err = os.WriteFile(filename, []byte(bts), 0644)
@@ -656,15 +656,15 @@ func WriteJson(interpreter *Interpreter, args []Value) Value {
 		}
 		return Value(nil)
 	}
-	panic(P(fmt.Sprintf("args type error %s", Typing(args[0])), interpreter.Current))
+	panic(P(fmt.Sprintf("args type error %s", Typing(args[0])), fn.Current))
 }
 
 // SqlExecFile sqlexecfile(connection, file)
-func SqlExecFile(interpreter *Interpreter, args []Value) Value {
+func SqlExecFile(fn *Funny, args []Value) Value {
 	ackEq(args, 2)
 	if filename, fileOk := args[1].(string); fileOk {
 		if !path.IsAbs(filename) {
-			d := path.Dir(interpreter.Current.File)
+			d := path.Dir(fn.Current.File)
 			filename = path.Join(d, filename)
 		}
 		bts, err := os.ReadFile(filename)

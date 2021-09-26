@@ -5,8 +5,8 @@ import (
 	"testing"
 )
 
-func RunSingle(data interface{}) (*Interpreter, Value) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func RunSingle(data interface{}) (*Funny, Value) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	var d []byte
 	switch v := data.(type) {
 	case string:
@@ -20,8 +20,8 @@ func RunSingle(data interface{}) (*Interpreter, Value) {
 	return i, Value(r)
 }
 
-func TestInterpreter_Assign(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_Assign(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	i.Assign("a", Value(1))
 	flag := false
 	var val interface{}
@@ -59,8 +59,8 @@ func TestInterpreter_Assign(t *testing.T) {
 	}
 }
 
-func TestInterpreter_Lookup(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_Lookup(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	i.Assign("a", Value(1))
 	val := i.Lookup("a")
 	if val != 1 {
@@ -68,24 +68,24 @@ func TestInterpreter_Lookup(t *testing.T) {
 	}
 }
 
-func TestInterpreter_EvalFunctionCall(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_EvalFunctionCall(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	parser := NewParser([]byte("echo(1)"), "")
 	i.Run(Program{
 		parser.Parse(),
 	})
 }
 
-func TestInterpreter_EvalFunctionCall2(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_EvalFunctionCall2(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"), "")
 	i.Run(Program{
 		parser.Parse(),
 	})
 }
 
-func TestInterpreter_EvalFieldFunctionCall(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_EvalFieldFunctionCall(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	parser := NewParser([]byte(`
 		ddd = 4
 		f() {
@@ -103,8 +103,8 @@ func TestInterpreter_EvalFieldFunctionCall(t *testing.T) {
 	})
 }
 
-func TestInterpreter_EvalPlus(t *testing.T) {
-	i := NewInterpreterWithScope(make(map[string]Value))
+func TestFunny_EvalPlus(t *testing.T) {
+	i := NewFunnyWithScope(make(map[string]Value))
 	parser := NewParser([]byte("  a = 1 + 1"), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -115,7 +115,7 @@ func TestInterpreter_EvalPlus(t *testing.T) {
 	}
 }
 
-func TestInterpreter_Run(t *testing.T) {
+func TestFunny_Run(t *testing.T) {
 	data := `
 a = 1
 b = 2
@@ -137,7 +137,7 @@ return d - 1`
 	}
 }
 
-func TestInterpreter_Return(t *testing.T) {
+func TestFunny_Return(t *testing.T) {
 	data := `
 testReturn(t){
     if t < 1 {
@@ -153,7 +153,7 @@ t = testReturn(10)`
 	t.Log(r)
 }
 
-func TestInterpreter_Fib(t *testing.T) {
+func TestFunny_Fib(t *testing.T) {
 	data := `
 fib(n) {
     echoln('n: ', n)
@@ -172,7 +172,7 @@ return fib(5)`
 	t.Log(r)
 }
 
-func TestInterpreter_EvalBlock(t *testing.T) {
+func TestFunny_EvalBlock(t *testing.T) {
 	data := `
 a = 2
 b = 1

@@ -421,6 +421,19 @@ func (p *Parser) ReadExpression() Statement {
 	current := p.Consume("")
 	switch current.Kind {
 	case NAME:
+		if current.Data == IN {
+			return &BinaryExpression{
+				Position: current.Position,
+				Left: &Variable{
+					Position: current.Position,
+					Name:     current.Data,
+					Type:     STVariable,
+				},
+				Operator: current,
+				Right:    p.ReadExpression(),
+				Type:     STBinaryExpression,
+			}
+		}
 		switch p.Current.Kind {
 		case PLUS, MINUS, TIMES, DEVIDE:
 			return &BinaryExpression{
@@ -587,7 +600,7 @@ func (p *Parser) ReadExpression() Statement {
 	case INT:
 		value, _ := strconv.Atoi(current.Data)
 		switch p.Current.Kind {
-		case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ:
+		case MINUS, PLUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ, NAME:
 			return &BinaryExpression{
 				Position: current.Position,
 				Left: &Literal{

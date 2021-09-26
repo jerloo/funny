@@ -43,9 +43,9 @@ var rootCmd = &cobra.Command{
 				fmt.Printf("file not found %s\n", filename)
 				return
 			}
-			interpreter := funny.NewInterpreterWithScope(funny.Scope{})
-			interpreter.Assign("debug", debug)
-			interpreter.RunFile(filename)
+			funny := funny.NewFunny()
+			funny.Assign("debug", debug)
+			funny.RunFile(filename)
 		} else {
 			err := cmd.Usage()
 			if err != nil {

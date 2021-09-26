@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/jerloo/go-prettyjson"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -129,4 +130,37 @@ func TestParseIfStatement2(t *testing.T) {
 	`), "")
 	blocks := parser.Parse()
 	fmt.Println(blocks.Statements[0].String())
+}
+
+func TestParseInExpression(t *testing.T) {
+	parser := NewParser([]byte(`a = 2 in [2]`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseNotInExpression(t *testing.T) {
+	parser := NewParser([]byte(`a = 2 not in [2]`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseIf(t *testing.T) {
+	parser := NewParser([]byte(`
+if a == 1 {
+    b = 2
+}`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
 }

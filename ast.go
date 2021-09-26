@@ -191,7 +191,7 @@ func (l *List) String() string {
 			s = append(s, item.String())
 		}
 	}
-	return strings.Join(s, ", ")
+	return fmt.Sprintf("[%s]", strings.Join(s, ", "))
 }
 
 // ListAccess like a[0]
