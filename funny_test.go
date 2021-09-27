@@ -227,11 +227,13 @@ func TestFuny_EvalNotIn(t *testing.T) {
 func TestFunnyIfStatementWithElseIf(t *testing.T) {
 	parser := NewParser([]byte(`
 a = 1
-if a > 0 {
+if a > 3 {
 echoln(true)
 } else if a == 1 {
+b = 2
 echoln('else if')
 } else {
+b = 3
 echoln('else')
 }
 `), "")
@@ -239,6 +241,6 @@ echoln('else')
 	i.Run(Program{
 		parser.Parse(),
 	})
-	aInArray := i.Lookup("a")
-	assert.True(t, !aInArray.(bool))
+	aInArray := i.Lookup("b")
+	assert.Equal(t, 2, aInArray.(int))
 }

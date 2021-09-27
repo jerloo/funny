@@ -134,6 +134,11 @@ func (i *Funny) EvalIfStatement(item *IFStatement) (Value, bool) {
 			if has {
 				return r, true
 			}
+		} else if item.ElseIf != nil {
+			r, has := i.EvalIfStatement(item.ElseIf.(*IFStatement))
+			if has {
+				return r, true
+			}
 		} else {
 			r, has := i.EvalBlock(item.Else)
 			if has {
