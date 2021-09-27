@@ -222,19 +222,24 @@ func (p *Parser) ReadIF() Statement {
 	// else body
 	if p.Current.Kind == NAME && p.Current.Data == ELSE {
 		p.Consume("")
-		p.Consume(LBrace)
-		for {
-			if p.Current.Kind == RBrace {
-				break
-			}
-			if item.Else == nil {
-				item.Else = &Block{
-					Position: p.Current.Position,
+		if p.Current.Kind == NAME && p.Current.Data == IF {
+			p.Consume("")
+			item.ElseIf = p.ReadIF()
+		} else {
+			p.Consume(LBrace)
+			for {
+				if p.Current.Kind == RBrace {
+					break
 				}
+				if item.Else == nil {
+					item.Else = &Block{
+						Position: p.Current.Position,
+					}
+				}
+				item.Else.Statements = append(item.Else.Statements, p.ReadStatement())
 			}
-			item.Else.Statements = append(item.Else.Statements, p.ReadStatement())
+			p.Consume(RBrace)
 		}
-		p.Consume(RBrace)
 	}
 	return item
 }

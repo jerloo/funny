@@ -80,28 +80,38 @@ func TestParseIfStatement(t *testing.T) {
 
 func TestParseIfStatementWithElse(t *testing.T) {
 	parser := NewParser([]byte(`
-	a = 1
-	if a > 0 {
-		echoln(true)
-	} else {
-		echoln('else')
+a = 1
+if a > 0 {
+echoln(true)
+} else {
+echoln('else')
+}
+`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
 	}
-	`), "")
-	parser.Parse()
+	fmt.Println(string(echoJson))
 }
 
 func TestParseIfStatementWithElseIf(t *testing.T) {
 	parser := NewParser([]byte(`
-	a = 1
-	if a > 0 {
-		echoln(true)
-	} else if a == 1 {
-		echoln('else')
-	} else {
-		echoln('else')
+a = 1
+if a > 0 {
+echoln(true)
+} else if a == 1 {
+echoln('else if')
+} else {
+echoln('else')
+}
+`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
 	}
-	`), "")
-	parser.Parse()
+	fmt.Println(string(echoJson))
 }
 
 func TestParseIfStatementWithField(t *testing.T) {

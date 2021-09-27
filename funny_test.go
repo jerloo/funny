@@ -8,7 +8,7 @@ import (
 )
 
 func RunSingle(data interface{}) (*Funny, Value) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	var d []byte
 	switch v := data.(type) {
 	case string:
@@ -23,7 +23,7 @@ func RunSingle(data interface{}) (*Funny, Value) {
 }
 
 func TestFunny_Assign(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	i.Assign("a", Value(1))
 	flag := false
 	var val interface{}
@@ -62,7 +62,7 @@ func TestFunny_Assign(t *testing.T) {
 }
 
 func TestFunny_Lookup(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	i.Assign("a", Value(1))
 	val := i.Lookup("a")
 	if val != 1 {
@@ -71,7 +71,7 @@ func TestFunny_Lookup(t *testing.T) {
 }
 
 func TestFunny_EvalFunctionCall(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte("echo(1)"), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -79,7 +79,7 @@ func TestFunny_EvalFunctionCall(t *testing.T) {
 }
 
 func TestFunny_EvalFunctionCall2(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -87,7 +87,7 @@ func TestFunny_EvalFunctionCall2(t *testing.T) {
 }
 
 func TestFunny_EvalFieldFunctionCall(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte(`
 		ddd = 4
 		f() {
@@ -106,7 +106,7 @@ func TestFunny_EvalFieldFunctionCall(t *testing.T) {
 }
 
 func TestFunny_EvalPlus(t *testing.T) {
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte("  a = 1 + 1"), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -192,7 +192,7 @@ return b
 
 func TestFuny_EvalInTrue(t *testing.T) {
 	data := `a = 2 in [2]`
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte(data), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -203,7 +203,7 @@ func TestFuny_EvalInTrue(t *testing.T) {
 
 func TestFuny_EvalInFalse(t *testing.T) {
 	data := `a = 2 in [1]`
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte(data), "")
 	i.Run(Program{
 		parser.Parse(),
@@ -214,12 +214,31 @@ func TestFuny_EvalInFalse(t *testing.T) {
 
 func TestFuny_EvalNotIn(t *testing.T) {
 	data := `a = 2 not in [2]`
-	i := NewFunnyWithScope(make(map[string]Value))
+	i := NewFunny()
 	parser := NewParser([]byte(data), "")
 	i.Run(Program{
 		parser.Parse(),
 	})
 	aInArray := i.Lookup("a")
 	fmt.Println(aInArray)
+	assert.True(t, !aInArray.(bool))
+}
+
+func TestFunnyIfStatementWithElseIf(t *testing.T) {
+	parser := NewParser([]byte(`
+a = 1
+if a > 0 {
+echoln(true)
+} else if a == 1 {
+echoln('else if')
+} else {
+echoln('else')
+}
+`), "")
+	i := NewFunny()
+	i.Run(Program{
+		parser.Parse(),
+	})
+	aInArray := i.Lookup("a")
 	assert.True(t, !aInArray.(bool))
 }

@@ -370,6 +370,7 @@ type IFStatement struct {
 	Condition Statement
 	Body      *Block
 	Else      *Block
+	ElseIf    Statement
 }
 
 func (l *IFStatement) GetPosition() Position {
