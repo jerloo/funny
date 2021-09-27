@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
 	_ "github.com/go-sql-driver/mysql"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/guonaihong/gout"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/xerrors"
