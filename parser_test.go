@@ -70,11 +70,11 @@ func TestParseFunctionCall(t *testing.T) {
 
 func TestParseIfStatement(t *testing.T) {
 	parser := NewParser([]byte(`
-	a = 1
-	if a > 0 {
-		echoln(true)
-	}
-	`), "")
+    a = 1
+    if a > 0 {
+        echoln(true)
+    }
+    `), "")
 	parser.Parse()
 }
 
@@ -116,28 +116,28 @@ echoln('else')
 
 func TestParseIfStatementWithField(t *testing.T) {
 	parser := NewParser([]byte(`
-	a = {
-		t = 1
-	}
-	if a.t > 0 {
-		echoln(true)
-	} else if a.t == 1 {
-		echoln('else if')
-	} else {
-		echoln('else')
-	}
-	`), "")
+    a = {
+        t = 1
+    }
+    if a.t > 0 {
+        echoln(true)
+    } else if a.t == 1 {
+        echoln('else if')
+    } else {
+        echoln('else')
+    }
+    `), "")
 	parser.Parse()
 }
 
 func TestParseIfStatement2(t *testing.T) {
 	parser := NewParser([]byte(`
-	main(row){
-		if a == 1 {
-		} else a == 1 {
-		}
-	}
-	`), "")
+    main(row){
+        if a == 1 {
+        } else {
+        }
+    }
+    `), "")
 	blocks := parser.Parse()
 	fmt.Println(blocks.Statements[0].String())
 }

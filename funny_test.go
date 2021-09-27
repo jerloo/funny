@@ -89,17 +89,18 @@ func TestFunny_EvalFunctionCall2(t *testing.T) {
 func TestFunny_EvalFieldFunctionCall(t *testing.T) {
 	i := NewFunny()
 	parser := NewParser([]byte(`
-		ddd = 4
-		f() {
-			return httpreq('GET', baseUrl + 'api/appraisal/admin/terms', {
-		  
-			}, {
-			  Authorization = 'Bearer ' + token
-			}, debug)
-		  }
-		r = f()
-		echoln(r)
-	`), "")
+        baseUrl = 'test'
+        token = 'testtoken'
+        f() {
+            return httpreq('GET', baseUrl + 'api/appraisal/admin/terms', {
+          
+            }, {
+              Authorization = 'Bearer ' + token
+            }, debug)
+          }
+        r = f()
+        echoln(r)
+    `), "")
 	i.Run(Program{
 		parser.Parse(),
 	})
