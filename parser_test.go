@@ -55,7 +55,10 @@ func TestParserPosition(t *testing.T) {
 	assert.Equal(t, 1, 1)
 
 	parser := NewParser([]byte(ParserTestData), "")
-	block := parser.Parse()
+	block, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	for index, item := range block.Statements {
 		// fmt.Printf("%d %s %s\n", index, Typing(item), item.String())
 		assert.Equal(t, statements[index].position.Line, item.GetPosition().Line, "Line: "+item.String())
@@ -87,7 +90,10 @@ echoln(true)
 echoln('else')
 }
 `), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)
@@ -106,7 +112,10 @@ echoln('else if')
 echoln('else')
 }
 `), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)
@@ -138,13 +147,19 @@ func TestParseIfStatement2(t *testing.T) {
         }
     }
     `), "")
-	blocks := parser.Parse()
-	fmt.Println(blocks.Statements[0].String())
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(items.Statements[0].String())
 }
 
 func TestParseInExpression(t *testing.T) {
 	parser := NewParser([]byte(`a = 2 in [2]`), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)
@@ -154,7 +169,10 @@ func TestParseInExpression(t *testing.T) {
 
 func TestParseNotInExpression(t *testing.T) {
 	parser := NewParser([]byte(`a = 2 not in [2]`), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)
@@ -167,7 +185,10 @@ func TestParseIf(t *testing.T) {
 if a == 1 {
     b = 2
 }`), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)
@@ -182,7 +203,10 @@ func TestParseIfIn(t *testing.T) {
         plusAccount = Assets:Others
     }
 `), "")
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	echoJson, err := prettyjson.Marshal(items)
 	if err != nil {
 		panic(err)

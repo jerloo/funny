@@ -23,11 +23,17 @@ func (h Handler) handleTextDocumentHover(ctx context.Context, conn jsonrpc2.JSON
 		return nil, errors.New("document content not found")
 	}
 	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny), UriToRealPath(params.TextDocument.URI))
-	builtinBlock := builtinParser.Parse()
+	builtinBlock, err := builtinParser.Parse()
+	if err != nil {
+		return nil, err
+	}
 
 	parser := funny.NewParser(contents, UriToRealPath(params.TextDocument.URI))
 	parser.ContentFile = UriToRealPath(params.TextDocument.URI)
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		return nil, err
+	}
 
 	var currentToken *funny.Token
 	var lastToken funny.Token

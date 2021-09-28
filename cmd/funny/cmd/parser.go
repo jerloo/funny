@@ -47,7 +47,10 @@ var parserCmd = &cobra.Command{
 			}
 			parser := funny.NewParser([]byte(data), filename)
 			parser.ContentFile = filename
-			items := parser.Parse()
+			items, err := parser.Parse()
+			if err != nil {
+				fmt.Println(err)
+			}
 			echoJson, err := prettyjson.Marshal(items)
 			if err != nil {
 				panic(err)

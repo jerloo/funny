@@ -34,10 +34,16 @@ func (h Handler) handleTextDocumentCompletion(ctx context.Context, conn jsonrpc2
 		return cl, errors.New("document content not found")
 	}
 	builtinParser := funny.NewParser([]byte(funny.BuiltinsDotFunny), "")
-	builtinBlock := builtinParser.Parse()
+	builtinBlock, err := builtinParser.Parse()
+	if err != nil {
+		return nil, err
+	}
 
 	parser := funny.NewParser(contents, UriToRealPath(params.TextDocument.URI))
-	items := parser.Parse()
+	items, err := parser.Parse()
+	if err != nil {
+		return nil, err
+	}
 
 	var currentToken *funny.Token
 	var lastToken funny.Token

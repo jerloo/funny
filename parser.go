@@ -39,8 +39,13 @@ func (p *Parser) Consume(kind string) Token {
 }
 
 // Parse parse to statements
-func (p *Parser) Parse() *Block {
-	block := &Block{
+func (p *Parser) Parse() (block *Block, err error) {
+	defer func() {
+		if e := recover(); e != nil {
+			err = e.(error)
+		}
+	}()
+	block = &Block{
 		Type: STBlock,
 	}
 	p.Consume("")
@@ -54,7 +59,7 @@ func (p *Parser) Parse() *Block {
 		}
 		block.Statements = append(block.Statements, element)
 	}
-	return block
+	return
 }
 
 // ReadStatement get next statement
@@ -374,7 +379,10 @@ func (p *Parser) ReadFunction(name string) Statement {
 			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current.Position))
 		}
 		importParser := NewParser(importData, moduleFileName)
-		block := importParser.Parse()
+		block, err := importParser.Parse()
+		if err != nil {
+			panic(err)
+		}
 		return &ImportFunctionCall{
 			Position:   p.Current.Position,
 			ModulePath: fn.Parameters[0].String(),

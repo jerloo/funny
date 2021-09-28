@@ -67,8 +67,12 @@ func (i *Funny) RunFile(filename string) (Value, bool) {
 	}
 	parser := NewParser(data, filename)
 	parser.ContentFile = filename
+	statements, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
 	program := Program{
-		Statements: parser.Parse(),
+		Statements: statements,
 	}
 	return i.Run(program)
 }
@@ -91,8 +95,12 @@ func (i *Funny) Run(v interface{}) (Value, bool) {
 		return i.Run([]byte(v))
 	case []byte:
 		parser := NewParser(v, "")
+		statements, err := parser.Parse()
+		if err != nil {
+			panic(err)
+		}
 		program := Program{
-			Statements: parser.Parse(),
+			Statements: statements,
 		}
 		return i.Run(program)
 	default:

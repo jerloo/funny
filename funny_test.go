@@ -14,11 +14,7 @@ func RunSingle(data interface{}) (*Funny, Value) {
 	case string:
 		d = []byte(v)
 	}
-	parser := NewParser(d, "")
-	block := parser.Parse()
-	r, _ := i.Run(Program{
-		Statements: block,
-	})
+	r, _ := i.Run(d)
 	return i, Value(r)
 }
 
@@ -72,18 +68,12 @@ func TestFunny_Lookup(t *testing.T) {
 
 func TestFunny_EvalFunctionCall(t *testing.T) {
 	i := NewFunny()
-	parser := NewParser([]byte("echo(1)"), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run("echo(1)")
 }
 
 func TestFunny_EvalFunctionCall2(t *testing.T) {
 	i := NewFunny()
-	parser := NewParser([]byte("echo2(b){echo(b)} \n echo2(1)"), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run("echo2(b){echo(b)} \n echo2(1)")
 }
 
 // func TestFunny_EvalFieldFunctionCall(t *testing.T) {
@@ -108,10 +98,7 @@ func TestFunny_EvalFunctionCall2(t *testing.T) {
 
 func TestFunny_EvalPlus(t *testing.T) {
 	i := NewFunny()
-	parser := NewParser([]byte("  a = 1 + 1"), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run("  a = 1 + 1")
 	a := i.Lookup("a")
 	if a != 2 {
 		t.Error("eval plus error")
@@ -194,10 +181,7 @@ return b
 func TestFuny_EvalInTrue(t *testing.T) {
 	data := `a = 2 in [2]`
 	i := NewFunny()
-	parser := NewParser([]byte(data), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run(data)
 	aInArray := i.Lookup("a")
 	assert.True(t, aInArray.(bool))
 }
@@ -205,10 +189,7 @@ func TestFuny_EvalInTrue(t *testing.T) {
 func TestFuny_EvalInFalse(t *testing.T) {
 	data := `a = 2 in [1]`
 	i := NewFunny()
-	parser := NewParser([]byte(data), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run(data)
 	aInArray := i.Lookup("a")
 	assert.True(t, !aInArray.(bool))
 }
@@ -216,17 +197,14 @@ func TestFuny_EvalInFalse(t *testing.T) {
 func TestFuny_EvalNotIn(t *testing.T) {
 	data := `a = 2 not in [2]`
 	i := NewFunny()
-	parser := NewParser([]byte(data), "")
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run(data)
 	aInArray := i.Lookup("a")
 	fmt.Println(aInArray)
 	assert.True(t, !aInArray.(bool))
 }
 
 func TestFunnyIfStatementWithElseIf(t *testing.T) {
-	parser := NewParser([]byte(`
+	data := `
 a = 1
 if a > 3 {
 echoln(true)
@@ -237,11 +215,9 @@ echoln('else if')
 b = 3
 echoln('else')
 }
-`), "")
+`
 	i := NewFunny()
-	i.Run(Program{
-		parser.Parse(),
-	})
+	i.Run(data)
 	aInArray := i.Lookup("b")
 	assert.Equal(t, 2, aInArray.(int))
 }
