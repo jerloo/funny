@@ -533,10 +533,11 @@ func (p *Parser) ReadExpression() Statement {
 					Type: STField,
 				}
 			} else if p.Current.Kind == INT {
-				indexStr := p.Consume(INT).Data
+				token := p.Consume(INT)
+				indexStr := token.Data
 				index, err := strconv.Atoi(indexStr)
 				if err != nil {
-					panic("Bad list index ")
+					panic(P("Bad list index ", token.Position))
 				}
 				exp = &ListAccess{
 					Position: current.Position,

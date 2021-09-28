@@ -77,7 +77,7 @@ func (i *Funny) RunFile(filename string) (Value, bool) {
 func (i *Funny) Run(v interface{}) (Value, bool) {
 	defer func() {
 		if err := recover(); err != nil {
-			panic(err)
+			fmt.Println(err)
 		}
 	}()
 	switch v := v.(type) {
@@ -96,7 +96,7 @@ func (i *Funny) Run(v interface{}) (Value, bool) {
 		}
 		return i.Run(program)
 	default:
-		panic(fmt.Sprintf("unknow type of running value: [%v]", v))
+		panic(P(fmt.Sprintf("unknow type of running value: [%v]", v), i.Current))
 	}
 }
 
@@ -154,7 +154,7 @@ func (i *Funny) EvalIfStatement(item *IFStatement) (Value, bool) {
 // EvalForStatement eval for statement
 func (i *Funny) EvalForStatement(item *FORStatement) (Value, bool) {
 	i.Current = item.GetPosition()
-	panic("NOT IMPLEMENT")
+	panic(P("NOT IMPLEMENT", i.Current))
 }
 
 // EvalStatement eval statement
@@ -235,7 +235,7 @@ func (i *Funny) EvalFunctionCall(item *FunctionCall) (Value, bool) {
 	if look == nil {
 		look := i.LookupDefault(item.Name, nil)
 		if look == nil {
-			panic(fmt.Sprintf("function [%s] not defined", item.Name))
+			panic(P(fmt.Sprintf("function [%s] not defined", item.Name), i.Current))
 		}
 		fun := i.Lookup(item.Name).(*Function)
 		return i.EvalFunction(*fun, params)
@@ -490,9 +490,9 @@ func (i *Funny) EvalField(item *Field) Value {
 			i.PopScope()
 			return r
 		}
-		panic(fmt.Sprintf("unknow type %v", v))
+		panic(P(fmt.Sprintf("unknow type %v", v), i.Current))
 	default:
-		panic(fmt.Sprintf("unknow type %v", v))
+		panic(P(fmt.Sprintf("unknow type %v", v), i.Current))
 	}
 	return Value(nil)
 }
@@ -549,7 +549,7 @@ func (i *Funny) EvalPlus(left, right Value) Value {
 		}
 		return s
 	}
-	panic(fmt.Sprintf("eval plus only support types: [int, list, dict] given [%s]", Typing(left)))
+	panic(P(fmt.Sprintf("eval plus only support types: [int, list, dict] given [%s]", Typing(left)), i.Current))
 }
 
 // EvalMinus -
@@ -584,7 +584,7 @@ func (i *Funny) EvalMinus(left, right Value) Value {
 		}
 		return s
 	}
-	panic("eval plus only support types: [int, list, dict]")
+	panic(P("eval plus only support types: [int, list, dict]", i.Current))
 }
 
 // EvalTimes *
@@ -594,7 +594,7 @@ func (i *Funny) EvalTimes(left, right Value) Value {
 			return Value(l * r)
 		}
 	}
-	panic("eval plus times only support types: [int]")
+	panic(P("eval plus times only support types: [int]", i.Current))
 }
 
 // EvalDevide /
@@ -604,7 +604,7 @@ func (i *Funny) EvalDevide(left, right Value) Value {
 			return Value(l / r)
 		}
 	}
-	panic("eval plus devide only support types: [int]")
+	panic(P("eval plus devide only support types: [int]", i.Current))
 }
 
 // EvalEqual ==
@@ -660,7 +660,7 @@ func (i *Funny) EvalEqual(left, right Value) Value {
 		}
 		return Value(false)
 	default:
-		panic(fmt.Sprintf("unsupport type [%s]", Typing(l)))
+		panic(P(fmt.Sprintf("unsupport type [%s]", Typing(l)), i.Current))
 	}
 	return Value(false)
 }
@@ -673,7 +673,7 @@ func (i *Funny) EvalGt(left, right Value) Value {
 			return Value(left > right)
 		}
 	}
-	panic("eval gt only support: [int]")
+	panic(P("eval gt only support: [int]", i.Current))
 }
 
 // EvalGte >=
@@ -684,7 +684,7 @@ func (i *Funny) EvalGte(left, right Value) Value {
 			return Value(left >= right)
 		}
 	}
-	panic("eval lte only support: [int]")
+	panic(P("eval lte only support: [int]", i.Current))
 }
 
 // EvalLt <
@@ -695,7 +695,7 @@ func (i *Funny) EvalLt(left, right Value) Value {
 			return Value(left < right)
 		}
 	}
-	panic("eval lt only support: [int]")
+	panic(P("eval lt only support: [int]", i.Current))
 }
 
 // EvalLte <=
@@ -706,7 +706,7 @@ func (i *Funny) EvalLte(left, right Value) Value {
 			return Value(left <= right)
 		}
 	}
-	panic("eval lte only support: [int]")
+	panic(P("eval lte only support: [int]", i.Current))
 }
 
 // EvalDoubleEq ==
@@ -724,5 +724,5 @@ func (i *Funny) EvalDoubleEq(left, right Value) Value {
 	// default:
 	// 	return Value(left == right)
 	// }
-	// panic("eval double eq only support: [int]")
+	// panic(P("eval double eq only support: [int]")
 }

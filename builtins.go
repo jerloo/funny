@@ -64,16 +64,16 @@ var (
 )
 
 // ackEq check function arguments count valid
-func ackEq(args []Value, count int) {
+func ackEq(fn *Funny, args []Value, count int) {
 	if len(args) != count {
-		panic(fmt.Sprintf("%d arguments required but got %d", count, len(args)))
+		panic(P(fmt.Sprintf("%d arguments required but got %d", count, len(args)), fn.Current))
 	}
 }
 
 // ackGt check function arguments count valid
-func ackGt(args []Value, count int) {
+func ackGt(fn *Funny, args []Value, count int) {
 	if len(args) <= count {
-		panic(fmt.Sprintf("greater than %d arguments required but got %d", count, len(args)))
+		panic(P(fmt.Sprintf("greater than %d arguments required but got %d", count, len(args)), fn.Current))
 	}
 }
 
@@ -85,7 +85,7 @@ func Echo(fn *Funny, args []Value) Value {
 		case map[string]interface{}:
 			bts, err := json.Marshal(&v)
 			if err != nil {
-				panic(err)
+				panic(P(err.Error(), fn.Current))
 			}
 			fmt.Print(string(bts))
 		default:
@@ -103,7 +103,7 @@ func Echoln(fn *Funny, args []Value) Value {
 		case map[string]interface{}:
 			bts, err := json.Marshal(&v)
 			if err != nil {
-				panic(err)
+				panic(P(err.Error(), fn.Current))
 			}
 			fmt.Print(string(bts))
 		default:
@@ -111,7 +111,7 @@ func Echoln(fn *Funny, args []Value) Value {
 		}
 
 		if index == len(args)-1 {
-			fmt.Print("\n")
+			fmt.Print("\n", fn.Current)
 		}
 	}
 	return nil
@@ -142,7 +142,7 @@ func Base64Decode(fn *Funny, args []Value) Value {
 	base64decode := func(val string) string {
 		sb, err := base64.StdEncoding.DecodeString(val)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return string(sb)
 	}
@@ -158,19 +158,19 @@ func Base64Decode(fn *Funny, args []Value) Value {
 
 // Assert return the value that has been given
 func Assert(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	if val, ok := args[0].(bool); ok {
 		if val {
 			return Value(args[0])
 		}
-		panic("assert false")
+		panic(P("assert false", fn.Current))
 	}
-	panic("assert type error, only support [bool]")
+	panic(P("assert type error, only support [bool]", fn.Current))
 }
 
 // Len return then length of the given list
 func Len(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	switch v := args[0].(type) {
 	case *List:
 		return Value(len(v.Values))
@@ -184,7 +184,7 @@ func Len(fn *Funny, args []Value) Value {
 
 // Md5 return then length of the given list
 func Md5(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	switch v := args[0].(type) {
 	case string:
 		md5Ctx := md5.New()
@@ -193,12 +193,12 @@ func Md5(fn *Funny, args []Value) Value {
 	default:
 		break
 	}
-	panic("md5 type error, only support [string]")
+	panic(P("md5 type error, only support [string]", fn.Current))
 }
 
 // Max return then length of the given list
 func Max(fn *Funny, args []Value) Value {
-	ackGt(args, 1)
+	ackGt(fn, args, 1)
 	switch v := args[0].(type) {
 	case int:
 		flag := v
@@ -226,12 +226,12 @@ func Max(fn *Funny, args []Value) Value {
 	default:
 		break
 	}
-	panic("max type error, only support [int]")
+	panic(P("max type error, only support [int]", fn.Current))
 }
 
 // Min return then length of the given list
 func Min(fn *Funny, args []Value) Value {
-	ackGt(args, 1)
+	ackGt(fn, args, 1)
 	switch v := args[0].(type) {
 	case int:
 		flag := v
@@ -259,25 +259,25 @@ func Min(fn *Funny, args []Value) Value {
 	default:
 		break
 	}
-	panic("min type error, only support [int]")
+	panic(P("min type error, only support [int]", fn.Current))
 }
 
 // Typeof builtin function echos one or every item in a array
 func Typeof(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	return Typing(args[0])
 }
 
 // UUID builtin function return a uuid string value
 func UUID(fn *Funny, args []Value) Value {
-	ackEq(args, 0)
+	ackEq(fn, args, 0)
 	u1 := uuid.NewV4()
 	return Value(u1)
 }
 
 // HttpRequest builtin function for http request
 func HttpRequest(fn *Funny, args []Value) Value {
-	ackEq(args, 5)
+	ackEq(fn, args, 5)
 	method := ""
 	url := ""
 	data := make(map[string]Value)
@@ -341,7 +341,7 @@ func HttpRequest(fn *Funny, args []Value) Value {
 
 // Env return the value of env key
 func Env(fn *Funny, args []Value) Value {
-	ackGt(args, 0)
+	ackGt(fn, args, 0)
 	if key, ok := args[0].(string); ok {
 		val := os.Getenv(key)
 		if val == "" && len(args) > 1 {
@@ -349,12 +349,12 @@ func Env(fn *Funny, args []Value) Value {
 		}
 		return Value(val)
 	}
-	panic("env type error, env key only support [string]")
+	panic(P("env type error, env key only support [string]", fn.Current))
 }
 
 // StrJoin equal strings.Join
 func StrJoin(fn *Funny, args []Value) Value {
-	ackEq(args, 2)
+	ackEq(fn, args, 2)
 	if arr, ok := args[0].(*List); ok {
 		var strArr []string
 		for _, item := range arr.Values {
@@ -364,14 +364,14 @@ func StrJoin(fn *Funny, args []Value) Value {
 		if sp, o := args[1].(string); o {
 			return strings.Join(strArr, sp)
 		}
-		panic("strjoin type error, join part only support [string]")
+		panic(P("strjoin type error, join part only support [string]", fn.Current))
 	}
-	panic("strjoin type error, join data only support [array]")
+	panic(P("strjoin type error, join data only support [array]", fn.Current))
 }
 
 // StrSplit equal strings.Split
 func StrSplit(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	if key, ok := args[0].(string); ok {
 		val := os.Getenv(key)
 		if val == "" && len(args) > 1 {
@@ -379,46 +379,46 @@ func StrSplit(fn *Funny, args []Value) Value {
 		}
 		return Value(val)
 	}
-	panic("strsplit type error, strsplit value only support [string]")
+	panic(P("strsplit type error, strsplit value only support [string]", fn.Current))
 }
 
 // Str like string(1)
 func Str(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	return fmt.Sprint(args[0])
-	// panic("str type error, str data only support [string]")
+	// panic(P("str type error, str data only support [string]", fn.Current))
 }
 
 // Int like int('1')
 func Int(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	if v, ok := args[0].(time.Time); ok {
 		return Value(int(v.Unix()))
 	}
 	dataStr := fmt.Sprint(args[0])
 	for _, ch := range dataStr {
 		if !isNameStart(ch) {
-			panic("int type error, int only support [int format]")
+			panic(P("int type error, int only support [int format]", fn.Current))
 		}
 	}
-	panic("int type error, int only support [int format]")
+	panic(P("int type error, int only support [int format]", fn.Current))
 }
 
 // JwtEncode jwten(method, secret, claims) string
 func JwtEncode(fn *Funny, args []Value) Value {
-	ackEq(args, 3)
+	ackEq(fn, args, 3)
 	method := fmt.Sprint(args[0])
 	secret := fmt.Sprint(args[1])
 
 	if v, ok := args[2].(map[string]Value); ok {
 		bts, err := json.Marshal(&v)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		var claims jwt.MapClaims
 		err = json.Unmarshal(bts, &claims)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		m := jwt.SigningMethodHS256
 		if method == "HS256" {
@@ -427,16 +427,16 @@ func JwtEncode(fn *Funny, args []Value) Value {
 		token := jwt.NewWithClaims(m, claims)
 		result, err := token.SignedString([]byte(secret))
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return Value(result)
 	}
-	panic("jwten type error, claims only support [map[string]interface{}]")
+	panic(P("jwten type error, claims only support [map[string]interface{}]", fn.Current))
 }
 
 // JwtDecode jwtde(method, secret, token) string
 func JwtDecode(fn *Funny, args []Value) Value {
-	ackEq(args, 3)
+	ackEq(fn, args, 3)
 	// method := fmt.Sprint(args[0])
 	secret := fmt.Sprint(args[1])
 	tokenString := fmt.Sprint(args[2])
@@ -447,26 +447,26 @@ func JwtDecode(fn *Funny, args []Value) Value {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		panic(err)
+		panic(P(err.Error(), fn.Current))
 	}
 	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid { // 校验token
 		bts, err := json.Marshal(&claims)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		var result map[string]interface{}
 		err = json.Unmarshal(bts, &result)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return Value(result)
 	}
-	panic("jwtde type error, token not valid")
+	panic(P("jwtde type error, token not valid", fn.Current))
 }
 
 // SqlQuery sqlquery(connection, sqlRaw, args) string
 func SqlQuery(fn *Funny, args []Value) Value {
-	ackGt(args, 1)
+	ackGt(fn, args, 1)
 	switch v := args[0].(type) {
 	case map[string]Value:
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -478,7 +478,7 @@ func SqlQuery(fn *Funny, args []Value) Value {
 
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		defer db.Close()
 		var sqlArgs []interface{}
@@ -487,14 +487,14 @@ func SqlQuery(fn *Funny, args []Value) Value {
 		}
 		rows, err := db.Query(fmt.Sprint(args[1]), sqlArgs...)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		defer rows.Close()
 		r := make([]map[string]interface{}, 0)
 		for rows.Next() {
 			cols, err := rows.Columns()
 			if err != nil {
-				panic(err)
+				panic(P(err.Error(), fn.Current))
 			}
 			fields := make([]interface{}, len(cols))
 			for index := range fields {
@@ -502,7 +502,7 @@ func SqlQuery(fn *Funny, args []Value) Value {
 			}
 			err = rows.Scan(fields...)
 			if err != nil {
-				panic(err)
+				panic(P(err.Error(), fn.Current))
 			}
 			row := make(map[string]interface{})
 			for index, col := range cols {
@@ -512,16 +512,16 @@ func SqlQuery(fn *Funny, args []Value) Value {
 		}
 		rows.Close()
 		if err := rows.Err(); err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return Value(r)
 	}
-	panic("sqlquery type error, connection")
+	panic(P("sqlquery type error, connection", fn.Current))
 }
 
 // SqlExec sqlexec(connection, sqlRaw, args) string
 func SqlExec(fn *Funny, args []Value) Value {
-	ackGt(args, 1)
+	ackGt(fn, args, 1)
 	switch v := args[0].(type) {
 	case map[string]Value:
 		dsn := fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=utf8mb4&parseTime=True&loc=Local",
@@ -533,7 +533,7 @@ func SqlExec(fn *Funny, args []Value) Value {
 
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		defer db.Close()
 		var sqlArgs []interface{}
@@ -542,40 +542,40 @@ func SqlExec(fn *Funny, args []Value) Value {
 		}
 		result, err := db.Exec(fmt.Sprint(args[1]), sqlArgs...)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		last, err := result.LastInsertId()
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		row, err := result.RowsAffected()
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return Value(map[string]interface{}{
 			"lastInsertId": last,
 			"rowsAffected": row,
 		})
 	}
-	panic("sqlexec type error, connection")
+	panic(P("sqlexec type error, connection", fn.Current))
 }
 
 // FormatData format(data, formatStr) string
 func FormatData(fn *Funny, args []Value) Value {
-	ackEq(args, 2)
+	ackEq(fn, args, 2)
 	switch v := args[0].(type) {
 	case time.Time:
 		return Value(v.Format(args[1].(string)))
 	}
-	panic("format type error, data")
+	panic(P("format type error, data", fn.Current))
 }
 
 // DumpRuntimes dumpruntimes()
 func DumpRuntimes(fn *Funny, args []Value) Value {
-	ackEq(args, 0)
+	ackEq(fn, args, 0)
 	bts, err := json.MarshalIndent(&fn.Vars, "", "  ")
 	if err != nil {
-		panic(err)
+		panic(P(err.Error(), fn.Current))
 	}
 	fmt.Println(string(bts))
 	return Value(string(bts))
@@ -583,7 +583,7 @@ func DumpRuntimes(fn *Funny, args []Value) Value {
 
 // ReadText readtext()
 func ReadText(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	if filename, fileOk := args[0].(string); fileOk {
 		if !path.IsAbs(filename) {
 			d := path.Dir(fn.Current.File)
@@ -595,12 +595,12 @@ func ReadText(fn *Funny, args []Value) Value {
 		}
 		return Value(string(bts))
 	}
-	panic("args type error")
+	panic(P("args type error", fn.Current))
 }
 
 // WriteText writetext(text)
 func WriteText(fn *Funny, args []Value) Value {
-	ackEq(args, 2)
+	ackEq(fn, args, 2)
 	if filename, fileOk := args[0].(string); fileOk {
 		if text, textOk := args[1].(string); textOk {
 			if !path.IsAbs(filename) {
@@ -613,12 +613,12 @@ func WriteText(fn *Funny, args []Value) Value {
 			}
 		}
 	}
-	panic("args type error")
+	panic(P("args type error", fn.Current))
 }
 
 // ReadJson readjson()
 func ReadJson(fn *Funny, args []Value) Value {
-	ackEq(args, 1)
+	ackEq(fn, args, 1)
 	if filename, fileOk := args[0].(string); fileOk {
 		if !path.IsAbs(filename) {
 			d := path.Dir(fn.Current.File)
@@ -635,16 +635,16 @@ func ReadJson(fn *Funny, args []Value) Value {
 		}
 		return Value(m)
 	}
-	panic("args type error")
+	panic(P("args type error", fn.Current))
 }
 
 // WriteJson writejson(obj)
 func WriteJson(fn *Funny, args []Value) Value {
-	ackEq(args, 2)
+	ackEq(fn, args, 2)
 	if filename, fileOk := args[0].(string); fileOk {
 		bts, err := json.Marshal(args[1])
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		if !path.IsAbs(filename) {
 			d := path.Dir(fn.Current.File)
@@ -661,7 +661,7 @@ func WriteJson(fn *Funny, args []Value) Value {
 
 // SqlExecFile sqlexecfile(connection, file)
 func SqlExecFile(fn *Funny, args []Value) Value {
-	ackEq(args, 2)
+	ackEq(fn, args, 2)
 	if filename, fileOk := args[1].(string); fileOk {
 		if !path.IsAbs(filename) {
 			d := path.Dir(fn.Current.File)
@@ -684,34 +684,34 @@ func SqlExecFile(fn *Funny, args []Value) Value {
 
 		db, err := sql.Open("mysql", dsn)
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		defer db.Close()
 		tx, err := db.BeginTx(context.Background(), &sql.TxOptions{})
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
-		// sqls := strings.Split(string(bts), "\n")
+		// sqls := strings.Split(string(bts), "\n", fn.Current))
 		// for _, sql := range sqls {
 		// 	_, err = tx.Exec(sql)
 		// 	if err != nil {
 		// 		tx.Rollback()
-		// 		panic(err)
+		// 		panic(P(err.Error(), fn.Current))
 		// 	}
 		// }
 		_, err = tx.Exec(string(bts))
 		if err != nil {
 			err = tx.Rollback()
 			if err != nil {
-				panic(err)
+				panic(P(err.Error(), fn.Current))
 			}
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		err = tx.Commit()
 		if err != nil {
-			panic(err)
+			panic(P(err.Error(), fn.Current))
 		}
 		return Value(nil)
 	}
-	panic("args type error")
+	panic(P("args type error", fn.Current))
 }

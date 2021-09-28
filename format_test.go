@@ -39,3 +39,16 @@ func TestFormat(t *testing.T) {
 	fmt.Println(result)
 	assert.Equal(t, testNewLineResult, result)
 }
+
+func TestIfElseFormat(t *testing.T) {
+	result := Format([]byte(`
+	if a == 1 {
+		if b == 2 {
+			c = 3
+		} else if b == 3 {
+			c = 3
+		}
+	}
+	`), "")
+	fmt.Println(result)
+}

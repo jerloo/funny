@@ -174,3 +174,18 @@ if a == 1 {
 	}
 	fmt.Println(string(echoJson))
 }
+
+func TestParseIfIn(t *testing.T) {
+	parser := NewParser([]byte(`
+    if status in [1,2] {
+        minusAccount = Assets:Alipay:Balance
+        plusAccount = Assets:Others
+    }
+`), "")
+	items := parser.Parse()
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
