@@ -185,6 +185,7 @@ func TestLexerIn(t *testing.T) {
 			break
 		}
 	}
+	assert.NotEmpty(t, tokens)
 }
 
 func TestLexerNotIn(t *testing.T) {
@@ -203,4 +204,24 @@ n = 1
 			break
 		}
 	}
+	assert.NotEmpty(t, tokens)
+}
+
+func TestLexerIfInArray(t *testing.T) {
+	lexer := NewLexer([]byte(`
+if 1 in [1,2] {
+  minusAccount = 'Assets:Alipay:Balance'
+  plusAccount = 'Assets:Others'
+}`), "")
+	tokens := make([]Token, 0)
+	for {
+		token := lexer.Next()
+		bts, _ := json.Marshal(&token)
+		fmt.Println(string(bts))
+		tokens = append(tokens, token)
+		if token.Kind == EOF {
+			break
+		}
+	}
+	assert.NotEmpty(t, tokens)
 }

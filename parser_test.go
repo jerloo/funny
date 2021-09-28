@@ -155,7 +155,7 @@ func TestParseIfStatement2(t *testing.T) {
 }
 
 func TestParseInExpression(t *testing.T) {
-	parser := NewParser([]byte(`a = 2 in [2]`), "")
+	parser := NewParser([]byte(`a = b in [2]`), "")
 	items, err := parser.Parse()
 	if err != nil {
 		panic(err)
@@ -168,7 +168,7 @@ func TestParseInExpression(t *testing.T) {
 }
 
 func TestParseNotInExpression(t *testing.T) {
-	parser := NewParser([]byte(`a = 2 not in [2]`), "")
+	parser := NewParser([]byte(`a = 2 not in [2,3]`), "")
 	items, err := parser.Parse()
 	if err != nil {
 		panic(err)
@@ -198,10 +198,30 @@ if a == 1 {
 
 func TestParseIfIn(t *testing.T) {
 	parser := NewParser([]byte(`
-    if status in [1,2] {
-        minusAccount = Assets:Alipay:Balance
-        plusAccount = Assets:Others
-    }
+if 1 in [1,2] {
+  minusAccount = 'Assets:Alipay:Balance'
+  plusAccount = 'Assets:Others'
+}
+`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseIfInStrArray(t *testing.T) {
+	parser := NewParser([]byte(`
+if direction == '支出' {
+  if status in ['交易成功','支付成功','代付成功','亲情卡付款成功','等待确认收货','等待对方发货','交易关闭','充值成功','已付款'] {
+    minusAccount = ''
+    plusAccount = ''
+  }
+}
 `), "")
 	items, err := parser.Parse()
 	if err != nil {

@@ -400,6 +400,7 @@ func (p *Parser) ReadFunction(name string) Statement {
 
 // ReadList read list expression
 func (p *Parser) ReadList() Statement {
+	startPosition := p.Current.Position
 	l := []Statement{}
 	for {
 		if p.Current.Kind == NEW_LINE {
@@ -423,7 +424,7 @@ func (p *Parser) ReadList() Statement {
 	}
 
 	return &List{
-		Position: p.Current.Position,
+		Position: startPosition,
 		Values:   l,
 		Type:     STList,
 	}
@@ -448,19 +449,7 @@ func (p *Parser) ReadExpression() Statement {
 			}
 		}
 		switch p.Current.Kind {
-		case PLUS, MINUS, TIMES, DEVIDE:
-			return &BinaryExpression{
-				Position: current.Position,
-				Left: &Variable{
-					Position: current.Position,
-					Name:     current.Data,
-					Type:     STVariable,
-				},
-				Operator: p.Consume(p.Current.Kind),
-				Right:    p.ReadExpression(),
-				Type:     STBinaryExpression,
-			}
-		case LT, LTE, GT, GTE, DOUBLE_EQ:
+		case PLUS, MINUS, TIMES, DEVIDE, LT, LTE, GT, GTE, DOUBLE_EQ, NAME:
 			return &BinaryExpression{
 				Position: current.Position,
 				Left: &Variable{
