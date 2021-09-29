@@ -622,7 +622,7 @@ func WriteText(fn *Funny, args []Value) Value {
 	panic(P("args type error", fn.Current))
 }
 
-// ReadJson readjson()
+// ReadJson readjson(filename)
 func ReadJson(fn *Funny, args []Value) Value {
 	ackEq(fn, args, 1)
 	if filename, fileOk := args[0].(string); fileOk {
@@ -641,10 +641,10 @@ func ReadJson(fn *Funny, args []Value) Value {
 		}
 		return Value(m)
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument filename except type string but got %s", Typing(args[0])), fn.Current))
 }
 
-// WriteJson writejson(obj)
+// WriteJson writejson(filename, obj)
 func WriteJson(fn *Funny, args []Value) Value {
 	ackEq(fn, args, 2)
 	if filename, fileOk := args[0].(string); fileOk {
@@ -662,7 +662,7 @@ func WriteJson(fn *Funny, args []Value) Value {
 		}
 		return Value(nil)
 	}
-	panic(P(fmt.Sprintf("args type error %s", Typing(args[0])), fn.Current))
+	panic(P(fmt.Sprintf("argument filename except type string but got %s", Typing(args[0])), fn.Current))
 }
 
 // SqlExecFile sqlexecfile(connection, file)
@@ -719,7 +719,7 @@ func SqlExecFile(fn *Funny, args []Value) Value {
 		}
 		return Value(nil)
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument filename except type string but got %s", Typing(args[1])), fn.Current))
 }
 
 // RegexMatch regexMatch(regex, text)
@@ -733,9 +733,9 @@ func RegexMatch(fn *Funny, args []Value) Value {
 			}
 			return Value(matched)
 		}
-		panic(P("args type error", fn.Current))
+		panic(P(fmt.Sprintf("argument regex except type string but got %s", Typing(args[0])), fn.Current))
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument regex except type string but got %s", Typing(args[0])), fn.Current))
 }
 
 // RegexMapMatch regexMapMatch(regexMap, text)
@@ -754,7 +754,7 @@ func RegexMapMatch(fn *Funny, args []Value) Value {
 			}
 			return Value(false)
 		}
-		panic(P("args type error", fn.Current))
+		panic(P(fmt.Sprintf("argument text except type string but got %s", Typing(args[1])), fn.Current))
 	} else if regexMap, ok := args[0].(map[string]interface{}); ok {
 		if text, ok := args[1].(string); ok {
 			for reg := range regexMap {
@@ -768,9 +768,9 @@ func RegexMapMatch(fn *Funny, args []Value) Value {
 			}
 			return Value(false)
 		}
-		panic(P("args type error", fn.Current))
+		panic(P(fmt.Sprintf("argument text except type string but got %s", Typing(args[1])), fn.Current))
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument regexMap except type dict but got %s", Typing(args[0])), fn.Current))
 }
 
 // RegexMapValue regexMapValue(regexMap, text)
@@ -789,7 +789,7 @@ func RegexMapValue(fn *Funny, args []Value) Value {
 			}
 			return Value(nil)
 		}
-		panic(P("args type error", fn.Current))
+		panic(P(fmt.Sprintf("argument text except type string but got %s", Typing(args[1])), fn.Current))
 	} else if regexMap, ok := args[0].(map[string]interface{}); ok {
 		if text, ok := args[1].(string); ok {
 			for reg, value := range regexMap {
@@ -803,9 +803,9 @@ func RegexMapValue(fn *Funny, args []Value) Value {
 			}
 			return Value(nil)
 		}
-		panic(P("args type error", fn.Current))
+		panic(P(fmt.Sprintf("argument text except type string but got %s", Typing(args[1])), fn.Current))
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument regexMap except type dict but got %s", Typing(args[0])), fn.Current))
 }
 
 // Sh sh(command)
@@ -820,5 +820,5 @@ func Sh(fn *Funny, args []Value) Value {
 		}
 		return Value(string(bts))
 	}
-	panic(P("args type error", fn.Current))
+	panic(P(fmt.Sprintf("argument command except type string but got %s", Typing(args[0])), fn.Current))
 }
