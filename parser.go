@@ -314,6 +314,76 @@ func (p *Parser) ReadFOR() Statement {
 	return &item
 }
 
+// ReadFunctionCall read function statement
+func (p *Parser) ReadFunctionCall(name string) Statement {
+	pos := p.Current.Position
+	fn := &Function{
+		Body: &Block{
+			Type: STBlock,
+		},
+		Type: STFunction,
+	}
+	fn.Name = name
+	for {
+		if p.Current.Kind == COMMA {
+			p.Consume(COMMA)
+			continue
+		}
+		if p.Current.Kind == RParenthese {
+			p.Consume(RParenthese)
+			break
+		}
+		fn.Parameters = append(fn.Parameters, p.ReadExpression())
+	}
+
+	if fn.Name == "import" {
+		if len(fn.Parameters) == 0 {
+			panic(P("import module path can not be empty", fn.Position))
+		}
+		arg := fn.Parameters[0]
+		moduleArg, ok := arg.(*Literal)
+		if !ok {
+			panic(P(fmt.Sprintf("import module path not string type %s", fn.Parameters[0].String()), p.Current.Position))
+		}
+		moduleFileName := moduleArg.Value.(string)
+		if strings.HasPrefix(moduleFileName, ".") {
+			if p.ContentFile == "" {
+				currentDir, err := os.Getwd()
+				if err != nil {
+					panic(P(fmt.Sprintf("import module path not found %s", moduleFileName), p.Current.Position))
+				}
+				moduleFileName = path.Join(currentDir, moduleFileName)
+			} else {
+				currentDir := path.Dir(p.ContentFile)
+				moduleFileName = path.Join(currentDir, moduleFileName)
+			}
+		} else {
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current.Position))
+		}
+		importData, err := os.ReadFile(moduleFileName)
+		if err != nil {
+			panic(P(fmt.Sprintf("import module path not found %s", fn.Parameters[0].String()), p.Current.Position))
+		}
+		importParser := NewParser(importData, moduleFileName)
+		block, err := importParser.Parse()
+		if err != nil {
+			panic(err)
+		}
+		return &ImportFunctionCall{
+			Position:   p.Current.Position,
+			ModulePath: fn.Parameters[0].String(),
+			Block:      block,
+			Type:       STFunctionCall,
+		}
+	}
+	return &FunctionCall{
+		Position:   pos,
+		Name:       fn.Name,
+		Parameters: fn.Parameters,
+		Type:       STFunctionCall,
+	}
+}
+
 // ReadFunction read function statement
 func (p *Parser) ReadFunction(name string) Statement {
 	pos := p.Current.Position
@@ -463,7 +533,7 @@ func (p *Parser) ReadExpression() Statement {
 			}
 		case LParenthese:
 			p.Consume(LParenthese)
-			fn1 := p.ReadFunction(current.Data)
+			fn1 := p.ReadFunctionCall(current.Data)
 			switch item := fn1.(type) {
 			case *FunctionCall:
 				switch p.Current.Kind {
@@ -661,7 +731,24 @@ func (p *Parser) ReadExpression() Statement {
 			Type:     STLiteral,
 		}
 	case LParenthese:
-		return p.ReadExpression()
+		p.Consume(LParenthese)
+		exp := &SubExpression{
+			Position:   p.Current.Position,
+			Type:       STSubExpression,
+			Expression: p.ReadExpression(),
+		}
+		p.Consume(RParenthese)
+		switch p.Current.Kind {
+		case MINUS, PLUS, TIMES, DEVIDE:
+			return &BinaryExpression{
+				Position: p.Current.Position,
+				Type:     STBinaryExpression,
+				Left:     exp,
+				Operator: p.Consume(""),
+				Right:    p.ReadExpression(),
+			}
+		}
+		return exp
 	case LBrace:
 		return p.ReadDict()
 	case LBracket:

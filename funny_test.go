@@ -295,3 +295,13 @@ sh('ls')
 	i := NewFunny()
 	i.Run(data)
 }
+
+func TestFunnySubExpression(t *testing.T) {
+	data := `
+a = (1 + 2) + 3
+`
+	i := NewFunny()
+	i.Run(data)
+	a := i.Lookup("a").(int)
+	assert.Equal(t, 6, a)
+}

@@ -41,6 +41,7 @@ const (
 	STVariable           = "Variable"
 	STLiteral            = "Literal"
 	STBinaryExpression   = "BinaryExpression"
+	STSubExpression      = "SubExpression"
 	STAssign             = "Assign"
 	STBlock              = "Block"
 	STList               = "List"
@@ -144,6 +145,22 @@ func (l *BinaryExpression) GetPosition() Position {
 
 func (b *BinaryExpression) String() string {
 	return fmt.Sprintf("%s %s %s", b.Left.String(), b.Operator.Data, b.Right.String())
+}
+
+// SubExpression like a = a && (b * 3), and then '(b * 3)' is SubExpression
+type SubExpression struct {
+	Position Position
+	Type     string
+
+	Expression Statement
+}
+
+func (l *SubExpression) GetPosition() Position {
+	return l.Position
+}
+
+func (b *SubExpression) String() string {
+	return fmt.Sprintf("(%s)", b.Expression.String())
 }
 
 // Assign like a = 2

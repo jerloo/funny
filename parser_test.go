@@ -105,11 +105,11 @@ func TestParseIfStatementWithElseIf(t *testing.T) {
 	parser := NewParser([]byte(`
 a = 1
 if a > 0 {
-echoln(true)
+  echoln(true)
 } else if a == 1 {
-echoln('else if')
+  echoln('else if')
 } else {
-echoln('else')
+  echoln('else')
 }
 `), "")
 	items, err := parser.Parse()
@@ -199,7 +199,7 @@ if a == 1 {
 func TestParseFieldAccessString(t *testing.T) {
 	parser := NewParser([]byte(`
 m = {
-  a = 1	
+  a = 1    
 }
 b = 'a'
 c = m['a']`), "")
@@ -217,7 +217,7 @@ c = m['a']`), "")
 func TestParseFieldAccessNamed(t *testing.T) {
 	parser := NewParser([]byte(`
 m = {
-  a = 1	
+  a = 1    
 }
 b = 'a'
 c = m[b]`), "")
@@ -258,6 +258,65 @@ if direction == '支出' {
     plusAccount = ''
   }
 }
+`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseDoublentryCase(t *testing.T) {
+	parser := NewParser([]byte(`
+    if direction == '支出' {
+        if status in [1] {
+          if regexMapMatch(descriptions, description) {
+            minusAccount = accounts[payMethod]
+          } else if tradeCategory == '餐饮美食' {
+            plusAccount = 'Expenses:Food:Eating'
+          }
+        }
+    }
+`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseIfFunctionCall(t *testing.T) {
+	parser := NewParser([]byte(`
+    if direction == '支出' {
+        if status in [1] {
+          if regexMapMatch(descriptions, description) {
+            
+          }
+        }
+    }
+`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseSubExpression(t *testing.T) {
+	parser := NewParser([]byte(`
+a = (1 + 2) + 3
 `), "")
 	items, err := parser.Parse()
 	if err != nil {

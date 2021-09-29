@@ -438,6 +438,8 @@ func (i *Funny) EvalExpression(expression Statement) Value {
 			}
 		}
 		return scope
+	case *SubExpression:
+		return i.EvalExpression(item.Expression)
 	}
 	panic(P(fmt.Sprintf("eval expression error: [%s]", expression.String()), expression.GetPosition()))
 }
