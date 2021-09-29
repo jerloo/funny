@@ -249,3 +249,49 @@ c = m[b]
 	aInArray := i.Lookup("c")
 	assert.Equal(t, 1, aInArray.(int))
 }
+
+func TestBuiltinFunctionRegexMatch(t *testing.T) {
+	data := `
+c = regexMatch('a', 'abcde')
+`
+	i := NewFunny()
+	i.Run(data)
+	matched := i.Lookup("c")
+	assert.Equal(t, true, matched.(bool))
+}
+
+func TestBuiltinFunctionRegexMapMatch(t *testing.T) {
+	m := map[string]Value{
+		"a": "c",
+	}
+	data := `
+c = regexMapMatch(m, 'abcedfg')
+`
+	i := NewFunny()
+	i.Assign("m", m)
+	i.Run(data)
+	aInArray := i.Lookup("c")
+	assert.Equal(t, true, aInArray.(bool))
+}
+
+func TestBuiltinFunctionRegexMapValue(t *testing.T) {
+	m := map[string]Value{
+		"a": "c",
+	}
+	data := `
+c = regexMapValue(m, 'abcedfg')
+`
+	i := NewFunny()
+	i.Assign("m", m)
+	i.Run(data)
+	aInArray := i.Lookup("c")
+	assert.Equal(t, "c", aInArray.(string))
+}
+
+func TestBuiltinFunctionSh(t *testing.T) {
+	data := `
+sh('ls')
+`
+	i := NewFunny()
+	i.Run(data)
+}

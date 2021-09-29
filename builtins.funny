@@ -2,7 +2,8 @@ funny = {
   version = '0.0.1'
   homepage = 'https://github.com/jerloo/funny'
 }
-author = 'funny'
+
+author = 'jerloo'
 
 // bool true
 true = true
@@ -132,5 +133,25 @@ writejson(filename, text) {
 
 // exec a sql file
 sqlexecfile(connection, filename) {
+
+}
+
+// regexMatch
+regexMatch(reg, text) {
+
+}
+
+// regexMapMatch
+regexMapMatch(regexMap, text) {
+
+}
+
+// regexMapValue
+regexMapValue(regexMap, text) {
+
+}
+
+// sh
+sh(command) {
 
 }

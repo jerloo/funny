@@ -11,7 +11,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"os/exec"
 	"path"
+	"regexp"
 	"strings"
 	"time"
 
@@ -31,35 +33,39 @@ type BuiltinFunction func(fn *Funny, args []Value) Value
 var (
 	// FUNCTIONS all builtin functions
 	FUNCTIONS = map[string]BuiltinFunction{
-		"echo":         Echo,
-		"echoln":       Echoln,
-		"now":          Now,
-		"b64en":        Base64Encode,
-		"b64de":        Base64Decode,
-		"assert":       Assert,
-		"len":          Len,
-		"md5":          Md5,
-		"max":          Max,
-		"min":          Min,
-		"typeof":       Typeof,
-		"uuid":         UUID,
-		"httpreq":      HttpRequest,
-		"env":          Env,
-		"strjoin":      StrJoin,
-		"strsplit":     StrSplit,
-		"str":          Str,
-		"int":          Int,
-		"jwten":        JwtEncode,
-		"jwtde":        JwtDecode,
-		"sqlquery":     SqlQuery,
-		"sqlexec":      SqlExec,
-		"sqlexecfile":  SqlExecFile,
-		"format":       FormatData,
-		"dumpruntimes": DumpRuntimes,
-		"readtext":     ReadText,
-		"writetext":    WriteText,
-		"readjson":     ReadJson,
-		"writejson":    WriteJson,
+		"echo":          Echo,
+		"echoln":        Echoln,
+		"now":           Now,
+		"b64en":         Base64Encode,
+		"b64de":         Base64Decode,
+		"assert":        Assert,
+		"len":           Len,
+		"md5":           Md5,
+		"max":           Max,
+		"min":           Min,
+		"typeof":        Typeof,
+		"uuid":          UUID,
+		"httpreq":       HttpRequest,
+		"env":           Env,
+		"strjoin":       StrJoin,
+		"strsplit":      StrSplit,
+		"str":           Str,
+		"int":           Int,
+		"jwten":         JwtEncode,
+		"jwtde":         JwtDecode,
+		"sqlquery":      SqlQuery,
+		"sqlexec":       SqlExec,
+		"sqlexecfile":   SqlExecFile,
+		"format":        FormatData,
+		"dumpruntimes":  DumpRuntimes,
+		"readtext":      ReadText,
+		"writetext":     WriteText,
+		"readjson":      ReadJson,
+		"writejson":     WriteJson,
+		"regexMatch":    RegexMatch,
+		"regexMapMatch": RegexMapMatch,
+		"regexMapValue": RegexMapValue,
+		"sh":            Sh,
 	}
 )
 
@@ -712,6 +718,79 @@ func SqlExecFile(fn *Funny, args []Value) Value {
 			panic(P(err.Error(), fn.Current))
 		}
 		return Value(nil)
+	}
+	panic(P("args type error", fn.Current))
+}
+
+// RegexMatch regexMatch(regex, text)
+func RegexMatch(fn *Funny, args []Value) Value {
+	ackEq(fn, args, 2)
+	if reg, ok := args[0].(string); ok {
+		if text, ok := args[1].(string); ok {
+			matched, err := regexp.MatchString(reg, text)
+			if err != nil {
+				panic(P(fmt.Sprintf("regex pattern error %s", reg), fn.Current))
+			}
+			return Value(matched)
+		}
+		panic(P("args type error", fn.Current))
+	}
+	panic(P("args type error", fn.Current))
+}
+
+// RegexMapMatch regexMapMatch(regexMap, text)
+func RegexMapMatch(fn *Funny, args []Value) Value {
+	ackEq(fn, args, 2)
+	if regexMap, ok := args[0].(map[string]Value); ok {
+		if text, ok := args[1].(string); ok {
+			for reg := range regexMap {
+				matched, err := regexp.MatchString(reg, text)
+				if err != nil {
+					panic(P(fmt.Sprintf("regex pattern error %s", reg), fn.Current))
+				}
+				if matched {
+					return Value(true)
+				}
+			}
+			return Value(false)
+		}
+		panic(P("args type error", fn.Current))
+	}
+	panic(P("args type error", fn.Current))
+}
+
+// RegexMapValue regexMapValue(regexMap, text)
+func RegexMapValue(fn *Funny, args []Value) Value {
+	ackEq(fn, args, 2)
+	if regexMap, ok := args[0].(map[string]Value); ok {
+		if text, ok := args[1].(string); ok {
+			for reg, value := range regexMap {
+				matched, err := regexp.MatchString(reg, text)
+				if err != nil {
+					panic(P(fmt.Sprintf("regex pattern error %s", reg), fn.Current))
+				}
+				if matched {
+					return value
+				}
+			}
+			return Value(nil)
+		}
+		panic(P("args type error", fn.Current))
+	}
+	panic(P("args type error", fn.Current))
+}
+
+// Sh sh(command)
+func Sh(fn *Funny, args []Value) Value {
+	ackEq(fn, args, 1)
+	if command, ok := args[0].(string); ok {
+		cmd := exec.Command(command)
+		cmd.Stderr = os.Stderr
+		bts, err := cmd.Output()
+		if err != nil {
+			panic(P(fmt.Sprintf("sh command error %s", err.Error()), fn.Current))
+		}
+		return Value(string(bts))
 	}
 	panic(P("args type error", fn.Current))
 }
