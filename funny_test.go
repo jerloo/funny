@@ -221,3 +221,31 @@ echoln('else')
 	aInArray := i.Lookup("b")
 	assert.Equal(t, 2, aInArray.(int))
 }
+
+func TestFunnyFieldAccessString(t *testing.T) {
+	data := `
+m = {
+  a = 1
+}
+b = 'a'
+c = m['a']
+`
+	i := NewFunny()
+	i.Run(data)
+	aInArray := i.Lookup("c")
+	assert.Equal(t, 1, aInArray.(int))
+}
+
+func TestFunnyFieldAccessNamed(t *testing.T) {
+	data := `
+m = {
+  a = 1
+}
+b = 'a'
+c = m[b]
+`
+	i := NewFunny()
+	i.Run(data)
+	aInArray := i.Lookup("c")
+	assert.Equal(t, 1, aInArray.(int))
+}

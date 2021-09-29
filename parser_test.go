@@ -196,6 +196,42 @@ if a == 1 {
 	fmt.Println(string(echoJson))
 }
 
+func TestParseFieldAccessString(t *testing.T) {
+	parser := NewParser([]byte(`
+m = {
+  a = 1	
+}
+b = 'a'
+c = m['a']`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
+func TestParseFieldAccessNamed(t *testing.T) {
+	parser := NewParser([]byte(`
+m = {
+  a = 1	
+}
+b = 'a'
+c = m[b]`), "")
+	items, err := parser.Parse()
+	if err != nil {
+		panic(err)
+	}
+	echoJson, err := prettyjson.Marshal(items)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(echoJson))
+}
+
 func TestParseIfIn(t *testing.T) {
 	parser := NewParser([]byte(`
 if 1 in [1,2] {

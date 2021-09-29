@@ -512,9 +512,9 @@ func (p *Parser) ReadExpression() Statement {
 		case LBracket:
 			p.Consume(LBracket)
 			var exp Statement
-			if p.Current.Kind == STRING {
+			if p.Current.Kind == NAME {
 				// Field access
-				key := p.Consume(STRING)
+				key := p.Consume("")
 				p.Consume(RBracket)
 				exp = &Field{
 					Position: current.Position,
@@ -524,8 +524,27 @@ func (p *Parser) ReadExpression() Statement {
 						Type:     STVariable,
 					},
 					Value: &Variable{
-						Name: key.Data,
-						Type: STVariable,
+						Name:     key.Data,
+						Type:     STVariable,
+						Position: key.Position,
+					},
+					Type: STField,
+				}
+			} else if p.Current.Kind == STRING {
+				// Field access
+				key := p.Consume("")
+				p.Consume(RBracket)
+				exp = &Field{
+					Position: current.Position,
+					Variable: Variable{
+						Position: current.Position,
+						Name:     current.Data,
+						Type:     STVariable,
+					},
+					Value: &StringExpression{
+						Type:     STStringExpression,
+						Value:    key.Data,
+						Position: key.Position,
 					},
 					Type: STField,
 				}
@@ -548,7 +567,7 @@ func (p *Parser) ReadExpression() Statement {
 				}
 				p.Consume(RBracket)
 			} else {
-				panic(P(fmt.Sprintf("Unknow Kind %s", p.Current.Kind), p.Current.Position))
+				panic(P(fmt.Sprintf("Unknow Kind Reading Field %s", p.Current.Kind), p.Current.Position))
 			}
 
 			switch p.Current.Kind {

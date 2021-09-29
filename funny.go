@@ -472,12 +472,24 @@ func (i *Funny) EvalField(item *Field) Value {
 		r, _ := i.EvalFunctionCall(v)
 		i.PopScope()
 		return r
-	case *Variable:
+	case *StringExpression:
 		if val, ok := root.(map[string]Value); ok {
-			return Value(val[v.Name])
+			return Value(val[v.Value])
 		}
 		if val, ok := root.(map[string]interface{}); ok {
-			return Value(val[v.Name])
+			return Value(val[v.Value])
+		}
+	case *Variable:
+		key := i.Lookup(v.Name)
+		if keyStr, ok := key.(string); ok {
+			if val, ok := root.(map[string]Value); ok {
+				return Value(val[keyStr])
+			}
+			if val, ok := root.(map[string]interface{}); ok {
+				return Value(val[keyStr])
+			}
+		} else {
+			panic(P(fmt.Sprintf("unknow type field access key %v", key), i.Current))
 		}
 	case *Field:
 		scope := Scope{}
