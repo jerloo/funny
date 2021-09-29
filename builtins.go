@@ -755,6 +755,20 @@ func RegexMapMatch(fn *Funny, args []Value) Value {
 			return Value(false)
 		}
 		panic(P("args type error", fn.Current))
+	} else if regexMap, ok := args[0].(map[string]interface{}); ok {
+		if text, ok := args[1].(string); ok {
+			for reg := range regexMap {
+				matched, err := regexp.MatchString(reg, text)
+				if err != nil {
+					panic(P(fmt.Sprintf("regex pattern error %s", reg), fn.Current))
+				}
+				if matched {
+					return Value(true)
+				}
+			}
+			return Value(false)
+		}
+		panic(P("args type error", fn.Current))
 	}
 	panic(P("args type error", fn.Current))
 }
@@ -763,6 +777,20 @@ func RegexMapMatch(fn *Funny, args []Value) Value {
 func RegexMapValue(fn *Funny, args []Value) Value {
 	ackEq(fn, args, 2)
 	if regexMap, ok := args[0].(map[string]Value); ok {
+		if text, ok := args[1].(string); ok {
+			for reg, value := range regexMap {
+				matched, err := regexp.MatchString(reg, text)
+				if err != nil {
+					panic(P(fmt.Sprintf("regex pattern error %s", reg), fn.Current))
+				}
+				if matched {
+					return value
+				}
+			}
+			return Value(nil)
+		}
+		panic(P("args type error", fn.Current))
+	} else if regexMap, ok := args[0].(map[string]interface{}); ok {
 		if text, ok := args[1].(string); ok {
 			for reg, value := range regexMap {
 				matched, err := regexp.MatchString(reg, text)
