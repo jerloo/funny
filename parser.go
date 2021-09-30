@@ -224,6 +224,9 @@ func (p *Parser) ReadIF() Statement {
 		item.Body.Statements = append(item.Body.Statements, p.ReadStatement())
 	}
 
+	for p.Current.Kind == NEW_LINE {
+		p.Consume("")
+	}
 	// else body
 	if p.Current.Kind == NAME && p.Current.Data == ELSE {
 		p.Consume("")
