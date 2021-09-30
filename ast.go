@@ -395,10 +395,18 @@ func (l *IFStatement) GetPosition() Position {
 }
 
 func (i *IFStatement) String() string {
-	if i.Else != nil && len(i.Else.Statements) != 0 {
-		return fmt.Sprintf("if %s {%s} else {%s}", i.Condition.String(), block(i.Body), block(i.Else))
+	if i.ElseIf != nil {
+		if i.Else != nil && len(i.Else.Statements) != 0 {
+			return fmt.Sprintf("if %s {%s} else %s else {%s}", i.Condition.String(), block(i.Body), i.ElseIf.String(), block(i.Else))
+		} else {
+			return fmt.Sprintf("if %s {%s} else %s", i.Condition.String(), block(i.Body), i.ElseIf.String())
+		}
 	} else {
-		return fmt.Sprintf("if %s {%s}", i.Condition.String(), block(i.Body))
+		if i.Else != nil && len(i.Else.Statements) != 0 {
+			return fmt.Sprintf("if %s {%s} else {%s}", i.Condition.String(), block(i.Body), block(i.Else))
+		} else {
+			return fmt.Sprintf("if %s {%s}", i.Condition.String(), block(i.Body))
+		}
 	}
 }
 
