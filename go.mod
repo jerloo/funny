@@ -5,7 +5,7 @@ go 1.16
 require (
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
-	github.com/golang-jwt/jwt/v4 v4.1.0
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/guonaihong/gout v0.2.8
 	github.com/jerloo/go-prettyjson v0.0.0-20180920040306-f579f869bbfe
 	github.com/mattn/go-colorable v0.1.10 // indirect
